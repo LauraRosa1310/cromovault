@@ -9,11 +9,15 @@
 </head>
 <body>
   <div id="root"></div>
-  <script>(function(window){
-  var process={env:{NODE_ENV:'production'}};
-  var __DEV__=false;
-  var __REACT_DEVTOOLS_GLOBAL_HOOK__={checkDCE:function(){},supportsFiber:true,inject:function(){},onCommitFiberRoot:function(){},onCommitFiberUnmount:function(){},onPostCommitFiberRoot:function(){}};
-  var Scheduler=(function(){var module={exports:{}},exports=module.exports;/**
+  <script>
+var process = {env:{NODE_ENV:'production'}};
+var __DEV__ = false;
+var __REACT_DEVTOOLS_GLOBAL_HOOK__={checkDCE:function(){},supportsFiber:true,inject:function(){},onCommitFiberRoot:function(){},onCommitFiberUnmount:function(){},onPostCommitFiberRoot:function(){}};
+
+// === SCHEDULER ===
+var __scheduler_module = {exports:{}};
+(function(module, exports, process) {
+  /**
  * @license React
  * scheduler.production.js
  *
@@ -353,8 +357,14 @@ exports.unstable_wrapCallback = function (callback) {
     }
   };
 };
-return module.exports;})();
-  var React=(function(){var module={exports:{}},exports=module.exports;/**
+
+})(__scheduler_module, __scheduler_module.exports, {env:{NODE_ENV:'production'}});
+var Scheduler = __scheduler_module.exports;
+
+// === REACT ===  
+var __react_module = {exports:{}};
+(function(module, exports, process) {
+  /**
  * @license React
  * react.production.js
  *
@@ -896,9 +906,14 @@ exports.useTransition = function () {
   return ReactSharedInternals.H.useTransition();
 };
 exports.version = "19.2.5";
-return module.exports;})();
-  window.React=React;
-  var ReactDOMBase=(function(){var module={exports:{}},exports=module.exports;var require=function(m){if(m==='react')return React;if(m==='scheduler')return Scheduler;return {};}; /**
+
+})(__react_module, __react_module.exports, {env:{NODE_ENV:'production'}});
+var React = __react_module.exports;
+
+// === REACT-DOM BASE ===
+var __reactdom_module = {exports:{}};
+(function(module, exports, process, require) {
+  /**
  * @license React
  * react-dom.production.js
  *
@@ -1108,8 +1123,18 @@ exports.useFormStatus = function () {
   return ReactSharedInternals.H.useHostTransitionStatus();
 };
 exports.version = "19.2.5";
- return module.exports;})();
-  var ReactDOM=(function(){var module={exports:{}},exports=module.exports;var require=function(m){if(m==='react')return React;if(m==='react-dom')return ReactDOMBase;if(m==='scheduler')return Scheduler;return {};}; /**
+
+})(__reactdom_module, __reactdom_module.exports, {env:{NODE_ENV:'production'}}, function(m) {
+  if(m==='react') return React;
+  if(m==='scheduler') return Scheduler;
+  return {};
+});
+var ReactDOMBase = __reactdom_module.exports;
+
+// === REACT-DOM CLIENT ===
+var __reactdomclient_module = {exports:{}};
+(function(module, exports, process, require) {
+  /**
  * @license React
  * react-dom-client.production.js
  *
@@ -17158,59 +17183,61 @@ exports.hydrateRoot = function (container, initialChildren, options) {
   return new ReactDOMHydrationRoot(initialChildren);
 };
 exports.version = "19.2.5";
- return module.exports;})();
-  window.ReactDOM=ReactDOM;
-})(window);</script>
-  <script>
 
-var Recharts = (function() {
-  function ResponsiveContainer({children, width, height}) {
-    return React.createElement('div', {style:{width:width||'100%',height:height||200}}, children);
-  }
-  function BarChart({children, data, height}) {
-    if (!data||!data.length) return null;
-    var allChildren = Array.isArray(children) ? children : [children];
-    var bars = allChildren.filter(c=>c&&c.type&&c.type.displayName==='Bar');
-    var keys = bars.map(b=>b.props.dataKey).filter(Boolean);
-    if (!keys.length) keys = Object.keys(data[0]).filter(k=>k!=='month'&&k!=='name');
-    var vals = data.flatMap(d=>keys.map(k=>+(d[k])||0));
-    var max = Math.max(...vals.map(Math.abs), 1);
-    var h = height||150, w = 560, padL = 35, padB = 20;
-    var bw = Math.max(4, (w-padL)/(data.length*(keys.length+0.5)));
-    var rects = [], xlabels = [];
-    var COLORS = ['#eff4ff','#00c48c','#f03e3e','#f59e0b','#8b5cf6','#1d6bfc'];
-    data.forEach((d,di)=>{
-      var x0 = padL + di*(keys.length*bw + bw*0.5);
-      keys.forEach((k,ki)=>{
-        var v = +(d[k])||0;
-        var fill = (bars[ki]&&bars[ki].props.fill)||COLORS[ki%COLORS.length];
-        var bh = Math.max(1, Math.abs(v)/max*(h-padB-5));
-        var y = v>=0 ? h-padB-bh : h-padB;
-        rects.push(React.createElement('rect',{key:di+'-'+ki,x:x0+ki*bw,y,width:bw-1,height:bh,fill,rx:2}));
-      });
-      if(di%Math.max(1,Math.ceil(data.length/8))===0){
-        xlabels.push(React.createElement('text',{key:'x'+di,x:x0+keys.length*bw/2,y:h-3,textAnchor:'middle',fontSize:9,fill:'#9ca3af'},String(d.month||d.name||'')));
-      }
+})(__reactdomclient_module, __reactdomclient_module.exports, {env:{NODE_ENV:'production'}}, function(m) {
+  if(m==='react') return React;
+  if(m==='react-dom') return ReactDOMBase;
+  if(m==='scheduler') return Scheduler;
+  return {};
+});
+var ReactDOM = __reactdomclient_module.exports;
+
+
+// === RECHARTS (minimal) ===
+var Recharts = {};
+Recharts.ResponsiveContainer = function(props) {
+  return React.createElement('div', {style:{width:props.width||'100%',height:props.height||200}}, props.children);
+};
+Recharts.BarChart = function(props) {
+  var data = props.data || [];
+  if (!data.length) return null;
+  var children = Array.isArray(props.children) ? props.children : [props.children];
+  var barEls = children.filter(function(c){return c&&c.type&&c.type.displayName==='Bar';});
+  var keys = barEls.map(function(b){return b.props.dataKey;}).filter(Boolean);
+  if (!keys.length) keys = Object.keys(data[0]).filter(function(k){return k!=='month'&&k!=='name';});
+  var vals = [];
+  data.forEach(function(d){keys.forEach(function(k){vals.push(Math.abs(+(d[k])||0));});});
+  var max = Math.max.apply(null, vals.concat([1]));
+  var h = props.height||150, w = 560, padL = 30, padB = 20;
+  var bw = Math.max(3, (w-padL)/(data.length*(keys.length+0.5)));
+  var COLORS = ['#eff4ff','#00c48c','#f03e3e','#f59e0b','#8b5cf6','#1d6bfc'];
+  var elems = [];
+  data.forEach(function(d,di){
+    var x0 = padL + di*(keys.length*bw + bw*0.5);
+    keys.forEach(function(k,ki){
+      var v = +(d[k])||0;
+      var fill = (barEls[ki]&&barEls[ki].props&&barEls[ki].props.fill)||COLORS[ki%COLORS.length];
+      var bh = Math.max(1, Math.abs(v)/max*(h-padB-5));
+      var y = v>=0 ? h-padB-bh : h-padB;
+      elems.push(React.createElement('rect',{key:di+'-'+ki,x:x0+ki*bw,y:y,width:bw-1,height:bh,fill:fill,rx:2}));
     });
-    return React.createElement('svg',{width:'100%',viewBox:'0 0 '+w+' '+h,style:{overflow:'visible'}},
-      React.createElement('g',null,...rects),
-      React.createElement('g',null,...xlabels)
-    );
-  }
-  BarChart.displayName='BarChart';
-  function Bar(p){return null;} Bar.displayName='Bar';
-  function Cell(p){return null;} Cell.displayName='Cell';
-  function XAxis(p){return null;} XAxis.displayName='XAxis';
-  function YAxis(p){return null;} YAxis.displayName='YAxis';
-  function Tooltip(p){return null;} Tooltip.displayName='Tooltip';
-  function ResponsiveContainerWrapped(p){return React.createElement(ResponsiveContainer,p);}
-  return {ResponsiveContainer:ResponsiveContainerWrapped,BarChart,Bar,Cell,XAxis,YAxis,Tooltip};
-})();
+    if(di%Math.max(1,Math.ceil(data.length/8))===0){
+      elems.push(React.createElement('text',{key:'x'+di,x:x0+keys.length*bw/2,y:h-3,textAnchor:'middle',fontSize:9,fill:'#9ca3af'},String(d.month||d.name||'')));
+    }
+  });
+  return React.createElement('svg',{width:'100%',viewBox:'0 0 '+w+' '+h,style:{overflow:'visible'}},elems);
+};
+Recharts.BarChart.displayName = 'BarChart';
+Recharts.Bar = function(){return null;}; Recharts.Bar.displayName = 'Bar';
+Recharts.Cell = function(){return null;}; Recharts.Cell.displayName = 'Cell';
+Recharts.XAxis = function(){return null;}; Recharts.XAxis.displayName = 'XAxis';
+Recharts.YAxis = function(){return null;}; Recharts.YAxis.displayName = 'YAxis';
+Recharts.Tooltip = function(){return null;}; Recharts.Tooltip.displayName = 'Tooltip';
 var BarChart=Recharts.BarChart,Bar=Recharts.Bar,XAxis=Recharts.XAxis,YAxis=Recharts.YAxis,Tooltip=Recharts.Tooltip,ResponsiveContainer=Recharts.ResponsiveContainer,Cell=Recharts.Cell;
 
 const { useState, useEffect, useRef } = React;
 
-// Recharts loaded below
+const { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } = Recharts;
 const BLUE = "#1d6bfc", GREEN = "#00c48c", RED = "#f03e3e", AMBER = "#f59e0b", PURPLE = "#8b5cf6";
 const BG = "#fff", BGS = "#f7f8fa", BDR = "#e8eaed", TXT = "#0a0a0a", SUB = "#6b7280", MUT = "#9ca3af";
 const CATS = { futbol: "⚽ Fútbol", trading: "🃏 Trading", nba: "🏀 NBA", baseball: "⚾ Baseball", f1: "🏎️ F1", other: "🏅 Otro" };
