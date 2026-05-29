@@ -17169,8 +17169,6 @@ var Recharts=(function(){
 })();
 const { useState, useEffect, useRef } = React;
 
-exports.default = App;
-const recharts_1 = require("recharts");
 const BLUE = "#1d6bfc", GREEN = "#00c48c", RED = "#f03e3e", AMBER = "#f59e0b", PURPLE = "#8b5cf6";
 const BG = "#fff", BGS = "#f7f8fa", BDR = "#e8eaed", TXT = "#0a0a0a", SUB = "#6b7280", MUT = "#9ca3af";
 const CATS = { futbol: "⚽ Fútbol", trading: "🃏 Trading", nba: "🏀 NBA", baseball: "⚾ Baseball", f1: "🏎️ F1", other: "🏅 Otro" };
@@ -17671,12 +17669,12 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
         React.createElement("div", { style: { display: "grid", gridTemplateColumns: "3fr 2fr", gap: 20, marginBottom: 20 } },
             React.createElement(Card, { style: { padding: "18px 18px 12px" } },
                 React.createElement(SL, null, "P&L mensual (neto)"),
-                chartData.length > 0 ? (React.createElement(recharts_1.ResponsiveContainer, { width: "100%", height: 150 },
-                    React.createElement(recharts_1.BarChart, { data: chartData, barSize: 22, margin: { top: 0, right: 0, left: -20, bottom: 0 } },
-                        React.createElement(recharts_1.XAxis, { dataKey: "month", tick: { fill: MUT, fontSize: 10 }, axisLine: false, tickLine: false }),
-                        React.createElement(recharts_1.YAxis, { tick: { fill: MUT, fontSize: 10 }, axisLine: false, tickLine: false }),
-                        React.createElement(recharts_1.Tooltip, { contentStyle: { background: BG, border: "1px solid " + BDR, borderRadius: 8, fontSize: 12 }, formatter: v => [eu(v), "P&L"] }),
-                        React.createElement(recharts_1.Bar, { dataKey: "pnl", radius: [4, 4, 0, 0] }, chartData.map((d, i) => React.createElement(recharts_1.Cell, { key: i, fill: d.pnl >= 0 ? GREEN : RED })))))) : (React.createElement("div", { style: { height: 150, display: "flex", alignItems: "center", justifyContent: "center" } },
+                chartData.length > 0 ? (React.createElement(Recharts.ResponsiveContainer, { width: "100%", height: 150 },
+                    React.createElement(Recharts.BarChart, { data: chartData, barSize: 22, margin: { top: 0, right: 0, left: -20, bottom: 0 } },
+                        React.createElement(Recharts.XAxis, { dataKey: "month", tick: { fill: MUT, fontSize: 10 }, axisLine: false, tickLine: false }),
+                        React.createElement(Recharts.YAxis, { tick: { fill: MUT, fontSize: 10 }, axisLine: false, tickLine: false }),
+                        React.createElement(Recharts.Tooltip, { contentStyle: { background: BG, border: "1px solid " + BDR, borderRadius: 8, fontSize: 12 }, formatter: v => [eu(v), "P&L"] }),
+                        React.createElement(Recharts.Bar, { dataKey: "pnl", radius: [4, 4, 0, 0] }, chartData.map((d, i) => React.createElement(Recharts.Cell, { key: i, fill: d.pnl >= 0 ? GREEN : RED })))))) : (React.createElement("div", { style: { height: 150, display: "flex", alignItems: "center", justifyContent: "center" } },
                     React.createElement("span", { style: { color: MUT, fontSize: 12 } }, "Sin ventas a\u00FAn")))),
             React.createElement(Card, { style: { padding: "18px" } },
                 React.createElement(SL, null, "Mejores operaciones"),
@@ -17733,14 +17731,14 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
                 const data = Object.values(mo).sort((a, b) => a.month.localeCompare(b.month)).slice(-12);
                 if (!data.length)
                     return React.createElement(Empty, { icon: "\uD83D\uDCCA", title: "Sin datos a\u00FAn", sub: "Los datos aparecer\u00E1n cuando a\u00F1adas cartas con fecha de compra" });
-                return (React.createElement(recharts_1.ResponsiveContainer, { width: "100%", height: 200 },
-                    React.createElement(recharts_1.BarChart, { data: data, barSize: 16, margin: { top: 0, right: 0, left: -10, bottom: 0 } },
-                        React.createElement(recharts_1.XAxis, { dataKey: "month", tick: { fill: MUT, fontSize: 9 }, axisLine: false, tickLine: false }),
-                        React.createElement(recharts_1.YAxis, { tick: { fill: MUT, fontSize: 9 }, axisLine: false, tickLine: false }),
-                        React.createElement(recharts_1.Tooltip, { contentStyle: { background: BG, border: "1px solid " + BDR, borderRadius: 8, fontSize: 11 }, formatter: (v, n) => [eu(v), n === "cartera" ? "Invertido" : n === "recuperado" ? "Recuperado" : "En stock"] }),
-                        React.createElement(recharts_1.Bar, { dataKey: "cartera", fill: "#eff4ff", radius: [3, 3, 0, 0], name: "cartera" }),
-                        React.createElement(recharts_1.Bar, { dataKey: "recuperado", fill: GREEN, radius: [3, 3, 0, 0], name: "recuperado" }),
-                        React.createElement(recharts_1.Bar, { dataKey: "stock", fill: BLUE, radius: [3, 3, 0, 0], name: "stock" }))));
+                return (React.createElement(Recharts.ResponsiveContainer, { width: "100%", height: 200 },
+                    React.createElement(Recharts.BarChart, { data: data, barSize: 16, margin: { top: 0, right: 0, left: -10, bottom: 0 } },
+                        React.createElement(Recharts.XAxis, { dataKey: "month", tick: { fill: MUT, fontSize: 9 }, axisLine: false, tickLine: false }),
+                        React.createElement(Recharts.YAxis, { tick: { fill: MUT, fontSize: 9 }, axisLine: false, tickLine: false }),
+                        React.createElement(Recharts.Tooltip, { contentStyle: { background: BG, border: "1px solid " + BDR, borderRadius: 8, fontSize: 11 }, formatter: (v, n) => [eu(v), n === "cartera" ? "Invertido" : n === "recuperado" ? "Recuperado" : "En stock"] }),
+                        React.createElement(Recharts.Bar, { dataKey: "cartera", fill: "#eff4ff", radius: [3, 3, 0, 0], name: "cartera" }),
+                        React.createElement(Recharts.Bar, { dataKey: "recuperado", fill: GREEN, radius: [3, 3, 0, 0], name: "recuperado" }),
+                        React.createElement(Recharts.Bar, { dataKey: "stock", fill: BLUE, radius: [3, 3, 0, 0], name: "stock" }))));
             })(),
             React.createElement("div", { style: { display: "flex", gap: 16, marginTop: 10, justifyContent: "center" } }, [["#eff4ff", "#1d6bfc", "Invertido"], [GREEN, GREEN, "Recuperado"], [BLUE, BLUE, "Stock activo"]].map(([bg, c, l]) => React.createElement("div", { key: l, style: { display: "flex", alignItems: "center", gap: 5 } },
                 React.createElement("div", { style: { width: 10, height: 10, borderRadius: 2, background: bg, border: "1px solid " + c } }),
@@ -17871,12 +17869,12 @@ function FiscalTab({ cards, invoices }) {
                         eu(tInvGastos))))),
         mA.length > 0 && React.createElement(Card, { style: { padding: "18px", marginBottom: 20 } },
             React.createElement(SL, null, "Beneficio mensual"),
-            React.createElement(recharts_1.ResponsiveContainer, { width: "100%", height: 150 },
-                React.createElement(recharts_1.BarChart, { data: mA, barSize: 26, margin: { top: 0, right: 0, left: -15, bottom: 0 } },
-                    React.createElement(recharts_1.XAxis, { dataKey: "month", tick: { fill: MUT, fontSize: 10 }, axisLine: false, tickLine: false }),
-                    React.createElement(recharts_1.YAxis, { tick: { fill: MUT, fontSize: 10 }, axisLine: false, tickLine: false }),
-                    React.createElement(recharts_1.Tooltip, { contentStyle: { background: BG, border: "1px solid " + BDR, borderRadius: 8, fontSize: 12 }, formatter: v => [eu(v), "Neto"] }),
-                    React.createElement(recharts_1.Bar, { dataKey: "pnl", radius: [4, 4, 0, 0] }, mA.map((d, i) => React.createElement(recharts_1.Cell, { key: i, fill: d.pnl >= 0 ? GREEN : RED })))))),
+            React.createElement(Recharts.ResponsiveContainer, { width: "100%", height: 150 },
+                React.createElement(Recharts.BarChart, { data: mA, barSize: 26, margin: { top: 0, right: 0, left: -15, bottom: 0 } },
+                    React.createElement(Recharts.XAxis, { dataKey: "month", tick: { fill: MUT, fontSize: 10 }, axisLine: false, tickLine: false }),
+                    React.createElement(Recharts.YAxis, { tick: { fill: MUT, fontSize: 10 }, axisLine: false, tickLine: false }),
+                    React.createElement(Recharts.Tooltip, { contentStyle: { background: BG, border: "1px solid " + BDR, borderRadius: 8, fontSize: 12 }, formatter: v => [eu(v), "Neto"] }),
+                    React.createElement(Recharts.Bar, { dataKey: "pnl", radius: [4, 4, 0, 0] }, mA.map((d, i) => React.createElement(Recharts.Cell, { key: i, fill: d.pnl >= 0 ? GREEN : RED })))))),
         sd.length > 0 ? (React.createElement(Card, null,
             React.createElement("div", { style: { padding: "13px 16px", borderBottom: "1px solid " + BDR } },
                 React.createElement(SL, { style: { marginBottom: 0 } },
