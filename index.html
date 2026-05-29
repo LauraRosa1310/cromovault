@@ -18115,12 +18115,12 @@ function AnalyticsTab({ cards }) {
     function saveLocs(l) { setLocs(l); localStorage.setItem("cv10_locs", JSON.stringify(l)); }
     return (React.createElement("div", null,
         React.createElement("div", { style: { fontSize: 20, fontWeight: 700, marginBottom: 20 } }, "An\u00E1lisis"),
-        React.createElement("div", { style: { columnCount: 2, columnGap: 16, marginBottom: 16 } },
-            React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 16, breakInside: "avoid", display: "inline-block", width: "100%" } },
+        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gridAutoFlow: "column", gridTemplateRows: "auto auto auto auto", gap: 16, marginBottom: 16, alignItems: "start" } },
+            React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 16 } },
             React.createElement(SL, { style: { marginBottom: 8, fontSize: 13 } }, "\uD83E\uDDF2 Calculadora de precio m\u00E1ximo"),
             React.createElement(MaxPriceCalc, null)),
 
-        React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 16, breakInside: "avoid", display: "inline-block", width: "100%" } },
+        React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 16 } },
             React.createElement(SL, { style: { marginBottom: 6, fontSize: 13 } }, "\u26A1 Velocidad de ventas"),
             (() => {
                 const sold = cards.filter(c => c.status === "sold" && c.sellDate);
@@ -18140,7 +18140,7 @@ function AnalyticsTab({ cards }) {
                     daysToSellAll && React.createElement("span", null, React.createElement("b", null, daysToSellAll+" d\u00EDas"), React.createElement("span", { style: { color: MUT, marginLeft: 4 } }, "para vender todo el stock")));
             })()),
 
-        React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 16, breakInside: "avoid", display: "inline-block", width: "100%" } },
+        React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 16 } },
             React.createElement(SL, { style: { marginBottom: 10, fontSize: 13 } }, "\uD83D\uDCC5 Resumen por lote"),
             (() => {
                 const [selLot, setSelLot] = React.useState("all");
@@ -18163,30 +18163,6 @@ function AnalyticsTab({ cards }) {
                                 React.createElement("div",{style:{display:"flex",gap:10,fontSize:11}},React.createElement("span",{style:{color:SUB}},"Inv: "+eu(lot.invested)),React.createElement("span",{style:{fontWeight:700,color:cl(lot.profit)}},(lot.profit>=0?"+":"")+eu(lot.profit)),React.createElement("span",{style:{color:cl(roi)}},"ROI "+roi.toFixed(0)+"%"))),
                             React.createElement("div",{style:{height:4,borderRadius:2,background:BDR,overflow:"hidden"}},React.createElement("div",{style:{height:"100%",width:pctSold+"%",background:pctSold>80?GREEN:pctSold>40?AMBER:BLUE,borderRadius:2}})));
                     }));
-            })()),
-
-        React.createElement(Card, { style: { padding: "10px 14px", marginBottom: 16, breakInside: "avoid", display: "inline-block", width: "100%" } },
-            React.createElement(SL, { style: { marginBottom: 6, fontSize: 12 } }, "\uD83D\uDD25 Rentabilidad por jugador (Top 5)"),
-            (() => {
-                const playerMap = {};
-                cards.forEach(c => { const player=((c.name||"").split(" ").slice(0,2).join(" ")).toLowerCase().trim(); if(!player)return; if(!playerMap[player])playerMap[player]={name:(c.name||"").split(" ").slice(0,2).join(" "),invested:0,profit:0,sold:0,inStock:0}; playerMap[player].invested+=(c.buyPrice||0)*(c.quantity||1); if(c.status==="sold"){playerMap[player].profit+=np(c);playerMap[player].sold++;}else{playerMap[player].inStock++;} });
-                const players=Object.values(playerMap).filter(p=>p.invested>0).sort((a,b)=>b.profit-a.profit).slice(0,5);
-                if(!players.length) return React.createElement(Empty,{icon:"\uD83D\uDD25",title:"Sin datos"});
-                const maxP=Math.max(...players.map(p=>Math.abs(p.profit)),1);
-                return React.createElement("div",null,players.map(p=>{const roi=p.invested>0?(p.profit/p.invested*100):0,bw=Math.abs(p.profit)/maxP*100,isPos=p.profit>=0;return React.createElement("div",{key:p.name,style:{marginBottom:6}},React.createElement("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:2}},React.createElement("span",{style:{fontSize:11,fontWeight:600,textTransform:"capitalize"}},p.name),React.createElement("div",{style:{display:"flex",gap:10,fontSize:11}},p.sold>0&&React.createElement("span",{style:{color:MUT}},p.sold+" vend."),React.createElement("span",{style:{fontWeight:700,color:isPos?GREEN:RED}},(isPos?"+":"")+eu(p.profit)),React.createElement("span",{style:{color:isPos?GREEN:RED}},"ROI "+roi.toFixed(0)+"%"))),React.createElement("div",{style:{height:4,borderRadius:2,background:BDR,overflow:"hidden"}},React.createElement("div",{style:{height:"100%",width:bw+"%",background:isPos?GREEN:RED,borderRadius:2}})));}));
-            })()),
-
-        React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 16, breakInside: "avoid", display: "inline-block", width: "100%" } },
-            React.createElement(SL, { style: { marginBottom: 8, fontSize: 13 } }, "\u26A0\uFE0F An\u00E1lisis de errores (Top 5)"),
-            (() => {
-                const minRoi=parseFloat(localStorage.getItem("cv10_minroi")||"30");
-                const errors=cards.filter(c=>{if(c.status!=="sold")return false;const cost=(c.buyPrice||0)*(c.quantity||1);if(cost===0)return false;return(np(c)/cost*100)<minRoi;}).sort((a,b)=>(np(a)/((a.buyPrice||0)*(a.quantity||1)*100))-(np(b)/((b.buyPrice||0)*(b.quantity||1)*100))).slice(0,5);
-                const totalLeft=errors.reduce((acc,c)=>{const cost=(c.buyPrice||0)*(c.quantity||1);return acc+(cost*minRoi/100-np(c));},0);
-                if(!errors.length)return React.createElement("div",{style:{padding:"8px 0",textAlign:"center",color:GREEN,fontSize:12}},"\u2713 Todas tus ventas superaron el ROI m\u00EDnimo de "+minRoi+"%");
-                return React.createElement("div",null,
-                    React.createElement("div",{style:{background:"#fff5f5",border:"1px solid #fecaca",borderRadius:6,padding:"8px 12px",marginBottom:10,fontSize:11}},React.createElement("span",{style:{color:RED,fontWeight:600}},errors.length+" ventas por debajo del "+minRoi+"% ROI"),React.createElement("span",{style:{color:SUB,marginLeft:6}},"Dejaste de ganar "+eu(totalLeft))),
-                    errors.map(c=>{const cost=(c.buyPrice||0)*(c.quantity||1),roi=cost>0?(np(c)/cost*100):0,missing=cost*minRoi/100-np(c);return React.createElement("div",{key:c.id,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid "+BDR}},React.createElement("div",{style:{flex:1,minWidth:0}},React.createElement("div",{style:{fontSize:11,fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},c.name),React.createElement("div",{style:{fontSize:10,color:MUT}},(c.sellDate||"").slice(0,7))),React.createElement("div",{style:{textAlign:"right",flexShrink:0,marginLeft:10}},React.createElement("div",{style:{fontSize:11,fontWeight:700,color:roi>=0?AMBER:RED}},"ROI "+roi.toFixed(0)+"%"),React.createElement("div",{style:{fontSize:10,color:RED}},"-"+eu(missing))));})
-                );
             })()),
 
         React.createElement(Card, { style: { padding: "18px" } },
@@ -18219,6 +18195,31 @@ function AnalyticsTab({ cards }) {
                         React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 12, color: SUB } },
                             s.avgFee.toFixed(1),
                             "%"))))))) : React.createElement(Empty, { icon: "\uD83C\uDFC6", title: "Sin datos", sub: "Registra ventas con plataforma para ver estad\u00EDsticas" }))),
+
+        React.createElement(Card, { style: { padding: "10px 14px", marginBottom: 16 } },
+            React.createElement(SL, { style: { marginBottom: 6, fontSize: 12 } }, "\uD83D\uDD25 Rentabilidad por jugador (Top 5)"),
+            (() => {
+                const playerMap = {};
+                cards.forEach(c => { const player=((c.name||"").split(" ").slice(0,2).join(" ")).toLowerCase().trim(); if(!player)return; if(!playerMap[player])playerMap[player]={name:(c.name||"").split(" ").slice(0,2).join(" "),invested:0,profit:0,sold:0,inStock:0}; playerMap[player].invested+=(c.buyPrice||0)*(c.quantity||1); if(c.status==="sold"){playerMap[player].profit+=np(c);playerMap[player].sold++;}else{playerMap[player].inStock++;} });
+                const players=Object.values(playerMap).filter(p=>p.invested>0).sort((a,b)=>b.profit-a.profit).slice(0,5);
+                if(!players.length) return React.createElement(Empty,{icon:"\uD83D\uDD25",title:"Sin datos"});
+                const maxP=Math.max(...players.map(p=>Math.abs(p.profit)),1);
+                return React.createElement("div",null,players.map(p=>{const roi=p.invested>0?(p.profit/p.invested*100):0,bw=Math.abs(p.profit)/maxP*100,isPos=p.profit>=0;return React.createElement("div",{key:p.name,style:{marginBottom:6}},React.createElement("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:2}},React.createElement("span",{style:{fontSize:11,fontWeight:600,textTransform:"capitalize"}},p.name),React.createElement("div",{style:{display:"flex",gap:10,fontSize:11}},p.sold>0&&React.createElement("span",{style:{color:MUT}},p.sold+" vend."),React.createElement("span",{style:{fontWeight:700,color:isPos?GREEN:RED}},(isPos?"+":"")+eu(p.profit)),React.createElement("span",{style:{color:isPos?GREEN:RED}},"ROI "+roi.toFixed(0)+"%"))),React.createElement("div",{style:{height:4,borderRadius:2,background:BDR,overflow:"hidden"}},React.createElement("div",{style:{height:"100%",width:bw+"%",background:isPos?GREEN:RED,borderRadius:2}})));}));
+            })()),
+
+        React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 16 } },
+            React.createElement(SL, { style: { marginBottom: 8, fontSize: 13 } }, "\u26A0\uFE0F An\u00E1lisis de errores (Top 5)"),
+            (() => {
+                const minRoi=parseFloat(localStorage.getItem("cv10_minroi")||"30");
+                const errors=cards.filter(c=>{if(c.status!=="sold")return false;const cost=(c.buyPrice||0)*(c.quantity||1);if(cost===0)return false;return(np(c)/cost*100)<minRoi;}).sort((a,b)=>(np(a)/((a.buyPrice||0)*(a.quantity||1)*100))-(np(b)/((b.buyPrice||0)*(b.quantity||1)*100))).slice(0,5);
+                const totalLeft=errors.reduce((acc,c)=>{const cost=(c.buyPrice||0)*(c.quantity||1);return acc+(cost*minRoi/100-np(c));},0);
+                if(!errors.length)return React.createElement("div",{style:{padding:"8px 0",textAlign:"center",color:GREEN,fontSize:12}},"\u2713 Todas tus ventas superaron el ROI m\u00EDnimo de "+minRoi+"%");
+                return React.createElement("div",null,
+                    React.createElement("div",{style:{background:"#fff5f5",border:"1px solid #fecaca",borderRadius:6,padding:"8px 12px",marginBottom:10,fontSize:11}},React.createElement("span",{style:{color:RED,fontWeight:600}},errors.length+" ventas por debajo del "+minRoi+"% ROI"),React.createElement("span",{style:{color:SUB,marginLeft:6}},"Dejaste de ganar "+eu(totalLeft))),
+                    errors.map(c=>{const cost=(c.buyPrice||0)*(c.quantity||1),roi=cost>0?(np(c)/cost*100):0,missing=cost*minRoi/100-np(c);return React.createElement("div",{key:c.id,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid "+BDR}},React.createElement("div",{style:{flex:1,minWidth:0}},React.createElement("div",{style:{fontSize:11,fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},c.name),React.createElement("div",{style:{fontSize:10,color:MUT}},(c.sellDate||"").slice(0,7))),React.createElement("div",{style:{textAlign:"right",flexShrink:0,marginLeft:10}},React.createElement("div",{style:{fontSize:11,fontWeight:700,color:roi>=0?AMBER:RED}},"ROI "+roi.toFixed(0)+"%"),React.createElement("div",{style:{fontSize:10,color:RED}},"-"+eu(missing))));})
+                );
+            })()),
+
         React.createElement(Card, { style: { marginBottom: 20, padding: "18px" } },
             React.createElement(SL, { style: { marginBottom: 12 } },
                 "\uD83E\uDDFE Estimaci\u00F3n IRPF ",
