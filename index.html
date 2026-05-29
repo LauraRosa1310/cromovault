@@ -17162,21 +17162,25 @@ var Recharts = (function() {
   // ResponsiveContainer
   function ResponsiveContainer(props) {
     var ref = React.useRef(null);
-    var _s = React.useState({w: 600, h: props.height || 200});
-    var size = _s[0], setSize = _s[1];
+    var h = props.height || 200;
+    var _s = React.useState(600);
+    var w = _s[0], setW = _s[1];
     React.useEffect(function() {
       if (!ref.current) return;
+      setW(ref.current.offsetWidth);
       var ro = new ResizeObserver(function(entries) {
-        var e = entries[0];
-        setSize({w: e.contentRect.width, h: props.height || 200});
+        setW(entries[0].contentRect.width);
       });
       ro.observe(ref.current);
-      setSize({w: ref.current.offsetWidth, h: props.height || 200});
       return function() { ro.disconnect(); };
     }, []);
     var child = props.children;
-    if (typeof child === 'function') child = child(size);
-    return React.createElement('div', {ref: ref, style: {width: props.width || '100%', height: size.h}}, child);
+    if (typeof child === 'function') child = child({width: w, height: h});
+    // Clone child with explicit width/height
+    if (child && child.props) {
+      child = React.createElement(child.type, Object.assign({}, child.props, {width: w, height: h}));
+    }
+    return React.createElement('div', {ref: ref, style: {width: props.width || '100%', height: h, overflow: 'hidden'}}, child);
   }
 
   // BarChart with tooltip
@@ -17194,7 +17198,7 @@ var Recharts = (function() {
     if (!keys.length) keys = Object.keys(data[0]).filter(function(k) { return k !== 'month' && k !== 'name'; });
 
     var W = (props.width || 560) - (margin.left||0) - (margin.right||0);
-    var H = (props.height || 150) - (margin.top||0) - (margin.bottom||0);
+    var H = (props.height || 150);
     var padL = 40, padB = 22, padT = 5;
     var chartW = W - padL, chartH = H - padB - padT;
 
