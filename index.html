@@ -17627,34 +17627,20 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
     return (React.createElement("div", null,
         React.createElement(Card, { style: { marginBottom: 20, padding: "20px 24px" } },
             React.createElement(SL, { style: { marginBottom: 16 } }, "\uD83D\uDCB0 Balance de cartera"),
-            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 12, marginBottom: 16 } }, [{ l: "Dinero invertido", v: euk(invested), c: TXT, sub: "total gastado en cartas" }, { l: "Dinero recuperado", v: euk(recovered), c: GREEN, sub: "ingresos netos de ventas" }, { l: "En cartera", v: euk(inPortfolio), c: BLUE, sub: hold.length + " cartas al coste" }, { l: "Balance total", v: (balance >= 0 ? "+" : "") + euk(balance), c: cl(balance), sub: balance >= 0 ? "estás ganando" : "estás perdiendo" }].map(({ l, v, c, sub }) => (React.createElement("div", { key: l, style: { background: BGS, borderRadius: 10, padding: "14px 16px", border: "1px solid " + BDR } },
-                React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 6 } }, l),
-                React.createElement("div", { style: { fontSize: 20, fontWeight: 700, color: c, letterSpacing: "-0.02em" } }, v),
-                React.createElement("div", { style: { fontSize: 11, color: MUT, marginTop: 4 } }, sub))))),
-            React.createElement("div", { style: { background: balance >= 0 ? "#f0fdf8" : "#fff5f5", borderRadius: 10, padding: "12px 16px", border: "1px solid " + (balance >= 0 ? "#d1fae5" : "#fecaca") } },
-                React.createElement("div", { style: { fontSize: 12, color: SUB, marginBottom: 4 } }, "\u00BFC\u00F3mo se calcula?"),
-                React.createElement("div", { style: { fontSize: 12, color: TXT } },
-                    React.createElement("span", { style: { color: GREEN } },
-                        euk(recovered),
-                        " recuperado"),
-                    React.createElement("span", { style: { color: MUT } }, " + "),
-                    React.createElement("span", { style: { color: BLUE } },
-                        euk(inPortfolio),
-                        " en cartera"),
-                    React.createElement("span", { style: { color: MUT } }, " - "),
-                    React.createElement("span", { style: { color: TXT } },
-                        euk(invested),
-                        " invertido"),
-                    React.createElement("span", { style: { color: MUT } }, " = "),
-                    React.createElement("span", { style: { fontWeight: 700, color: cl(balance) } },
-                        balance >= 0 ? "+" : "",
-                        euk(balance))))),
-        React.createElement(Card, { style: { marginBottom: 20, display: "flex", flexWrap: "wrap" } },
-            React.createElement(KT, { label: "Total invertido", value: euk(invested), br: true }),
-            React.createElement(KT, { label: "En cartera", value: euk(inPortfolio), sub: hold.length + " cartas", br: true }),
-            React.createElement(KT, { label: "P&L realizado", value: sg(realized) + euk(realized), accent: cl(realized), br: true }),
-            React.createElement(KT, { label: "ROI global", value: sg(roi) + roi.toFixed(1) + "%", accent: cl(roi), br: true }),
-            React.createElement(KT, { label: "En venta", value: listed.length, accent: listed.length > 0 ? AMBER : TXT })),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))", gap: 10, marginBottom: 10 } },
+                ...[{ l: "Dinero invertido", v: euk(invested), c: TXT, sub: "total gastado" }, { l: "Recuperado", v: euk(recovered), c: GREEN, sub: "ventas netas" }, { l: "En cartera", v: euk(inPortfolio), c: BLUE, sub: hold.length + " cartas" }, { l: "Balance total", v: (balance >= 0 ? "+" : "") + euk(balance), c: cl(balance), sub: balance >= 0 ? "ganando" : "perdiendo" }, { l: "P&L realizado", v: sg(realized) + euk(realized), c: cl(realized), sub: "beneficio real" }, { l: "ROI global", v: sg(roi) + roi.toFixed(1) + "%", c: cl(roi), sub: "sobre invertido" }, { l: "En venta", v: String(listed.length), c: listed.length > 0 ? AMBER : TXT, sub: "anuncios" }].map(({ l, v, c, sub }) => React.createElement("div", { key: l, style: { background: BGS, borderRadius: 10, padding: "10px 12px", border: "1px solid " + BDR } },
+                    React.createElement("div", { style: { fontSize: 10, color: SUB, marginBottom: 3 } }, l),
+                    React.createElement("div", { style: { fontSize: 15, fontWeight: 700, color: c, letterSpacing: "-0.02em" } }, v),
+                    React.createElement("div", { style: { fontSize: 10, color: MUT, marginTop: 2 } }, sub)))),
+            React.createElement("div", { style: { background: balance >= 0 ? "#f0fdf8" : "#fff5f5", borderRadius: 8, padding: "8px 12px", marginTop: 2, border: "1px solid " + (balance >= 0 ? "#d1fae5" : "#fecaca"), fontSize: 11 } },
+                React.createElement("span", { style: { color: SUB, marginRight: 6 } }, "\u00BFC\u00F3mo se calcula?"),
+                React.createElement("span", { style: { color: GREEN } }, euk(recovered), " recuperado"),
+                React.createElement("span", { style: { color: MUT } }, " + "),
+                React.createElement("span", { style: { color: BLUE } }, euk(inPortfolio), " en cartera"),
+                React.createElement("span", { style: { color: MUT } }, " - "),
+                React.createElement("span", { style: { color: TXT } }, euk(invested), " invertido"),
+                React.createElement("span", { style: { color: MUT } }, " = "),
+                React.createElement("span", { style: { fontWeight: 700, color: cl(balance) } }, balance >= 0 ? "+" : "", euk(balance)))),
         alerts.length > 0 && (React.createElement(Card, { style: { marginBottom: 20, padding: "14px 18px", border: "1px solid #fde68a", background: "#fffbeb" } },
             React.createElement(SL, { style: { marginBottom: 10, color: AMBER } }, "\u26A0\uFE0F Alertas \u2014 cartas en venta hace tiempo"),
             React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, alerts.map(c => { const d = daysSince(c.listingDate); return (React.createElement("div", { key: c.id, style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 8, background: d >= 30 ? "#fecaca" : "#fde68a", border: "1px solid " + (d >= 30 ? "#f87171" : "#f59e0b") } },
@@ -18110,105 +18096,6 @@ function AnalyticsTab({ cards }) {
     return (React.createElement("div", null,
         React.createElement("div", { style: { fontSize: 20, fontWeight: 700, marginBottom: 20 } }, "An\u00E1lisis"),
         React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 } },
-            React.createElement(Card, { style: { padding: "18px" } },
-                React.createElement(SL, null, "\u23F1 Tiempo medio de venta"),
-                catStats.length > 0 ? (React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
-                    React.createElement(TH, { cols: [["Categoría"], ["Ops", "right"], ["Días", "right"], ["ROI medio", "right"]] }),
-                    React.createElement("tbody", null, catStats.map(s => (React.createElement("tr", { key: s.k, style: { borderBottom: "1px solid " + BDR } },
-                        React.createElement("td", { style: { padding: "9px 12px", fontSize: 13 } }, s.label),
-                        React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 12, color: SUB } }, s.count),
-                        React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 13, fontWeight: 600, color: s.avgDays > 30 ? RED : s.avgDays > 14 ? AMBER : GREEN } },
-                            s.avgDays,
-                            "d"),
-                        React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 13, fontWeight: 600, color: cl(s.avgRoi) } },
-                            sg(s.avgRoi),
-                            s.avgRoi.toFixed(1),
-                            "%"))))))) : React.createElement(Empty, { icon: "\u23F1", title: "Sin datos", sub: "Necesitas ventas con fecha de compra y venta" })),
-            React.createElement(Card, { style: { padding: "18px" } },
-                React.createElement(SL, null, "\uD83C\uDFC6 Rendimiento por plataforma"),
-                platStats.length > 0 ? (React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
-                    React.createElement(TH, { cols: [["Plataforma"], ["Ventas", "right"], ["ROI", "right"], ["Comisión", "right"]] }),
-                    React.createElement("tbody", null, platStats.map((s, i) => (React.createElement("tr", { key: s.p, style: { borderBottom: "1px solid " + BDR, background: i === 0 ? "#f0fdf8" : "transparent" } },
-                        React.createElement("td", { style: { padding: "9px 12px", fontSize: 13 } },
-                            i === 0 ? "🥇 " : "",
-                            s.p),
-                        React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 12, color: SUB } }, s.count),
-                        React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 13, fontWeight: 600, color: cl(s.avgRoi) } },
-                            sg(s.avgRoi),
-                            s.avgRoi.toFixed(1),
-                            "%"),
-                        React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 12, color: SUB } },
-                            s.avgFee.toFixed(1),
-                            "%"))))))) : React.createElement(Empty, { icon: "\uD83C\uDFC6", title: "Sin datos", sub: "Registra ventas con plataforma para ver estad\u00EDsticas" }))),
-        React.createElement(Card, { style: { marginBottom: 20, padding: "18px" } },
-            React.createElement(SL, { style: { marginBottom: 12 } },
-                "\uD83E\uDDFE Estimaci\u00F3n IRPF ",
-                yr),
-            profit > 0 ? (React.createElement("div", null,
-                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 12, marginBottom: 14 } }, [{ l: "Beneficio " + yr, v: eu(profit), c: cl(profit) }, { l: "IRPF estimado", v: eu(taxEst), c: RED }, { l: "Neto tras impuestos", v: eu(profit - taxEst), c: cl(profit - taxEst) }, { l: "Tipo efectivo", v: (profit > 0 ? (taxEst / profit * 100) : 0).toFixed(1) + "%", c: SUB }].map(({ l, v, c }) => (React.createElement("div", { key: l, style: { background: BGS, borderRadius: 10, padding: "12px 14px", border: "1px solid " + BDR } },
-                    React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 4 } }, l),
-                    React.createElement("div", { style: { fontSize: 18, fontWeight: 700, color: c } }, v))))),
-                React.createElement("div", { style: { background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "10px 14px", fontSize: 11, color: SUB } }, "\u26A0\uFE0F Estimaci\u00F3n orientativa seg\u00FAn tramos IRPF 2024 para ganancias patrimoniales (19% hasta 6.000\u20AC \u00B7 21% hasta 50.000\u20AC \u00B7 23% hasta 200.000\u20AC \u00B7 27% a partir de 200.000\u20AC). Consulta con un gestor para tu caso concreto."))) : React.createElement(Empty, { icon: "\uD83E\uDDFE", title: "Sin beneficios en " + yr, sub: "Cuando tengas ventas cerradas en el a\u00F1o actual aparecer\u00E1 la estimaci\u00F3n" })),
-        React.createElement(Card, { style: { padding: "18px", marginBottom: 20 } },
-            React.createElement(SL, { style: { marginBottom: 8, fontSize: 13 } }, "\uD83E\uDDF2 Calculadora de precio m\u00E1ximo"),
-            (() => {
-                const [cSell, setCSell] = useState("");
-                const [cRoi, setCRoi] = useState("30");
-                const [cFee, setCFee] = useState("5");
-                const [cShip, setCShip] = useState("0");
-                const sell = parseFloat(cSell) || 0, roi = parseFloat(cRoi) || 0, fee = parseFloat(cFee) || 0, ship = parseFloat(cShip) || 0;
-                const netSell = sell * (1 - fee / 100) - ship, maxBuy = netSell / (1 + roi / 100);
-                return (React.createElement("div", null,
-                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 } },
-                        React.createElement("div", null,
-                            React.createElement("label", { style: LS }, "Precio venta objetivo (\u20AC)"),
-                            React.createElement("input", { type: "number", min: "0", step: "0.01", value: cSell, onChange: e => setCSell(e.target.value), placeholder: "0.00", style: IS })),
-                        React.createElement("div", null,
-                            React.createElement("label", { style: LS }, "ROI m\u00EDnimo (%)"),
-                            React.createElement("input", { type: "number", min: "0", step: "1", value: cRoi, onChange: e => setCRoi(e.target.value), placeholder: "30", style: IS }))),
-                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 } },
-                        React.createElement("div", null,
-                            React.createElement("label", { style: LS }, "Comisi\u00F3n (%)"),
-                            React.createElement("input", { type: "number", min: "0", step: "0.1", value: cFee, onChange: e => setCFee(e.target.value), placeholder: "5", style: IS })),
-                        React.createElement("div", null,
-                            React.createElement("label", { style: LS }, "Env\u00EDo (\u20AC)"),
-                            React.createElement("input", { type: "number", min: "0", step: "0.01", value: cShip, onChange: e => setCShip(e.target.value), placeholder: "0.00", style: IS }))),
-                    sell > 0 && React.createElement("div", { style: { background: maxBuy > 0 ? "#f0fdf8" : "#fff5f5", border: "1px solid " + (maxBuy > 0 ? "#d1fae5" : "#fecaca"), borderRadius: 10, padding: "14px 16px" } },
-                        React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: maxBuy > 0 ? GREEN : RED, marginBottom: 10 } }, maxBuy > 0 ? "✓ Resultado" : "⚠ No viable"),
-                        [["Precio venta", "€" + sell.toFixed(2), TXT], ["Comisión+envío", "-€" + (sell * fee / 100 + ship).toFixed(2), RED], ["Ingresos netos", "€" + netSell.toFixed(2), TXT], ["Precio máximo de compra", maxBuy > 0 ? "€" + maxBuy.toFixed(2) : "—", maxBuy > 0 ? GREEN : RED], ["ROI al comprar", roi + "%", SUB]].map(([l, v, c]) => (React.createElement("div", { key: l, style: { display: "flex", justifyContent: "space-between", marginBottom: 5 } },
-                            React.createElement("span", { style: { fontSize: 12, color: SUB } }, l),
-                            React.createElement("span", { style: { fontSize: 13, fontWeight: l.includes("ximo") ? 700 : 500, color: c } }, v)))))));
-            })()),
-        React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 20 } },
-            React.createElement(SL, { style: { marginBottom: 6, fontSize: 13 } }, "\u26A1 Velocidad de ventas"),
-            (() => {
-                const sv = cards.filter(c => c.status === "sold" && c.sellDate);
-                if (sv.length < 2)
-                    return React.createElement("div", { style: { color: MUT, fontSize: 12 } }, "Necesitas al menos 2 ventas.");
-                const bw = {};
-                sv.forEach(c => { const w = Math.floor(new Date(c.sellDate).getTime() / (7 * 24 * 3600 * 1000)); bw[w] = (bw[w] || 0) + 1; });
-                const apw = Object.values(bw).reduce((a, b) => a + b, 0) / Object.values(bw).length;
-                const now = Date.now();
-                const l30 = sv.filter(c => now - new Date(c.sellDate).getTime() < 30 * 86400000).length;
-                const p30 = sv.filter(c => { const t = now - new Date(c.sellDate).getTime(); return t >= 30 * 86400000 && t < 60 * 86400000; }).length;
-                const tr = l30 - p30;
-                const stk = cards.filter(c => c.mode === "inventory" && c.status !== "sold").length;
-                const days = apw > 0 ? Math.round(stk / apw * 7) : null;
-                return (React.createElement("div", { style: { display: "flex", gap: 20, flexWrap: "wrap", fontSize: 13 } },
-                    React.createElement("span", null,
-                        React.createElement("b", null, apw.toFixed(1)),
-                        React.createElement("span", { style: { color: MUT, marginLeft: 4 } }, "cartas/semana")),
-                    React.createElement("span", null,
-                        React.createElement("b", { style: { color: tr > 0 ? GREEN : tr < 0 ? RED : TXT } }, l30),
-                        React.createElement("span", { style: { color: MUT, marginLeft: 4 } },
-                            "\u00FAltimos 30 d\u00EDas ",
-                            tr > 0 ? "(+" + tr + ")" : tr < 0 ? "(" + tr + ")" : "")),
-                    days && React.createElement("span", null,
-                        React.createElement("b", null,
-                            days,
-                            " d\u00EDas"),
-                        React.createElement("span", { style: { color: MUT, marginLeft: 4 } }, "para vender todo el stock"))));
-            })()),
         React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 20 } },
             React.createElement(SL, { style: { marginBottom: 10, fontSize: 13 } }, "\uD83D\uDCC5 Resumen por lote"),
             (() => {
@@ -18248,7 +18135,37 @@ function AnalyticsTab({ cards }) {
                                 React.createElement("div", { style: { height: "100%", width: pct + "%", background: pct > 80 ? GREEN : pct > 40 ? AMBER : BLUE, borderRadius: 2 } }))));
                     })));
             })()),
-        React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 20 } },
+        React.createElement(Card, { style: { padding: "18px", marginBottom: 20 } },
+            React.createElement(SL, { style: { marginBottom: 8, fontSize: 13 } }, "\uD83E\uDDF2 Calculadora de precio m\u00E1ximo"),
+            (() => {
+                const [cSell, setCSell] = useState("");
+                const [cRoi, setCRoi] = useState("30");
+                const [cFee, setCFee] = useState("5");
+                const [cShip, setCShip] = useState("0");
+                const sell = parseFloat(cSell) || 0, roi = parseFloat(cRoi) || 0, fee = parseFloat(cFee) || 0, ship = parseFloat(cShip) || 0;
+                const netSell = sell * (1 - fee / 100) - ship, maxBuy = netSell / (1 + roi / 100);
+                return (React.createElement("div", null,
+                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 } },
+                        React.createElement("div", null,
+                            React.createElement("label", { style: LS }, "Precio venta objetivo (\u20AC)"),
+                            React.createElement("input", { type: "number", min: "0", step: "0.01", value: cSell, onChange: e => setCSell(e.target.value), placeholder: "0.00", style: IS })),
+                        React.createElement("div", null,
+                            React.createElement("label", { style: LS }, "ROI m\u00EDnimo (%)"),
+                            React.createElement("input", { type: "number", min: "0", step: "1", value: cRoi, onChange: e => setCRoi(e.target.value), placeholder: "30", style: IS }))),
+                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 } },
+                        React.createElement("div", null,
+                            React.createElement("label", { style: LS }, "Comisi\u00F3n (%)"),
+                            React.createElement("input", { type: "number", min: "0", step: "0.1", value: cFee, onChange: e => setCFee(e.target.value), placeholder: "5", style: IS })),
+                        React.createElement("div", null,
+                            React.createElement("label", { style: LS }, "Env\u00EDo (\u20AC)"),
+                            React.createElement("input", { type: "number", min: "0", step: "0.01", value: cShip, onChange: e => setCShip(e.target.value), placeholder: "0.00", style: IS }))),
+                    sell > 0 && React.createElement("div", { style: { background: maxBuy > 0 ? "#f0fdf8" : "#fff5f5", border: "1px solid " + (maxBuy > 0 ? "#d1fae5" : "#fecaca"), borderRadius: 10, padding: "14px 16px" } },
+                        React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: maxBuy > 0 ? GREEN : RED, marginBottom: 10 } }, maxBuy > 0 ? "✓ Resultado" : "⚠ No viable"),
+                        [["Precio venta", "€" + sell.toFixed(2), TXT], ["Comisión+envío", "-€" + (sell * fee / 100 + ship).toFixed(2), RED], ["Ingresos netos", "€" + netSell.toFixed(2), TXT], ["Precio máximo de compra", maxBuy > 0 ? "€" + maxBuy.toFixed(2) : "—", maxBuy > 0 ? GREEN : RED], ["ROI al comprar", roi + "%", SUB]].map(([l, v, c]) => (React.createElement("div", { key: l, style: { display: "flex", justifyContent: "space-between", marginBottom: 5 } },
+                            React.createElement("span", { style: { fontSize: 12, color: SUB } }, l),
+                            React.createElement("span", { style: { fontSize: 13, fontWeight: l.includes("ximo") ? 700 : 500, color: c } }, v)))))));
+            })()),
+        React.createElement(Card, { style: { padding: "18px", marginBottom: 20 } },
             React.createElement(SL, { style: { marginBottom: 6, fontSize: 12 } }, "\uD83D\uDD25 Rentabilidad por jugador (Top 5)"),
             (() => {
                 const pm = {};
@@ -18274,6 +18191,36 @@ function AnalyticsTab({ cards }) {
                         React.createElement("div", { style: { height: 4, borderRadius: 2, background: BDR, overflow: "hidden" } },
                             React.createElement("div", { style: { height: "100%", width: bw + "%", background: pos ? GREEN : RED, borderRadius: 2 } }))));
                 })));
+            })()),
+        React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 20 } },
+            React.createElement(SL, { style: { marginBottom: 6, fontSize: 13 } }, "\u26A1 Velocidad de ventas"),
+            (() => {
+                const sv = cards.filter(c => c.status === "sold" && c.sellDate);
+                if (sv.length < 2)
+                    return React.createElement("div", { style: { color: MUT, fontSize: 12 } }, "Necesitas al menos 2 ventas.");
+                const bw = {};
+                sv.forEach(c => { const w = Math.floor(new Date(c.sellDate).getTime() / (7 * 24 * 3600 * 1000)); bw[w] = (bw[w] || 0) + 1; });
+                const apw = Object.values(bw).reduce((a, b) => a + b, 0) / Object.values(bw).length;
+                const now = Date.now();
+                const l30 = sv.filter(c => now - new Date(c.sellDate).getTime() < 30 * 86400000).length;
+                const p30 = sv.filter(c => { const t = now - new Date(c.sellDate).getTime(); return t >= 30 * 86400000 && t < 60 * 86400000; }).length;
+                const tr = l30 - p30;
+                const stk = cards.filter(c => c.mode === "inventory" && c.status !== "sold").length;
+                const days = apw > 0 ? Math.round(stk / apw * 7) : null;
+                return (React.createElement("div", { style: { display: "flex", gap: 20, flexWrap: "wrap", fontSize: 13 } },
+                    React.createElement("span", null,
+                        React.createElement("b", null, apw.toFixed(1)),
+                        React.createElement("span", { style: { color: MUT, marginLeft: 4 } }, "cartas/semana")),
+                    React.createElement("span", null,
+                        React.createElement("b", { style: { color: tr > 0 ? GREEN : tr < 0 ? RED : TXT } }, l30),
+                        React.createElement("span", { style: { color: MUT, marginLeft: 4 } },
+                            "\u00FAltimos 30 d\u00EDas ",
+                            tr > 0 ? "(+" + tr + ")" : tr < 0 ? "(" + tr + ")" : "")),
+                    days && React.createElement("span", null,
+                        React.createElement("b", null,
+                            days,
+                            " d\u00EDas"),
+                        React.createElement("span", { style: { color: MUT, marginLeft: 4 } }, "para vender todo el stock"))));
             })()),
         React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 20 } },
             React.createElement(SL, { style: { marginBottom: 8, fontSize: 13 } }, "\u26A0\uFE0F An\u00E1lisis de errores (Top 5)"),
@@ -18303,7 +18250,16 @@ function AnalyticsTab({ cards }) {
                                 React.createElement("div", { style: { fontSize: 10, color: RED } }, "-" + eu(miss)))));
                     })));
             })()),
-        React.createElement(Card, { style: { padding: "18px", marginBottom: 20 } },
+                    React.createElement(Card, { style: { marginBottom: 20, padding: "18px" } },
+            React.createElement(SL, { style: { marginBottom: 12 } },
+                "\uD83E\uDDFE Estimaci\u00F3n IRPF ",
+                yr),
+            profit > 0 ? (React.createElement("div", null,
+                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 12, marginBottom: 14 } }, [{ l: "Beneficio " + yr, v: eu(profit), c: cl(profit) }, { l: "IRPF estimado", v: eu(taxEst), c: RED }, { l: "Neto tras impuestos", v: eu(profit - taxEst), c: cl(profit - taxEst) }, { l: "Tipo efectivo", v: (profit > 0 ? (taxEst / profit * 100) : 0).toFixed(1) + "%", c: SUB }].map(({ l, v, c }) => (React.createElement("div", { key: l, style: { background: BGS, borderRadius: 10, padding: "12px 14px", border: "1px solid " + BDR } },
+                    React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 4 } }, l),
+                    React.createElement("div", { style: { fontSize: 18, fontWeight: 700, color: c } }, v))))),
+                React.createElement("div", { style: { background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "10px 14px", fontSize: 11, color: SUB } }, "\u26A0\uFE0F Estimaci\u00F3n orientativa seg\u00FAn tramos IRPF 2024 para ganancias patrimoniales (19% hasta 6.000\u20AC \u00B7 21% hasta 50.000\u20AC \u00B7 23% hasta 200.000\u20AC \u00B7 27% a partir de 200.000\u20AC). Consulta con un gestor para tu caso concreto."))) : React.createElement(Empty, { icon: "\uD83E\uDDFE", title: "Sin beneficios en " + yr, sub: "Cuando tengas ventas cerradas en el a\u00F1o actual aparecer\u00E1 la estimaci\u00F3n" })),
+        React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 20 } },
             React.createElement(SL, { style: { marginBottom: 12 } }, "\uD83C\uDFAF Margen m\u00EDnimo de venta"),
             (() => {
                 const [minRoi, setMinRoi] = useState(() => parseFloat(localStorage.getItem("cv10_minroi") || "30"));
@@ -18331,7 +18287,7 @@ function AnalyticsTab({ cards }) {
                         saveLocs([...locs, newLoc.trim()]);
                         setNewLoc("");
                     } }, disabled: !newLoc.trim() }, "A\u00F1adir")),
-            React.createElement("div", { style: { marginTop: 10, fontSize: 11, color: MUT } }, "Las ubicaciones que a\u00F1adas aqu\u00ED estar\u00E1n disponibles al editar cualquier carta."))));
+            React.createElement("div", { style: { marginTop: 10, fontSize: 11, color: MUT } }, "Las ubicaciones que a\u00F1adas aqu\u00ED estar\u00E1n disponibles al editar cualquier carta.")))));
 }
 const PSA_SERVICES = [{ k: "economy", l: "Economy", days: 45 }, { k: "regular", l: "Regular", days: 20 }, { k: "express", l: "Express", days: 10 }, { k: "walkthrough", l: "Walkthrough", days: 5 }];
 const PSA_STATUS = [["sent", "📬 Enviada"], ["grading", "🔍 En proceso"], ["done", "✅ Recibida"], ["sold", "💰 Vendida"]];
