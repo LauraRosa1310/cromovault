@@ -17745,361 +17745,120 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
                 React.createElement("span", { style: { fontSize: 10, color: SUB } }, l)))))));
 }
 function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
-    const [fl, setFl] = useState("all"), [sr, setSr] = useState(""), [st, setSt] = useState("date");
+    const [sr, setSr] = React.useState(""), [st, setSt] = React.useState("date");
+    const [filterY, setFilterY] = React.useState("all"), [filterM, setFilterM] = React.useState("all");
+    const [statusFl, setStatusFl] = React.useState(new Set());
+    const [catFl, setCatFl] = React.useState(new Set());
+    const [locFl, setLocFl] = React.useState(new Set());
+    const INV_MONTHS = [["all","Mes"],["01","Ene"],["02","Feb"],["03","Mar"],["04","Abr"],["05","May"],["06","Jun"],["07","Jul"],["08","Ago"],["09","Sep"],["10","Oct"],["11","Nov"],["12","Dic"]];
+    function toggleSet(setter, val) { setter(prev => { const n = new Set(prev); n.has(val) ? n.delete(val) : n.add(val); return n; }); }
     const inv = cards.filter(c => c.mode === "inventory");
-    const fi = inv.filter(c => { if (fl === "holding" && c.status === "sold")
-        return false; if (fl === "sold" && c.status !== "sold")
-        return false; if (fl === "listed" && c.status !== "listed")
-        return false; if (fl === "fav" && !c.isFavorite)
-        return false; if (fl === "psa" && (!c.condition || c.condition === "Raw"))
-        return false; if (["futbol", "trading", "nba", "baseball", "f1", "other"].includes(fl) && c.category !== fl)
-        return false; if (sr && !c.name.toLowerCase().includes(sr.toLowerCase()))
-        return false; return true; }).sort((a, b) => { if (st === "profit")
-        return (b.status === "sold" ? np(b) : 0) - (a.status === "sold" ? np(a) : 0); if (st === "cost")
-        return (b.buyPrice || 0) * (b.quantity || 1) - (a.buyPrice || 0) * (a.quantity || 1); if (st === "name")
-        return a.name.localeCompare(b.name); return (b.buyDate || "").localeCompare(a.buyDate || ""); });
-    const fC = fi.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0), fN = fi.filter(c => c.status === "sold").reduce((a, c) => a + np(c), 0);
-    return (React.createElement("div", null,
-        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 } }, [{ l: "Total", v: inv.length }, { l: "Invertido", v: eu(inv.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0)) }, { l: "En venta", v: inv.filter(c => c.status === "listed").length, a: AMBER }, { l: "Vendidas", v: inv.filter(c => c.status === "sold").length, a: GREEN }].map(({ l, v, a }) => (React.createElement(Card, { key: l, style: { padding: "13px 15px" } },
-            React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 3 } }, l),
-            React.createElement("div", { style: { fontSize: 20, fontWeight: 700, color: a || TXT } }, v))))),
+    const invYears = ["all", ...new Set(inv.map(c => (c.buyDate || "").slice(0, 4)).filter(Boolean))].sort((a, b) => b.localeCompare(a));
+    const fi = inv.filter(c => {
+        if (filterY !== "all" && (c.buyDate || "").slice(0, 4) !== filterY) return false;
+        if (filterM !== "all" && (c.buyDate || "").slice(5, 7) !== filterM) return false;
+        if (sr && !c.name.toLowerCase().includes(sr.toLowerCase())) return false;
+        if (statusFl.size > 0) {
+            const isSold = c.status === "sold", isListed = c.status === "listed", isHolding = !isSold && !isListed;
+            const hasPSA = c.condition && c.condition !== "Raw";
+            // Each active filter is OR within its type, but PSA/fav are additive
+            const statusKeys = ["sold","listed","holding"].filter(k => statusFl.has(k));
+            const matchStatus = statusKeys.length === 0 ||
+                (statusFl.has("sold") && isSold) ||
+                (statusFl.has("listed") && isListed) ||
+                (statusFl.has("holding") && isHolding);
+            const matchPSA = !statusFl.has("psa") || hasPSA;
+            const matchFav = !statusFl.has("fav") || c.isFavorite;
+            if (!matchStatus || !matchPSA || !matchFav) return false;
+        }
+        if (catFl.size > 0 && !catFl.has(c.category)) return false;
+        if (locFl.size > 0 && !locFl.has(c.location || "")) return false;
+        return true;
+    }).sort((a, b) => {
+        if (st === "profit") return (b.status === "sold" ? np(b) : 0) - (a.status === "sold" ? np(a) : 0);
+        if (st === "cost") return (b.buyPrice || 0) * (b.quantity || 1) - (a.buyPrice || 0) * (a.quantity || 1);
+        if (st === "name") return a.name.localeCompare(b.name);
+        return (b.buyDate || "").localeCompare(a.buyDate || "");
+    });
+    const fC = fi.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0);
+    const fN = fi.filter(c => c.status === "sold").reduce((a, c) => a + np(c), 0);
+    const locs = JSON.parse(localStorage.getItem("cv10_locs") || "null") || DEFAULT_LOCATIONS;
+    const hasFilters = statusFl.size > 0 || catFl.size > 0 || locFl.size > 0;
+    return React.createElement("div", null,
+        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 } },
+            [{ l: "Total", v: inv.length, a: TXT }, { l: "Invertido", v: eu(inv.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0)), a: TXT }, { l: "En venta", v: inv.filter(c => c.status === "listed").length, a: AMBER }, { l: "Vendidas", v: inv.filter(c => c.status === "sold").length, a: GREEN }].map(({ l, v, a }) =>
+                React.createElement(Card, { key: l, style: { padding: "13px 15px" } },
+                    React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 3 } }, l),
+                    React.createElement("div", { style: { fontSize: 20, fontWeight: 700, color: a } }, v)))),
         React.createElement(Card, null,
             React.createElement("div", { style: { padding: "11px 14px", borderBottom: "1px solid " + BDR, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" } },
-                React.createElement("input", { value: sr, onChange: e => setSr(e.target.value), placeholder: "\uD83D\uDD0D Buscar...", style: Object.assign(Object.assign({}, IS), { maxWidth: 150, background: BGS, padding: "7px 10px" }) }),
-                React.createElement("div", { style: { display: "flex", gap: 5, flexWrap: "wrap" } }, [["all", "Todas"], ["holding", "Cartera"], ["listed", "En venta"], ["sold", "Vendidas"], ["fav", "⭐"], ["psa", "PSA/BGS"], ["nba", "🏀"], ["futbol", "⚽"], ["trading", "🃏"]].map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setFl(k), style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid " + (fl === k ? BLUE : BDR), background: fl === k ? "#eff4ff" : "transparent", color: fl === k ? BLUE : SUB, fontSize: 11, fontWeight: 500, cursor: "pointer" } }, l)))),
-                React.createElement("div", { style: { marginLeft: "auto" } },
-                    React.createElement("select", { value: st, onChange: e => setSt(e.target.value), style: Object.assign(Object.assign({}, IS), { width: "auto", padding: "5px 10px", fontSize: 11, background: BGS }) },
-                        React.createElement("option", { value: "date" }, "Fecha"),
-                        React.createElement("option", { value: "profit" }, "P&L"),
-                        React.createElement("option", { value: "cost" }, "Coste"),
-                        React.createElement("option", { value: "name" }, "Nombre")))),
-            fi.length === 0 ? (React.createElement(Empty, { icon: "\uD83D\uDCE6", title: inv.length === 0 ? "Sin cartas" : "Sin resultados" })) : (React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
-                React.createElement(TH, { cols: [["Carta"], ["Rareza"], ["Coste", "right"], ["P&L / APY", "right"], ["Estado", "center"], ["", "right"]] }),
-                React.createElement("tbody", null, fi.map(c => React.createElement(CardRow, { key: c.id, card: c, onEdit: onEdit, onDelete: onDelete, onSell: onSell, onDuplicate: onDuplicate }))),
-                fi.length > 1 && React.createElement("tfoot", null,
-                    React.createElement("tr", { style: { borderTop: "1.5px solid " + BDR, background: BGS } },
-                        React.createElement("td", { colSpan: 2, style: { padding: "9px 14px", fontSize: 12, fontWeight: 600, color: SUB } },
-                            fi.length,
-                            " cartas"),
-                        React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 13, fontWeight: 700 } }, eu(fC)),
-                        React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 13, fontWeight: 700, color: cl(fN) } },
-                            sg(fN),
-                            eu(fN)),
-                        React.createElement("td", { colSpan: 2 }))))))));
-}
-function ColTab({ cards, onEdit, onDelete, onDuplicate }) {
-    const [sr, setSr] = useState(""), [fl, setFl] = useState("all");
-    const col = cards.filter(c => c.mode === "collection");
-    const fi = col.filter(c => { if (["futbol", "trading", "nba", "baseball", "f1", "other"].includes(fl) && c.category !== fl)
-        return false; if (fl === "fav" && !c.isFavorite)
-        return false; if (fl === "psa" && (!c.condition || c.condition === "Raw"))
-        return false; if (sr && !c.name.toLowerCase().includes(sr.toLowerCase()))
-        return false; return true; });
-    const byR = RARS.map(r => ({ r, n: col.filter(c => c.rarity === r).length })).filter(x => x.n > 0);
-    return (React.createElement("div", null,
-        React.createElement(Card, { style: { marginBottom: 20 } },
-            React.createElement("div", { style: { display: "flex", flexWrap: "wrap" } },
-                React.createElement(KT, { label: "Total", value: col.length, br: true }),
-                React.createElement(KT, { label: "Coste", value: euk(col.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0)), br: true }),
-                React.createElement(KT, { label: "NBA", value: col.filter(c => c.category === "nba").length, br: true }),
-                React.createElement(KT, { label: "F\u00FAtbol", value: col.filter(c => c.category === "futbol").length, br: true }),
-                React.createElement(KT, { label: "Trading", value: col.filter(c => c.category === "trading").length })),
-            byR.length > 0 && React.createElement("div", { style: { padding: "11px 18px", borderTop: "1px solid " + BDR, display: "flex", gap: 10, flexWrap: "wrap" } }, byR.map(({ r, n }) => React.createElement("span", { key: r, style: { fontSize: 11, color: RCLR[r] } },
-                r,
-                ": ",
-                React.createElement("b", { style: { color: TXT } }, n))))),
-        React.createElement(Card, null,
-            React.createElement("div", { style: { padding: "11px 14px", borderBottom: "1px solid " + BDR, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" } },
-                React.createElement("input", { value: sr, onChange: e => setSr(e.target.value), placeholder: "\uD83D\uDD0D Buscar...", style: Object.assign(Object.assign({}, IS), { maxWidth: 150, background: BGS, padding: "7px 10px" }) }),
-                React.createElement("div", { style: { display: "flex", gap: 5, flexWrap: "wrap" } }, [["all", "Todas"], ["nba", "🏀"], ["futbol", "⚽"], ["trading", "🃏"], ["fav", "⭐"], ["psa", "PSA"]].map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setFl(k), style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid " + (fl === k ? BLUE : BDR), background: fl === k ? "#eff4ff" : "transparent", color: fl === k ? BLUE : SUB, fontSize: 11, fontWeight: 500, cursor: "pointer" } }, l))))),
-            fi.length === 0 ? (React.createElement(Empty, { icon: "\u2B50", title: col.length === 0 ? "Colección vacía" : "Sin resultados", sub: col.length === 0 ? "Añade cartas que coleccionas" : "" })) : (React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
-                React.createElement(TH, { cols: [["Carta"], ["Rareza"], ["Coste", "right"], ["Estado", "center"], ["", "right"]] }),
-                React.createElement("tbody", null, fi.map(c => React.createElement(CardRow, { key: c.id, card: c, onEdit: onEdit, onDelete: onDelete, onSell: () => { }, onDuplicate: onDuplicate, showPnl: false }))))))));
-}
-function FiscalTab({ cards, invoices }) {
-    const yr = new Date().getFullYear(), [y, setY] = useState(yr), [filterMonth, setFilterMonth] = useState('all');
-    const MONTHS = [['all', 'Todos'], ['01', 'Enero'], ['02', 'Febrero'], ['03', 'Marzo'], ['04', 'Abril'], ['05', 'Mayo'], ['06', 'Junio'], ['07', 'Julio'], ['08', 'Agosto'], ['09', 'Septiembre'], ['10', 'Octubre'], ['11', 'Noviembre'], ['12', 'Diciembre']];
-    const aS = cards.filter(c => c.status === "sold");
-    const ys = {};
-    aS.forEach(c => { const v = parseInt((c.sellDate || "").slice(0, 4)); if (v)
-        ys[v] = true; });
-    const years = Object.keys(ys).map(Number).sort((a, b) => b - a);
-    if (!years.includes(yr))
-        years.unshift(yr);
-    const sd = aS.filter(c => (c.sellDate || '').slice(0, 4) === String(y) && (filterMonth === 'all' || (c.sellDate || '').slice(5, 7) === filterMonth));
-    const tR = sd.reduce((a, c) => a + (c.sellPrice || 0) * (c.quantity || 1), 0), tC = sd.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0), tF = sd.reduce((a, c) => a + (c.sellPrice || 0) * (c.quantity || 1) * ((c.platformFee || 0) / 100) + (c.shippingCost || 0), 0);
-    const iY = invoices.filter(i => (i.date || "").startsWith(String(y)));
-    const tI = iY.reduce((a, i) => a + (i.iva || 0), 0), tG = iY.reduce((a, i) => a + (i.shipping || 0) + (i.customs || 0), 0);
-    const tInvGastos = tI + tG;
-    const tN = tR - tF - tC - tInvGastos;
-    const mo = {};
-    sd.forEach(c => { const m = (c.sellDate || "").slice(0, 7); if (!mo[m])
-        mo[m] = { month: m, pnl: 0 }; mo[m].pnl += np(c); });
-    const mA = Object.values(mo).sort((a, b) => a.month.localeCompare(b.month));
-    return (React.createElement("div", null,
-        React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
-            React.createElement("div", null,
-                React.createElement("div", { style: { fontSize: 20, fontWeight: 700 } }, "Fiscal"),
-                React.createElement("div", { style: { fontSize: 12, color: SUB, marginTop: 2 } },
-                    aS.length,
-                    " ventas totales")),
-            React.createElement("div", { style: { display: 'flex', gap: 8 } },
-                React.createElement("select", { value: filterMonth, onChange: e => setFilterMonth(e.target.value), style: Object.assign(Object.assign({}, IS), { width: 'auto', padding: '8px 14px' }) }, MONTHS.map(([k, l]) => React.createElement("option", { key: k, value: k }, l))),
-                React.createElement("select", { value: y, onChange: e => { setY(+e.target.value); setFilterMonth('all'); }, style: Object.assign(Object.assign({}, IS), { width: 'auto', padding: '8px 14px' }) }, years.map(v => React.createElement("option", { key: v, value: v }, v))))),
-        React.createElement(Card, { style: { marginBottom: 20, display: "flex", flexWrap: "wrap" } },
-            React.createElement(KT, { label: "Operaciones", value: sd.length, br: true }),
-            React.createElement(KT, { label: "Ingresos", value: euk(tR), br: true }),
-            React.createElement(KT, { label: "Gastos (ventas+facturas)", value: eu(tF + tInvGastos), accent: RED, br: true }),
-            React.createElement(KT, { label: "Beneficio neto", value: sg(tN) + euk(tN), accent: cl(tN) })),
-        iY.length > 0 && React.createElement(Card, { style: { marginBottom: 20, padding: "14px 18px", border: "1px solid #d1fae5", background: "#f0fdf8" } },
-            React.createElement(SL, { style: { marginBottom: 8, color: GREEN } }, "\u2713 Gastos de facturas incluidos en el beneficio neto"),
-            React.createElement("div", { style: { display: "flex", gap: 20, flexWrap: "wrap", fontSize: 13 } },
-                React.createElement("span", null,
-                    "IVA soportado: ",
-                    React.createElement("b", { style: { color: RED } }, eu(tI))),
-                React.createElement("span", { style: { color: MUT } }, "+"),
-                React.createElement("span", null,
-                    "Env\u00EDo+aduanas: ",
-                    React.createElement("b", { style: { color: AMBER } }, eu(tG))),
-                React.createElement("span", { style: { color: MUT } }, "="),
-                React.createElement("span", null,
-                    "Total deducido: ",
-                    React.createElement("b", { style: { color: RED } },
-                        "-",
-                        eu(tInvGastos))))),
-        mA.length > 0 && React.createElement(Card, { style: { padding: "18px", marginBottom: 20 } },
-            React.createElement(SL, null, "Beneficio mensual"),
-            React.createElement(Recharts.ResponsiveContainer, { width: "100%", height: 150 },
-                React.createElement(Recharts.BarChart, { data: mA, barSize: 26, margin: { top: 0, right: 0, left: -15, bottom: 0 } },
-                    React.createElement(Recharts.XAxis, { dataKey: "month", tick: { fill: MUT, fontSize: 10 }, axisLine: false, tickLine: false }),
-                    React.createElement(Recharts.YAxis, { tick: { fill: MUT, fontSize: 10 }, axisLine: false, tickLine: false }),
-                    React.createElement(Recharts.Tooltip, { contentStyle: { background: BG, border: "1px solid " + BDR, borderRadius: 8, fontSize: 12 }, formatter: v => [eu(v), "Neto"] }),
-                    React.createElement(Recharts.Bar, { dataKey: "pnl", radius: [4, 4, 0, 0] }, mA.map((d, i) => React.createElement(Recharts.Cell, { key: i, fill: d.pnl >= 0 ? GREEN : RED })))))),
-        sd.length > 0 ? (React.createElement(Card, null,
-            React.createElement("div", { style: { padding: "13px 16px", borderBottom: "1px solid " + BDR } },
-                React.createElement(SL, { style: { marginBottom: 0 } },
-                    "Operaciones ",
-                    y)),
-            React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
-                React.createElement(TH, { cols: [["Carta"], ["Fecha", "right"], ["Ingreso", "right"], ["Gastos", "right"], ["Coste", "right"], ["Neto", "right"]] }),
-                React.createElement("tbody", null, sd.map(c => { const rv = (c.sellPrice || 0) * (c.quantity || 1), fe2 = rv * ((c.platformFee || 0) / 100) + (c.shippingCost || 0), co = (c.buyPrice || 0) * (c.quantity || 1), n = rv - fe2 - co; return (React.createElement("tr", { key: c.id, style: { borderBottom: "1px solid " + BDR }, onMouseEnter: e => e.currentTarget.style.background = BGS, onMouseLeave: e => e.currentTarget.style.background = "transparent" },
-                    React.createElement("td", { style: { padding: "10px 14px" } },
-                        React.createElement("div", { style: { fontSize: 13 } }, c.name),
-                        c.platform && React.createElement("div", { style: { fontSize: 11, color: MUT } },
-                            "via ",
-                            c.platform)),
-                    React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontSize: 12, color: SUB } }, c.sellDate || "—"),
-                    React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontSize: 13 } }, eu(rv)),
-                    React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontSize: 12, color: RED } },
-                        "-",
-                        eu(fe2)),
-                    React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontSize: 12, color: SUB } },
-                        "-",
-                        eu(co)),
-                    React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontSize: 13, fontWeight: 700, color: cl(n) } },
-                        sg(n),
-                        eu(n)))); })),
-                React.createElement("tfoot", null,
-                    React.createElement("tr", { style: { borderTop: "1.5px solid " + BDR, background: BGS } },
-                        React.createElement("td", { colSpan: 2, style: { padding: "10px 14px", fontSize: 12, fontWeight: 600, color: SUB } },
-                            sd.length,
-                            " ops"),
-                        React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontSize: 13, fontWeight: 700 } }, eu(tR)),
-                        React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontSize: 13, color: RED } },
-                            "-",
-                            eu(tF + tInvGastos)),
-                        React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontSize: 13, color: SUB } },
-                            "-",
-                            eu(tC)),
-                        React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontSize: 14, fontWeight: 700, color: cl(tN) } },
-                            sg(tN),
-                            eu(tN))))))) : (React.createElement(Card, null,
-            React.createElement(Empty, { icon: "\uD83D\uDCCB", title: "Sin ventas en " + y })))));
-}
-function InvoicesTab({ invoices, setInvoices }) {
-    const [show, setShow] = useState(false);
-    const blank = { date: new Date().toISOString().slice(0, 10), vendor: "", subtotal: "", iva: "", shipping: "", customs: "", total: "" };
-    const [f, setF] = useState(blank);
-    function sf(k, v) { setF(p => (Object.assign(Object.assign({}, p), { [k]: v }))); }
-    function save() { setInvoices(p => [Object.assign(Object.assign({}, f), { id: uid(), subtotal: parseFloat(f.subtotal) || 0, iva: parseFloat(f.iva) || 0, shipping: parseFloat(f.shipping) || 0, customs: parseFloat(f.customs) || 0, total: parseFloat(f.total) || 0 }), ...p]); setF(blank); setShow(false); }
-    const tT = invoices.reduce((a, i) => a + (i.total || 0), 0), tI = invoices.reduce((a, i) => a + (i.iva || 0), 0), tG = invoices.reduce((a, i) => a + (i.shipping || 0) + (i.customs || 0), 0);
-    return (React.createElement("div", null,
-        React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
-            React.createElement("div", null,
-                React.createElement("div", { style: { fontSize: 20, fontWeight: 700 } }, "Facturas"),
-                React.createElement("div", { style: { fontSize: 12, color: SUB, marginTop: 2 } }, "Gastos deducibles para el fiscal")),
-            React.createElement(Btn, { onClick: () => setShow(true) }, "+ A\u00F1adir factura")),
-        invoices.length > 0 && React.createElement(Card, { style: { marginBottom: 20, display: "flex", flexWrap: "wrap" } },
+                React.createElement("input", { value: sr, onChange: e => setSr(e.target.value), placeholder: "🔍 Buscar...", style: Object.assign({}, IS, { maxWidth: 150, background: BGS, padding: "7px 10px" }) }),
+                React.createElement("div", { style: { display: "flex", gap: 5, flexWrap: "wrap", alignItems: "center" } },
+                    [["holding","Cartera",BLUE],["listed","En venta",AMBER],["sold","Vendidas",GREEN],["fav","⭐","#8b5cf6"],["psa","PSA","#6366f1"]].map(([k, l, ac]) =>
+                        React.createElement("button", { key: k, onClick: () => toggleSet(setStatusFl, k), style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid " + (statusFl.has(k) ? ac : BDR), background: statusFl.has(k) ? ac + "22" : "transparent", color: statusFl.has(k) ? ac : SUB, fontSize: 11, fontWeight: 500, cursor: "pointer" } }, l)),
+                    React.createElement("span", { style: { width: 1, height: 18, background: BDR, display: "inline-block", margin: "0 2px" } }),
+                    [["nba","🏀"],["futbol","⚽"],["trading","🃏"],["baseball","⚾"],["f1","🏎️"]].map(([k, l]) =>
+                        React.createElement("button", { key: k, onClick: () => toggleSet(setCatFl, k), style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid " + (catFl.has(k) ? BLUE : BDR), background: catFl.has(k) ? "#eff4ff" : "transparent", color: catFl.has(k) ? BLUE : SUB, fontSize: 11, fontWeight: 500, cursor: "pointer" } }, l)),
+                    React.createElement("span", { style: { width: 1, height: 18, background: BDR, display: "inline-block", margin: "0 2px" } }),
+                    locs.map(loc =>
+                        React.createElement("button", { key: loc, onClick: () => toggleSet(setLocFl, loc), style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid " + (locFl.has(loc) ? PURPLE : BDR), background: locFl.has(loc) ? "#f5f3ff" : "transparent", color: locFl.has(loc) ? PURPLE : SUB, fontSize: 11, fontWeight: 500, cursor: "pointer" } }, "📦 " + loc)),
+                    hasFilters && React.createElement("button", { onClick: () => { setStatusFl(new Set()); setCatFl(new Set()); setLocFl(new Set()); }, style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid #fecaca", background: "#fff5f5", color: RED, fontSize: 11, fontWeight: 500, cursor: "pointer" } }, "✕ Limpiar")),
+                React.createElement("div", { style: { marginLeft: "auto", display: "flex", gap: 6 } },
+                    React.createElement("select", { value: filterY, onChange: e => { setFilterY(e.target.value); setFilterM("all"); }, style: Object.assign({}, IS, { width: "auto", padding: "8px 14px" }) },
+                    years.map(y => React.createElement("option", { key: y, value: y }, y === "all" ? "Todos los a\u00F1os" : y))),
+                React.createElement("select", { value: filterM, onChange: e => setFilterM(e.target.value), style: Object.assign({}, IS, { width: "auto", padding: "8px 14px" }) },
+                    INV_MONTHS.map(([k, l]) => React.createElement("option", { key: k, value: k }, l))),
+                React.createElement(Btn, { onClick: () => { setF(blank); setEditId(null); setShow(true); } }, "+ A\u00F1adir factura")))),
             React.createElement(KT, { label: "Total compras", value: euk(tT), br: true }),
             React.createElement(KT, { label: "IVA soportado", value: eu(tI), accent: RED, br: true }),
             React.createElement(KT, { label: "Env\u00EDo+aduanas", value: eu(tG), accent: AMBER, br: true }),
-            React.createElement(KT, { label: "Facturas", value: invoices.length })),
+            React.createElement(KT, { label: "Facturas", value: filtered.length })),
         show && React.createElement(Card, { style: { padding: 20, marginBottom: 20 } },
-            React.createElement("div", { style: { fontSize: 14, fontWeight: 700, marginBottom: 16 } }, "Nueva factura"),
+            React.createElement("div", { style: { fontSize: 14, fontWeight: 700, marginBottom: 16 } }, editId ? "Editar factura" : "Nueva factura"),
             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 } },
-                React.createElement("div", null,
-                    React.createElement("label", { style: LS }, "Fecha"),
-                    React.createElement("input", { type: "date", value: f.date, onChange: e => sf("date", e.target.value), style: IS })),
-                React.createElement("div", null,
-                    React.createElement("label", { style: LS }, "Proveedor"),
-                    React.createElement("input", { value: f.vendor, onChange: e => sf("vendor", e.target.value), placeholder: "eBay, Wallapop...", style: IS }))),
+                React.createElement("div", null, React.createElement("label", { style: LS }, "Fecha"), React.createElement("input", { type: "date", value: f.date, onChange: e => sf("date", e.target.value), style: IS })),
+                React.createElement("div", null, React.createElement("label", { style: LS }, "Proveedor"), React.createElement("input", { value: f.vendor, onChange: e => sf("vendor", e.target.value), placeholder: "CardHobby, DHL...", list: "inv-vendors", style: IS }),
+                React.createElement("datalist", { id: "inv-vendors" },
+                    ["CardHobby", "Geek", "DHL", "Aduanas", "Vinted", "Wallapop", "eBay"].map(v => React.createElement("option", { key: v, value: v }))))),
             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 10 } },
-                React.createElement("div", null,
-                    React.createElement("label", { style: LS }, "Subtotal (\u20AC)"),
-                    React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.subtotal, onChange: e => sf("subtotal", e.target.value), placeholder: "0.00", style: IS })),
-                React.createElement("div", null,
-                    React.createElement("label", { style: LS }, "IVA (\u20AC)"),
-                    React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.iva, onChange: e => sf("iva", e.target.value), placeholder: "0.00", style: IS })),
-                React.createElement("div", null,
-                    React.createElement("label", { style: LS }, "Total (\u20AC)"),
-                    React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.total, onChange: e => sf("total", e.target.value), placeholder: "0.00", style: IS }))),
-            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 } },
-                React.createElement("div", null,
-                    React.createElement("label", { style: LS }, "Env\u00EDo (\u20AC)"),
-                    React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.shipping, onChange: e => sf("shipping", e.target.value), placeholder: "0.00", style: IS })),
-                React.createElement("div", null,
-                    React.createElement("label", { style: LS }, "Aduanas (\u20AC)"),
-                    React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.customs, onChange: e => sf("customs", e.target.value), placeholder: "0.00", style: IS }))),
+                React.createElement("div", null, React.createElement("label", { style: LS }, "Subtotal (\u20AC)"), React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.subtotal, onChange: e => sf("subtotal", e.target.value), placeholder: "0.00", style: IS })),
+                React.createElement("div", null, React.createElement("label", { style: LS }, "IVA (\u20AC)"), React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.iva, onChange: e => sf("iva", e.target.value), placeholder: "0.00", style: IS })),
+                React.createElement("div", null, React.createElement("label", { style: LS }, "Total (\u20AC)"), React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.total, onChange: e => sf("total", e.target.value), placeholder: "0.00", style: IS }))),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 } },
+                React.createElement("div", null, React.createElement("label", { style: LS }, "Env\u00EDo (\u20AC)"), React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.shipping, onChange: e => sf("shipping", e.target.value), placeholder: "0.00", style: IS })),
+                React.createElement("div", null, React.createElement("label", { style: LS }, "Aduanas (\u20AC)"), React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.customs, onChange: e => sf("customs", e.target.value), placeholder: "0.00", style: IS }))),
+            React.createElement("div", { style: { marginBottom: 14 } },
+                React.createElement("label", { style: LS }, "Notas (lote, referencia...)"),
+                React.createElement("input", { value: f.notes || "", onChange: e => sf("notes", e.target.value), placeholder: "Ej: Lote noviembre 2025, factura #123...", style: IS })),
             React.createElement("div", { style: { display: "flex", gap: 8 } },
-                React.createElement(Btn, { v: "outline", full: true, onClick: () => { setShow(false); setF(blank); } }, "Cancelar"),
-                React.createElement(Btn, { full: true, disabled: !f.vendor || !f.total, onClick: save }, "Guardar"))),
-        invoices.length === 0 && !show ? (React.createElement(Card, null,
-            React.createElement(Empty, { icon: "\uD83D\uDCC4", title: "Sin facturas", sub: "Registra facturas para calcular IVA y gastos deducibles" }))) : invoices.length > 0 && (React.createElement(Card, null,
+                React.createElement(Btn, { v: "outline", full: true, onClick: () => { setShow(false); setF(blank); setEditId(null); } }, "Cancelar"),
+                React.createElement(Btn, { full: true, disabled: !f.vendor || !f.total, onClick: save }, editId ? "Guardar cambios" : "Guardar"))),
+        filtered.length === 0 && !show ? React.createElement(Card, null, React.createElement(Empty, { icon: "\uD83D\uDCC4", title: "Sin facturas", sub: "Registra facturas para calcular IVA y gastos deducibles" })) :
+        filtered.length > 0 && React.createElement(Card, null,
             React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
-                React.createElement(TH, { cols: [["Fecha"], ["Proveedor"], ["Total", "right"], ["IVA", "right"], ["Gastos", "right"], ["", "right"]] }),
-                React.createElement("tbody", null, invoices.map(i => (React.createElement("tr", { key: i.id, style: { borderBottom: "1px solid " + BDR }, onMouseEnter: e => e.currentTarget.style.background = BGS, onMouseLeave: e => e.currentTarget.style.background = "transparent" },
-                    React.createElement("td", { style: { padding: "11px 14px", fontSize: 13 } }, i.date || "—"),
-                    React.createElement("td", { style: { padding: "11px 14px", fontSize: 13 } }, i.vendor || "—"),
-                    React.createElement("td", { style: { padding: "11px 12px", textAlign: "right", fontSize: 13, fontWeight: 600 } }, eu(i.total || 0)),
-                    React.createElement("td", { style: { padding: "11px 12px", textAlign: "right", fontSize: 12, color: RED } }, eu(i.iva || 0)),
-                    React.createElement("td", { style: { padding: "11px 12px", textAlign: "right", fontSize: 12, color: AMBER } }, eu((i.shipping || 0) + (i.customs || 0))),
-                    React.createElement("td", { style: { padding: "11px 12px", textAlign: "right" } },
-                        React.createElement(Btn, { sm: true, v: "outline", style: { color: RED, borderColor: "#fecaca" }, onClick: () => setInvoices(p => p.filter(x => x.id !== i.id)) }, "\u2715")))))),
+                React.createElement(TH, { cols: [["Fecha"], ["Proveedor"], ["Notas"], ["Total", "right"], ["IVA", "right"], ["Gastos", "right"], ["", "right"]] }),
+                React.createElement("tbody", null,
+                    filtered.map(inv => React.createElement("tr", { key: inv.id, style: { borderBottom: "1px solid " + BDR }, onMouseEnter: e => e.currentTarget.style.background = BGS, onMouseLeave: e => e.currentTarget.style.background = "transparent" },
+                        React.createElement("td", { style: { padding: "11px 14px", fontSize: 13 } }, inv.date || "\u2014"),
+                        React.createElement("td", { style: { padding: "11px 14px", fontSize: 13 } }, inv.vendor || "\u2014"),
+                        React.createElement("td", { style: { padding: "11px 14px", fontSize: 11, color: MUT } }, inv.notes || ""),
+                        React.createElement("td", { style: { padding: "11px 12px", textAlign: "right", fontSize: 13, fontWeight: 600 } }, eu(inv.total || 0)),
+                        React.createElement("td", { style: { padding: "11px 12px", textAlign: "right", fontSize: 12, color: RED } }, eu(inv.iva || 0)),
+                        React.createElement("td", { style: { padding: "11px 12px", textAlign: "right", fontSize: 12, color: AMBER } }, eu((inv.shipping || 0) + (inv.customs || 0))),
+                        React.createElement("td", { style: { padding: "11px 12px", textAlign: "right" } },
+                            React.createElement("div", { style: { display: "flex", gap: 4, justifyContent: "flex-end" } },
+                                React.createElement(Btn, { sm: true, v: "outline", onClick: () => openEdit(inv) }, "\u270F"),
+                                React.createElement(Btn, { sm: true, v: "outline", style: { color: RED, borderColor: "#fecaca" }, onClick: () => setInvoices(p => p.filter(x => x.id !== inv.id)) }, "\u2715")))))),
                 React.createElement("tfoot", null,
                     React.createElement("tr", { style: { borderTop: "1.5px solid " + BDR, background: BGS } },
-                        React.createElement("td", { colSpan: 2, style: { padding: "10px 14px", fontSize: 12, fontWeight: 600, color: SUB } }, invoices.length),
+                        React.createElement("td", { colSpan: 3, style: { padding: "10px 14px", fontSize: 12, fontWeight: 600, color: SUB } }, filtered.length + " facturas"),
                         React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontSize: 13, fontWeight: 700 } }, eu(tT)),
                         React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontSize: 13, color: RED } }, eu(tI)),
                         React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontSize: 13, color: AMBER } }, eu(tG)),
-                        React.createElement("td", null))))))));
+                        React.createElement("td", null))))));
 }
-function AnalyticsTab({ cards }) {
-    const sold = cards.filter(c => c.mode === "inventory" && c.status === "sold");
-    // Avg days to sell by category
-    const catStats = Object.entries(CATS).map(([k, label]) => {
-        const cs = sold.filter(c => c.category === k && c.buyDate && c.sellDate);
-        if (!cs.length)
-            return null;
-        const avgDays = cs.reduce((a, c) => a + (new Date(c.sellDate) - new Date(c.buyDate)) / 86400000, 0) / cs.length;
-        const avgRoi = cs.reduce((a, c) => a + pc((c.sellPrice || 0) * (1 - (c.platformFee || 0) / 100) - (c.shippingCost || 0), (c.buyPrice || 0) * (c.quantity || 1)), 0) / cs.length;
-        return { k, label, count: cs.length, avgDays: Math.round(avgDays), avgRoi };
-    }).filter(Boolean);
-    // Platform stats
-    const platStats = PLATS.map(p => {
-        const ps = sold.filter(c => c.platform === p);
-        if (!ps.length)
-            return null;
-        const avgRoi = ps.reduce((a, c) => a + pc((c.sellPrice || 0) * (1 - (c.platformFee || 0) / 100) - (c.shippingCost || 0), (c.buyPrice || 0) * (c.quantity || 1)), 0) / ps.length;
-        const avgFee = ps.reduce((a, c) => a + (c.platformFee || 0), 0) / ps.length;
-        const totalProfit = ps.reduce((a, c) => a + np(c), 0);
-        return { p, count: ps.length, avgRoi, avgFee, totalProfit };
-    }).filter(Boolean).sort((a, b) => b.totalProfit - a.totalProfit);
-    // IRPF estimation
-    const yr = new Date().getFullYear();
-    const profit = sold.filter(c => (c.sellDate || "").startsWith(String(yr))).reduce((a, c) => a + np(c), 0);
-    function irpf(p) {
-        if (p <= 6000)
-            return p * 0.19;
-        if (p <= 50000)
-            return 6000 * 0.19 + (p - 6000) * 0.21;
-        if (p <= 200000)
-            return 6000 * 0.19 + 44000 * 0.21 + (p - 50000) * 0.23;
-        return 6000 * 0.19 + 44000 * 0.21 + 150000 * 0.23 + (p - 200000) * 0.27;
-    }
-    const taxEst = profit > 0 ? irpf(profit) : 0;
-    // Location management
-    const [locs, setLocs] = useState(() => { try {
-        return JSON.parse(localStorage.getItem("cv10_locs") || "null") || DEFAULT_LOCATIONS;
-    }
-    catch (_a) {
-        return DEFAULT_LOCATIONS;
-    } });
-    const [newLoc, setNewLoc] = useState("");
-    function saveLocs(l) { setLocs(l); localStorage.setItem("cv10_locs", JSON.stringify(l)); }
-    return (React.createElement("div", null,
-        React.createElement("div", { style: { fontSize: 20, fontWeight: 700, marginBottom: 20 } }, "An\u00E1lisis"),
-        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 } },
-            React.createElement(Card, { style: { padding: "18px" } },
-                React.createElement(SL, null, "\u23F1 Tiempo medio de venta"),
-                catStats.length > 0 ? (React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
-                    React.createElement(TH, { cols: [["Categoría"], ["Ops", "right"], ["Días", "right"], ["ROI medio", "right"]] }),
-                    React.createElement("tbody", null, catStats.map(s => (React.createElement("tr", { key: s.k, style: { borderBottom: "1px solid " + BDR } },
-                        React.createElement("td", { style: { padding: "9px 12px", fontSize: 13 } }, s.label),
-                        React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 12, color: SUB } }, s.count),
-                        React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 13, fontWeight: 600, color: s.avgDays > 30 ? RED : s.avgDays > 14 ? AMBER : GREEN } },
-                            s.avgDays,
-                            "d"),
-                        React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 13, fontWeight: 600, color: cl(s.avgRoi) } },
-                            sg(s.avgRoi),
-                            s.avgRoi.toFixed(1),
-                            "%"))))))) : React.createElement(Empty, { icon: "\u23F1", title: "Sin datos", sub: "Necesitas ventas con fecha de compra y venta" })),
-            React.createElement(Card, { style: { padding: "18px" } },
-                React.createElement(SL, null, "\uD83C\uDFC6 Rendimiento por plataforma"),
-                platStats.length > 0 ? (React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
-                    React.createElement(TH, { cols: [["Plataforma"], ["Ventas", "right"], ["ROI", "right"], ["Comisión", "right"]] }),
-                    React.createElement("tbody", null, platStats.map((s, i) => (React.createElement("tr", { key: s.p, style: { borderBottom: "1px solid " + BDR, background: i === 0 ? "#f0fdf8" : "transparent" } },
-                        React.createElement("td", { style: { padding: "9px 12px", fontSize: 13 } },
-                            i === 0 ? "🥇 " : "",
-                            s.p),
-                        React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 12, color: SUB } }, s.count),
-                        React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 13, fontWeight: 600, color: cl(s.avgRoi) } },
-                            sg(s.avgRoi),
-                            s.avgRoi.toFixed(1),
-                            "%"),
-                        React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 12, color: SUB } },
-                            s.avgFee.toFixed(1),
-                            "%"))))))) : React.createElement(Empty, { icon: "\uD83C\uDFC6", title: "Sin datos", sub: "Registra ventas con plataforma para ver estad\u00EDsticas" }))),
-        React.createElement(Card, { style: { marginBottom: 20, padding: "18px" } },
-            React.createElement(SL, { style: { marginBottom: 12 } },
-                "\uD83E\uDDFE Estimaci\u00F3n IRPF ",
-                yr),
-            profit > 0 ? (React.createElement("div", null,
-                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 12, marginBottom: 14 } }, [{ l: "Beneficio " + yr, v: eu(profit), c: cl(profit) }, { l: "IRPF estimado", v: eu(taxEst), c: RED }, { l: "Neto tras impuestos", v: eu(profit - taxEst), c: cl(profit - taxEst) }, { l: "Tipo efectivo", v: (profit > 0 ? (taxEst / profit * 100) : 0).toFixed(1) + "%", c: SUB }].map(({ l, v, c }) => (React.createElement("div", { key: l, style: { background: BGS, borderRadius: 10, padding: "12px 14px", border: "1px solid " + BDR } },
-                    React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 4 } }, l),
-                    React.createElement("div", { style: { fontSize: 18, fontWeight: 700, color: c } }, v))))),
-                React.createElement("div", { style: { background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "10px 14px", fontSize: 11, color: SUB } }, "\u26A0\uFE0F Estimaci\u00F3n orientativa seg\u00FAn tramos IRPF 2024 para ganancias patrimoniales (19% hasta 6.000\u20AC \u00B7 21% hasta 50.000\u20AC \u00B7 23% hasta 200.000\u20AC \u00B7 27% a partir de 200.000\u20AC). Consulta con un gestor para tu caso concreto."))) : React.createElement(Empty, { icon: "\uD83E\uDDFE", title: "Sin beneficios en " + yr, sub: "Cuando tengas ventas cerradas en el a\u00F1o actual aparecer\u00E1 la estimaci\u00F3n" })),
-        React.createElement(Card, { style: { padding: "18px", marginBottom: 20 } },
-            React.createElement(SL, { style: { marginBottom: 12 } }, "\uD83C\uDFAF Margen m\u00EDnimo de venta"),
-            (() => {
-                const [minRoi, setMinRoi] = useState(() => parseFloat(localStorage.getItem("cv10_minroi") || "30"));
-                function saveMin(v) { setMinRoi(v); localStorage.setItem("cv10_minroi", String(v)); }
-                return (React.createElement("div", null,
-                    React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12, marginBottom: 8 } },
-                        React.createElement("input", { type: "number", min: "0", max: "200", step: "1", value: minRoi, onChange: e => saveMin(parseFloat(e.target.value) || 0), style: Object.assign(Object.assign({}, IS), { maxWidth: 100 }) }),
-                        React.createElement("span", { style: { fontSize: 13, color: SUB } }, "% ROI m\u00EDnimo"),
-                        React.createElement("div", { style: { padding: "6px 12px", borderRadius: 8, background: RED + "18", border: "1px solid #fecaca", fontSize: 12, color: RED, fontWeight: 600 } },
-                            "Al vender por debajo de ",
-                            minRoi,
-                            "% saldr\u00E1 aviso en rojo"))));
-            })()),
-        React.createElement(Card, { style: { padding: "18px" } },
-            React.createElement(SL, { style: { marginBottom: 12 } }, "\uD83D\uDCE6 Gestionar ubicaciones f\u00EDsicas"),
-            React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 } }, locs.map((l, i) => (React.createElement("div", { key: i, style: { display: "flex", alignItems: "center", gap: 6, background: BGS, border: "1px solid " + BDR, borderRadius: 8, padding: "6px 10px" } },
-                React.createElement("span", { style: { fontSize: 13 } }, l),
-                React.createElement("button", { onClick: () => saveLocs(locs.filter((_, j) => j !== i)), style: { background: "none", border: "none", color: RED, cursor: "pointer", fontSize: 12, fontWeight: 700 } }, "\u2715"))))),
-            React.createElement("div", { style: { display: "flex", gap: 8 } },
-                React.createElement("input", { value: newLoc, onChange: e => setNewLoc(e.target.value), onKeyDown: e => { if (e.key === "Enter" && newLoc.trim()) {
-                        saveLocs([...locs, newLoc.trim()]);
-                        setNewLoc("");
-                    } }, placeholder: "Nueva ubicaci\u00F3n (ej: Estanter\u00EDa A)...", style: Object.assign(Object.assign({}, IS), { maxWidth: 280 }) }),
-                React.createElement(Btn, { onClick: () => { if (newLoc.trim()) {
-                        saveLocs([...locs, newLoc.trim()]);
-                        setNewLoc("");
-                    } }, disabled: !newLoc.trim() }, "A\u00F1adir")),
-            React.createElement("div", { style: { marginTop: 10, fontSize: 11, color: MUT } }, "Las ubicaciones que a\u00F1adas aqu\u00ED estar\u00E1n disponibles al editar cualquier carta."))));
-}
-const PSA_SERVICES = [{ k: "economy", l: "Economy", days: 45 }, { k: "regular", l: "Regular", days: 20 }, { k: "express", l: "Express", days: 10 }, { k: "walkthrough", l: "Walkthrough", days: 5 }];
-const PSA_STATUS = [["sent", "📬 Enviada"], ["grading", "🔍 En proceso"], ["done", "✅ Recibida"], ["sold", "💰 Vendida"]];
+
+
 function PSATab() {
     const [show, setShow] = useState(false), [items, setItems] = useState(() => { try {
         return JSON.parse(localStorage.getItem("cv10p") || "[]");
@@ -18351,6 +18110,56 @@ function DupModal({ card, onSave, onClose }) {
                             onClose();
                         } }, "Guardar"))))));
 }
+
+function LotModal({ cards, onSell, onClose }) {
+    const [sel, setSel] = React.useState([]);
+    const [pr, setPr] = React.useState(""), [dt, setDt] = React.useState(new Date().toISOString().slice(0, 10));
+    const [fe, setFe] = React.useState(""), [sh, setSh] = React.useState(""), [pl, setPl] = React.useState("Vinted");
+    const [lotSr, setLotSr] = React.useState("");
+    const listed = cards.filter(c => c.mode === "inventory" && c.status !== "sold");
+    const filteredListed = listed.filter(c => !lotSr || c.name.toLowerCase().includes(lotSr.toLowerCase()));
+    function toggle(id) { setSel(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]); }
+    function selectAll() { setSel(filteredListed.map(c => c.id)); }
+    const selCards = listed.filter(c => sel.includes(c.id));
+    const totalCost = selCards.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0);
+    const sellPrice = parseFloat(pr) || 0, feeAmt = sellPrice * ((parseFloat(fe) || 0) / 100), shipAmt = parseFloat(sh) || 0;
+    const net = sellPrice - feeAmt - shipAmt - totalCost;
+    function confirm() { selCards.forEach(c => onSell({ ...c, status: "sold", sellPrice: parseFloat(pr) || 0, sellDate: dt, platformFee: parseFloat(fe) || 0, shippingCost: 0, platform: pl })); onClose(); }
+    return React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 } },
+        React.createElement("div", { style: { background: BG, borderRadius: 16, width: "100%", maxWidth: 560, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", border: "1px solid " + BDR } },
+            React.createElement("div", { style: { padding: "16px 22px", borderBottom: "1px solid " + BDR, display: "flex", justifyContent: "space-between", alignItems: "center" } },
+                React.createElement("div", { style: { fontSize: 15, fontWeight: 700 } }, "\uD83D\uDCB0 Venta m\u00FAltiple"),
+                React.createElement("button", { onClick: onClose, style: { background: "none", border: "none", fontSize: 18, color: MUT, cursor: "pointer" } }, "\u2715")),
+            React.createElement("div", { style: { padding: "18px 22px" } },
+                React.createElement("div", { style: { marginBottom: 10 } },
+                    React.createElement("input", { value: lotSr, onChange: e => setLotSr(e.target.value), placeholder: "\uD83D\uDD0D Buscar carta...", style: Object.assign({}, IS, { background: BGS, marginBottom: 8 }) }),
+                    React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
+                        React.createElement("div", { style: { fontSize: 13, color: SUB } }, sel.length + " seleccionadas \u00B7 coste " + eu(totalCost)),
+                        React.createElement(Btn, { sm: true, v: "outline", onClick: selectAll }, "Seleccionar todas"))),
+                React.createElement("div", { style: { maxHeight: 220, overflowY: "auto", border: "1px solid " + BDR, borderRadius: 8, marginBottom: 14 } },
+                    filteredListed.map(c => React.createElement("div", { key: c.id, onClick: () => toggle(c.id), style: { display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderBottom: "1px solid " + BDR, cursor: "pointer", background: sel.includes(c.id) ? "#eff4ff" : BG } },
+                        React.createElement("div", { style: { width: 16, height: 16, borderRadius: 4, border: "2px solid " + (sel.includes(c.id) ? BLUE : BDR), background: sel.includes(c.id) ? BLUE : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 } },
+                            sel.includes(c.id) && React.createElement("span", { style: { color: "#fff", fontSize: 10, fontWeight: 700 } }, "\u2713")),
+                        React.createElement("div", { style: { flex: 1, minWidth: 0 } },
+                            React.createElement("div", { style: { fontSize: 13, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, c.name),
+                            React.createElement("div", { style: { fontSize: 11, color: MUT } }, eu((c.buyPrice || 0) * (c.quantity || 1)) + (c.location ? " \u00B7 " + c.location : "")))))),
+                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 } },
+                    React.createElement("div", null, React.createElement("label", { style: LS }, "Precio venta lote (\u20AC)"), React.createElement("input", { type: "number", min: "0", step: "0.01", value: pr, onChange: e => setPr(e.target.value), placeholder: "0.00", style: IS, autoFocus: true })),
+                    React.createElement("div", null, React.createElement("label", { style: LS }, "Fecha venta"), React.createElement("input", { type: "date", value: dt, onChange: e => setDt(e.target.value), style: IS }))),
+                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 } },
+                    React.createElement("div", null, React.createElement("label", { style: LS }, "Comisi\u00F3n (%)"), React.createElement("input", { type: "number", min: "0", step: "0.1", value: fe, onChange: e => setFe(e.target.value), placeholder: "0", style: IS })),
+                    React.createElement("div", null, React.createElement("label", { style: LS }, "Env\u00EDo (\u20AC)"), React.createElement("input", { type: "number", min: "0", step: "0.01", value: sh, onChange: e => setSh(e.target.value), placeholder: "0.00", style: IS })),
+                    React.createElement("div", null, React.createElement("label", { style: LS }, "Plataforma"), React.createElement("select", { value: pl, onChange: e => setPl(e.target.value), style: IS }, PLATS.map(p => React.createElement("option", { key: p, value: p }, p))))),
+                pr && sel.length > 0 && React.createElement("div", { style: { background: net >= 0 ? "#f0fdf8" : "#fff5f5", border: "1px solid " + (net >= 0 ? "#d1fae5" : "#fecaca"), borderRadius: 10, padding: "12px 14px", marginBottom: 14 } },
+                    [["Cartas", sel.length + " uds", TXT], ["Coste total", eu(totalCost), SUB], ["Precio venta", eu(sellPrice), TXT], ["Comisi\u00F3n", "-" + eu(feeAmt), RED], ["Env\u00EDo", "-" + eu(shipAmt), RED], ["Beneficio neto", (net >= 0 ? "+" : "") + eu(net), cl(net)]].map(([l, v, c]) =>
+                        React.createElement("div", { key: l, style: { display: "flex", justifyContent: "space-between", marginBottom: 4 } },
+                            React.createElement("span", { style: { fontSize: 12, color: SUB } }, l),
+                            React.createElement("span", { style: { fontSize: 13, fontWeight: l === "Beneficio neto" ? 700 : 500, color: c } }, v)))),
+                React.createElement("div", { style: { display: "flex", gap: 8 } },
+                    React.createElement(Btn, { v: "outline", full: true, onClick: onClose }, "Cancelar"),
+                    React.createElement(Btn, { v: "success", full: true, disabled: sel.length === 0 || !pr, onClick: confirm }, "Vender " + sel.length + " cartas")))));
+}
+
 function App() {
     const [cards, setCards] = useState(() => { try {
         return JSON.parse(localStorage.getItem("cv10") || "[]");
@@ -18358,6 +18167,7 @@ function App() {
     catch (_a) {
         return [];
     } });
+    const [showLot, setShowLot] = useState(false);
     const [dupCard, setDupCard] = useState(null);
     const [invoices, setInvoices] = useState(() => { try {
         return JSON.parse(localStorage.getItem("cv10i") || "[]");
@@ -18384,10 +18194,11 @@ function App() {
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault")),
                     React.createElement("nav", { style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
+                    React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta"),
+                    React.createElement(Btn, { sm: true, v: "outline", onClick: () => setShowLot(true) }, "Venta m\u00FAltiple"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => dlJSON(cards, invoices) }, "\u2B07"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => ulJSON(setCards, setInvoices) }, "\u2B06"),
-                    React.createElement(Btn, { sm: true, v: "outline", onClick: () => dlPDF(cards) }, "\uD83D\uDCC4"),
-                    React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")))),
+                    React.createElement(Btn, { sm: true, v: "outline", onClick: () => dlPDF(cards) }, "\uD83D\uDCC4")))),
         React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "24px" } },
             tab === "dashboard" && React.createElement(DashTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
             tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
@@ -18397,6 +18208,7 @@ function App() {
             tab === "analytics" && React.createElement(AnalyticsTab, { cards: cards }),
             tab === "psa" && React.createElement(PSATab, null)),
         sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); }, editCard: ec, defMode: dm }),
+        showLot && React.createElement(LotModal, { cards: cards, onSell: ups, onClose: () => setShowLot(false) }),
         sc && React.createElement(SellModal, { card: sc, onSave: ups, onClose: () => setSc(null) }),
         dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onClose: () => setDupCard(null) })));
 }
