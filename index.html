@@ -17393,7 +17393,7 @@ function SellModal({ card, onSave, onClose }) {
                 React.createElement(Btn, { v: "success", full: true, onClick: confirm, disabled: !pr }, "Confirmar venta")))));
 }
 function CardForm({ onSave, onClose, editCard, defMode }) {
-    const blank = { name: "", category: "trading", series: "", rarity: "Común", condition: "Raw", quantity: 1, buyPrice: "", buyDate: new Date().toISOString().slice(0, 10), notes: "", images: [], status: "holding", sellPrice: "", sellDate: "", platformFee: "", shippingCost: "", platform: "eBay", isFavorite: false, mode: defMode || "inventory", targetPrice: "", listingDate: "", location: "" };
+    const blank = { name: "", category: "trading", series: "", rarity: "Común", condition: "Raw", quantity: 1, buyPrice: "", buyDate: new Date().toISOString().slice(0, 10), notes: "", images: [], status: "holding", sellPrice: "", sellDate: "", platformFee: "", shippingCost: "", platform: "eBay", isFavorite: false, mode: defMode || "inventory", targetPrice: "", listingDate: "", location: "", imageUrl: "" };
     const init = editCard ? Object.assign(Object.assign({}, editCard), { buyPrice: String(editCard.buyPrice || ""), sellPrice: String(editCard.sellPrice || ""), platformFee: String(editCard.platformFee || ""), shippingCost: String(editCard.shippingCost || ""), targetPrice: String(editCard.targetPrice || "") }) : blank;
     const [f, setF] = useState(init), [imgs, setImgs] = useState((editCard === null || editCard === void 0 ? void 0 : editCard.images) || []), [tab, setTab] = useState("info");
     const fr = { current: null };
@@ -17448,9 +17448,9 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                     React.createElement("div", null,
                         React.createElement("label", { style: LS }, "Notas"),
                         React.createElement("textarea", { value: f.notes, onChange: e => sf("notes", e.target.value), rows: 2, placeholder: "Condici\u00F3n extra, n\u00FAmero...", style: Object.assign(Object.assign({}, IS), { resize: "vertical" }) })),
-                    (f.mode === "collection" || defMode === "collection") && React.createElement("div", { style: { gridColumn: "1/-1" } },
-                        React.createElement("label", { style: LS }, "\uD83D\uDDBC URL de imagen (eBay, 130point...)"),
-                        React.createElement("input", { value: f.imageUrl || "", onChange: e => sf("imageUrl", e.target.value), placeholder: "https://i.ebayimg.com/...", style: IS })),
+                    React.createElement("div", { style: { gridColumn: "1/-1" } },
+                        React.createElement("label", { style: LS }, "\uD83D\uDDBC URL de imagen (postimages.org, imgbb...)"),
+                        React.createElement("input", { value: f.imageUrl || "", onChange: e => sf("imageUrl", e.target.value), placeholder: "https://i.postimg.cc/...", style: IS })),
                     React.createElement("div", { style: { marginTop: 10 } },
                         React.createElement("label", { style: LS }, "\uD83D\uDCE6 Ubicaci\u00F3n f\u00EDsica"),
                         React.createElement("select", { value: f.location || "", onChange: e => sf("location", e.target.value), style: IS },
@@ -18197,9 +18197,9 @@ function AnalyticsTab({ cards }) {
             (() => {
                 const sv = cards.filter(c => c.status === "sold" && c.sellDate);
                 if (sv.length < 2) return React.createElement("div", { style: { color: MUT, fontSize: 12 } }, "Necesitas al menos 2 ventas.");
-                const bw = {};
-                sv.forEach(c => { const w = Math.floor(new Date(c.sellDate).getTime() / (7 * 24 * 3600 * 1000)); bw[w] = (bw[w] || 0) + 1; });
-                const apw = Object.values(bw).reduce((a, b) => a + b, 0) / Object.values(bw).length;
+                const bwk = {};
+                sv.forEach(c => { const w = Math.floor(new Date(c.sellDate).getTime() / (7 * 24 * 3600 * 1000)); bwk[w] = (bwk[w] || 0) + 1; });
+                const apw = Object.values(bwk).reduce((a, b) => a + b, 0) / Object.values(bwk).length;
                 const now = Date.now();
                 const l30 = sv.filter(c => now - new Date(c.sellDate).getTime() < 30 * 86400000).length;
                 const p30 = sv.filter(c => { const t = now - new Date(c.sellDate).getTime(); return t >= 30 * 86400000 && t < 60 * 86400000; }).length;
@@ -18254,6 +18254,7 @@ function AnalyticsTab({ cards }) {
                         setNewLoc("");
                     } }, disabled: !newLoc.trim() }, "A\u00F1adir")),
             React.createElement("div", { style: { marginTop: 10, fontSize: 11, color: MUT } }, "Las ubicaciones que a\u00F1adas aqu\u00ED estar\u00E1n disponibles al editar cualquier carta.")))));
+
 }
 const PSA_SERVICES = [{ k: "economy", l: "Economy", days: 45 }, { k: "regular", l: "Regular", days: 20 }, { k: "express", l: "Express", days: 10 }, { k: "walkthrough", l: "Walkthrough", days: 5 }];
 const PSA_STATUS = [["sent", "📬 Enviada"], ["grading", "🔍 En proceso"], ["done", "✅ Recibida"], ["sold", "💰 Vendida"]];
