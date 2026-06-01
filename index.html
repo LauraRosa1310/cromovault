@@ -17827,7 +17827,7 @@ function ColTab({ cards, onEdit, onDelete, onDuplicate }) {
                 React.createElement("div", { style: { display: "flex", gap: 4, marginLeft: "auto" } }, [["gallery", "⊞"], ["list", "☰"]].map(([v, icon]) => (React.createElement("button", { key: v, onClick: () => setView(v), style: { padding: "5px 10px", borderRadius: 6, border: "1.5px solid " + (view === v ? BLUE : BDR), background: view === v ? "#eff4ff" : "transparent", color: view === v ? BLUE : MUT, fontSize: 13, cursor: "pointer" } }, icon))))),
             fi.length === 0 ? (React.createElement(Empty, { icon: "\u2B50", title: col.length === 0 ? "Colección vacía" : "Sin resultados", sub: col.length === 0 ? "Añade tus cartas personales" : "" })) : view === "gallery" ? (React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 14, padding: 16 } }, fi.map(c => (React.createElement("div", { key: c.id, style: { borderRadius: 12, border: "1px solid " + BDR, overflow: "hidden", background: BG, cursor: "pointer", transition: "box-shadow 0.15s" }, onMouseEnter: e => e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.10)", onMouseLeave: e => e.currentTarget.style.boxShadow = "none" },
                 React.createElement("div", { style: { width: "100%", aspectRatio: "3/4", background: BGS, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative" } },
-                    c.imageUrl ? (React.createElement("img", { src: c.imageUrl, alt: c.name, style: { width: "100%", height: "100%", objectFit: "cover" } })) : null,
+                    c.imageUrl ? (React.createElement("img", { src: c.imageUrl, alt: c.name, style: { width: "100%", height: "100%", objectFit: "cover" }, onError: e => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; } })) : null,
                     React.createElement("div", { style: { display: c.imageUrl ? "none" : "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", color: MUT } },
                         React.createElement("div", { style: { fontSize: 32 } }, "\uD83C\uDCCF"),
                         React.createElement("div", { style: { fontSize: 10, marginTop: 4 } }, "Sin foto")),
@@ -18342,7 +18342,7 @@ function AnalyticsTab({ cards }) {
 function RainbowSection({ rainbows, saveRainbows }) {
     const [showForm, setShowForm] = useState(false);
     const [editIdx, setEditIdx] = useState(null);
-    const blank = { title: "", slots: [{ label: "/1", url: "" }, { label: "/5", url: "" }, { label: "/10", url: "" }, { label: "/25", url: "" }, { label: "/50", url: "" }, { label: "/75", url: "" }, { label: "/99", url: "" }] };
+    const blank = { title: "", cost: "", slots: [{ label: "/1", url: "" }, { label: "/5", url: "" }, { label: "/10", url: "" }, { label: "/25", url: "" }, { label: "/50", url: "" }, { label: "/75", url: "" }, { label: "/99", url: "" }] };
     const [form, setForm] = useState(blank);
     function addSlot() { setForm(p => (Object.assign(Object.assign({}, p), { slots: [...p.slots, { label: "", url: "" }] }))); }
     function removeSlot(i) { setForm(p => (Object.assign(Object.assign({}, p), { slots: p.slots.filter((_, idx2) => idx2 !== i) }))); }
@@ -18377,6 +18377,9 @@ function RainbowSection({ rainbows, saveRainbows }) {
             React.createElement("div", { style: { marginBottom: 12 } },
                 React.createElement("label", { style: LS }, "T\u00EDtulo (ej: Vicky Lopez - Topps Chrome)"),
                 React.createElement("input", { value: form.title, onChange: e => setForm(p => (Object.assign(Object.assign({}, p), { title: e.target.value }))), placeholder: "Jugador - Set...", style: IS })),
+            React.createElement("div", { style: { marginBottom: 12 } },
+                React.createElement("label", { style: LS }, "Coste total del rainbow (\u20AC)"),
+                React.createElement("input", { type: "number", min: "0", step: "0.01", value: form.cost || "", onChange: e => setForm(p => (Object.assign(Object.assign({}, p), { cost: e.target.value }))), placeholder: "0.00", style: IS })),
             React.createElement("div", { style: { marginBottom: 10 } },
                 React.createElement("label", { style: LS }, "Numeraciones y fotos"),
                 form.slots.map((slot, i) => (React.createElement("div", { key: i, style: { display: "grid", gridTemplateColumns: "100px 1fr 32px", gap: 8, marginBottom: 8, alignItems: "center" } },
@@ -18400,13 +18403,14 @@ function RainbowSection({ rainbows, saveRainbows }) {
                         "/",
                         r.slots.length,
                         " \u00B7 ",
-                        r.slots.filter(s => s.owned).length === r.slots.length ? "✅ Completa" : "En progreso")),
+                        r.slots.filter(s => s.owned).length === r.slots.length ? "✅ Completa" : "En progreso",
+                        r.cost ? " · " + eu(parseFloat(r.cost) || 0) : "")),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => openEdit(rIdx) }, "\u270F\uFE0F"),
                     React.createElement(Btn, { sm: true, v: "outline", style: { color: RED, borderColor: "#fecaca" }, onClick: () => deleteRainbow(rIdx) }, "\u2715"))),
-            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(130px,1fr))", gap: 12 } }, r.slots.map((slot, sIdx) => (React.createElement("div", { key: sIdx, onClick: () => toggleOwned(rIdx, sIdx), style: { borderRadius: 10, border: "2px solid " + (slot.owned ? GREEN : BDR), overflow: "hidden", cursor: "pointer", opacity: 1, background: BG, transition: "all 0.15s" } },
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(130px,1fr))", gap: 12 } }, r.slots.map((slot, sIdx) => (React.createElement("div", { key: sIdx, onClick: () => toggleOwned(rIdx, sIdx), style: { borderRadius: 10, border: "2px solid " + (slot.owned ? GREEN : BDR), overflow: "hidden", cursor: "pointer", opacity: slot.owned ? 1 : 0.55, background: BG, transition: "all 0.15s" } },
                 React.createElement("div", { style: { width: "100%", aspectRatio: "3/4", background: BGS, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative" } },
-                    slot.url ? React.createElement("img", { src: slot.url, alt: slot.label, style: { width: "100%", height: "100%", objectFit: "cover", imageRendering: "auto" } }) : (React.createElement("div", { style: { textAlign: "center", color: MUT } },
+                    slot.url ? React.createElement("img", { src: slot.url, alt: slot.label, style: { width: "100%", height: "100%", objectFit: "cover" } }) : (React.createElement("div", { style: { textAlign: "center", color: MUT } },
                         React.createElement("div", { style: { fontSize: 24 } }, "\uD83C\uDCCF"),
                         React.createElement("div", { style: { fontSize: 10, marginTop: 4 } }, "Sin foto"))),
                     slot.owned && React.createElement("div", { style: { position: "absolute", top: 4, right: 4, background: GREEN, borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#fff", fontWeight: 700 } }, "\u2713")),
