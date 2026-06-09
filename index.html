@@ -17422,6 +17422,11 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                             React.createElement("label", { style: LS }, "Condici\u00F3n"),
                             React.createElement("select", { value: f.condition, onChange: e => sf("condition", e.target.value), style: IS }, CONDS.map(c => React.createElement("option", { key: c, value: c }, c))))),
                     React.createElement("div", null,
+                        React.createElement("label", { style: LS }, "Lote"),
+                        React.createElement("select", { value: f.lotId || "", onChange: e => sf("lotId", e.target.value), style: IS },
+                            React.createElement("option", { value: "" }, "Sin lote"),
+                            (JSON.parse(localStorage.getItem("cv10_lots") || "[]")).map((l) => React.createElement("option", { key: l.id, value: l.id }, l.name)))),
+                    React.createElement("div", null,
                         React.createElement("label", { style: LS }, "Notas"),
                         React.createElement("textarea", { value: f.notes, onChange: e => sf("notes", e.target.value), rows: 2, placeholder: "Condici\u00F3n extra, n\u00FAmero...", style: Object.assign(Object.assign({}, IS), { resize: "vertical" }) })),
                     React.createElement("div", { style: { gridColumn: "1/-1" } },
@@ -18425,6 +18430,115 @@ function RainbowSection({ rainbows, saveRainbows }) {
                     slot.owned && React.createElement("div", { style: { position: "absolute", top: 4, right: 4, background: GREEN, borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#fff", fontWeight: 700 } }, "\u2713")),
                 React.createElement("div", { style: { padding: "6px 8px", textAlign: "center", fontSize: 13, fontWeight: 700, color: slot.owned ? GREEN : MUT } }, slot.label || "??"))))))))));
 }
+function LotsTab({ lots, saveLots, cards, setCards }) {
+    const [showForm, setShowForm] = useState(false);
+    const [editIdx, setEditIdx] = useState(null);
+    const blank = { id: "", name: "", buyDate: "", notes: "" };
+    const [form, setForm] = useState(blank);
+    function sf(k, v) { setForm((p) => (Object.assign(Object.assign({}, p), { [k]: v }))); }
+    function save() {
+        if (!form.name.trim())
+            return;
+        const newL = [...lots];
+        const entry = Object.assign(Object.assign({}, form), { id: form.id || Date.now().toString() });
+        if (editIdx !== null) {
+            newL[editIdx] = entry;
+        }
+        else {
+            newL.push(entry);
+        }
+        saveLots(newL);
+        setShowForm(false);
+        setEditIdx(null);
+        setForm(blank);
+    }
+    function openEdit(idx) { setForm(Object.assign({}, lots[idx])); setEditIdx(idx); setShowForm(true); }
+    function deleteLot(idx) {
+        const lotId = lots[idx].id;
+        saveLots(lots.filter((_, i) => i !== idx));
+        // Remove lotId from cards
+        setCards((prev) => prev.map((c) => c.lotId === lotId ? Object.assign(Object.assign({}, c), { lotId: "" }) : c));
+        localStorage.setItem("cv10", JSON.stringify(cards.map((c) => c.lotId === lotId ? Object.assign(Object.assign({}, c), { lotId: "" }) : c)));
+    }
+    return (React.createElement("div", null,
+        React.createElement("div", { style: { fontSize: 20, fontWeight: 700, marginBottom: 16 } }, "\uD83D\uDCE6 Lotes de compra"),
+        React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
+            React.createElement("div", { style: { fontSize: 13, color: SUB } }, "Agrupa tus cartas por lote de compra y analiza el rendimiento de cada uno"),
+            React.createElement(Btn, { onClick: () => { setForm(blank); setEditIdx(null); setShowForm(true); } }, "+ Nuevo lote")),
+        showForm && React.createElement(Card, { style: { padding: 20, marginBottom: 20 } },
+            React.createElement("div", { style: { fontSize: 14, fontWeight: 700, marginBottom: 14 } }, editIdx !== null ? "Editar lote" : "Nuevo lote"),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } },
+                React.createElement("div", { style: { gridColumn: "1/-1" } },
+                    React.createElement("label", { style: LS }, "Nombre del lote"),
+                    React.createElement("input", { value: form.name, onChange: e => sf("name", e.target.value), placeholder: "Ej: CardHobby Mayo 2026", style: IS })),
+                React.createElement("div", null,
+                    React.createElement("label", { style: LS }, "Fecha de compra"),
+                    React.createElement("input", { type: "date", value: form.buyDate || "", onChange: e => sf("buyDate", e.target.value), style: IS })),
+                React.createElement("div", null,
+                    React.createElement("label", { style: LS }, "Notas"),
+                    React.createElement("input", { value: form.notes || "", onChange: e => sf("notes", e.target.value), placeholder: "Proveedor, referencia...", style: IS }))),
+            React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 4 } },
+                React.createElement(Btn, { v: "outline", full: true, onClick: () => { setShowForm(false); setForm(blank); setEditIdx(null); } }, "Cancelar"),
+                React.createElement(Btn, { full: true, disabled: !form.name.trim(), onClick: save }, editIdx !== null ? "Guardar" : "Crear lote"))),
+        lots.length === 0 && !showForm && React.createElement(Card, null,
+            React.createElement(Empty, { icon: "\uD83D\uDCE6", title: "Sin lotes", sub: "Crea tu primer lote para agrupar cartas y analizar su rendimiento" })),
+        lots.map((lot, idx) => {
+            const lotCards = cards.filter((c) => c.lotId === lot.id && c.mode === "inventory");
+            const invested = lotCards.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0);
+            const sold = lotCards.filter((c) => c.status === "sold");
+            const inStock = lotCards.filter((c) => c.status !== "sold");
+            const recovered = sold.reduce((a, c) => a + np(c), 0);
+            const inPortfolio = inStock.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0);
+            const pl = recovered - sold.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0);
+            const roi = invested > 0 ? ((recovered + inPortfolio - invested) / invested * 100) : 0;
+            const pctSold = lotCards.length > 0 ? (sold.length / lotCards.length * 100) : 0;
+            const avgDays = sold.filter((c) => c.buyDate && c.sellDate).length > 0 ?
+                sold.filter((c) => c.buyDate && c.sellDate).reduce((a, c) => a + (new Date(c.sellDate).getTime() - new Date(c.buyDate).getTime()) / 86400000, 0) / sold.filter((c) => c.buyDate && c.sellDate).length : null;
+            return (React.createElement(Card, { key: lot.id, style: { padding: 18, marginBottom: 16 } },
+                React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 } },
+                    React.createElement("div", null,
+                        React.createElement("div", { style: { fontSize: 15, fontWeight: 700 } },
+                            "\uD83D\uDCE6 ",
+                            lot.name),
+                        React.createElement("div", { style: { fontSize: 11, color: SUB, marginTop: 2 } },
+                            lot.buyDate || "",
+                            lot.notes ? " · " + lot.notes : "",
+                            " \u00B7 ",
+                            lotCards.length,
+                            " cartas")),
+                    React.createElement("div", { style: { display: "flex", gap: 6 } },
+                        React.createElement(Btn, { sm: true, v: "outline", onClick: () => openEdit(idx) }, "\u270F\uFE0F"),
+                        React.createElement(Btn, { sm: true, v: "outline", style: { color: RED, borderColor: "#fecaca" }, onClick: () => deleteLot(idx) }, "\u2715"))),
+                lotCards.length === 0 ? (React.createElement("div", { style: { fontSize: 12, color: MUT, textAlign: "center", padding: "12px 0" } }, "Sin cartas asignadas \u2014 edita tus cartas y selecciona este lote")) : (React.createElement("div", null,
+                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(100px,1fr))", gap: 8, marginBottom: 12 } }, [{ l: "Invertido", v: eu(invested), c: TXT }, { l: "Recuperado", v: eu(recovered), c: GREEN }, { l: "En cartera", v: eu(inPortfolio), c: BLUE }, { l: "P&L", v: (pl >= 0 ? "+" : "") + eu(pl), c: cl(pl) }, { l: "ROI", v: roi.toFixed(0) + "%", c: cl(roi) }, { l: "Vendidas", v: sold.length + "/" + lotCards.length, c: TXT }].map(({ l, v, c }) => (React.createElement("div", { key: l, style: { background: BGS, borderRadius: 8, padding: "8px 10px", border: "1px solid " + BDR } },
+                        React.createElement("div", { style: { fontSize: 10, color: SUB } }, l),
+                        React.createElement("div", { style: { fontSize: 14, fontWeight: 700, color: c } }, v))))),
+                    React.createElement("div", { style: { marginBottom: 6 } },
+                        React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 11, color: SUB, marginBottom: 4 } },
+                            React.createElement("span", null, "Progreso de ventas"),
+                            React.createElement("span", null,
+                                sold.length,
+                                "/",
+                                lotCards.length,
+                                " \u00B7 ",
+                                pctSold.toFixed(0),
+                                "%",
+                                avgDays ? " · media " + Math.round(avgDays) + "d" : "")),
+                        React.createElement("div", { style: { height: 6, borderRadius: 3, background: BDR, overflow: "hidden" } },
+                            React.createElement("div", { style: { height: "100%", width: pctSold + "%", background: pctSold > 80 ? GREEN : pctSold > 40 ? AMBER : BLUE, borderRadius: 3, transition: "width 0.3s" } }))),
+                    inStock.length > 0 && React.createElement("div", { style: { marginTop: 10 } },
+                        React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 6 } },
+                            "En stock (",
+                            inStock.length,
+                            ")"),
+                        React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 4 } },
+                            inStock.slice(0, 8).map((c) => (React.createElement("span", { key: c.id, style: { fontSize: 10, background: BGS, border: "1px solid " + BDR, borderRadius: 4, padding: "2px 6px", color: SUB } }, c.name.slice(0, 20)))),
+                            inStock.length > 8 && React.createElement("span", { style: { fontSize: 10, color: MUT } },
+                                "+",
+                                inStock.length - 8,
+                                " m\u00E1s")))))));
+        })));
+}
 const PSA_SERVICES = [{ k: "economy", l: "Economy", days: 45 }, { k: "regular", l: "Regular", days: 20 }, { k: "express", l: "Express", days: 10 }, { k: "walkthrough", l: "Walkthrough", days: 5 }];
 const PSA_STATUS = [["sent", "📬 Enviada"], ["grading", "🔍 En proceso"], ["done", "✅ Recibida"], ["sold", "💰 Vendida"]];
 function PSATab() {
@@ -18743,6 +18857,13 @@ function App() {
     catch (_a) {
         return [];
     } });
+    const [lots, setLots] = useState(() => { try {
+        return JSON.parse(localStorage.getItem("cv10_lots") || "[]");
+    }
+    catch (_a) {
+        return [];
+    } });
+    function saveLots(l) { setLots(l); localStorage.setItem("cv10_lots", JSON.stringify(l)); }
     const [showLot, setShowLot] = useState(false);
     const [dupCard, setDupCard] = useState(null);
     const [invoices, setInvoices] = useState(() => { try {
@@ -18757,7 +18878,7 @@ function App() {
             if (!c.length) return;
             const today = new Date().toISOString().slice(0, 10);
             if (localStorage.getItem("cv10_last_backup") === today) return;
-            const data = { cards: c, invoices: JSON.parse(localStorage.getItem("cv10i") || "[]"), psaItems: JSON.parse(localStorage.getItem("cv10p") || "[]"), rainbows: JSON.parse(localStorage.getItem("cv10_rainbows") || "[]"), locs: localStorage.getItem("cv10_locs"), minRoi: localStorage.getItem("cv10_minroi"), exported: new Date().toISOString() };
+            const data = { cards: c, invoices: JSON.parse(localStorage.getItem("cv10i") || "[]"), psaItems: JSON.parse(localStorage.getItem("cv10p") || "[]"), rainbows: JSON.parse(localStorage.getItem("cv10_rainbows") || "[]"), lotsData: JSON.parse(localStorage.getItem("cv10_lots") || "[]"), locs: localStorage.getItem("cv10_locs"), minRoi: localStorage.getItem("cv10_minroi"), exported: new Date().toISOString() };
             const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
             const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
             a.download = "cromovault-backup-" + today + ".json";
@@ -18774,7 +18895,7 @@ function App() {
     function oa(m) { setDm(m); setEc(null); setSF(true); }
     function oe(c) { setEc(c); setDm(c.mode); setSF(true); }
     function dup(c) { setDupCard(c); }
-    const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Fiscal"], ["invoices", "Facturas"], ["analytics", "Análisis"], ["psa", "PSA/BGS"]];
+    const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Fiscal"], ["invoices", "Facturas"], ["analytics", "Análisis"], ["lots", "Lotes"], ["psa", "PSA/BGS"]];
     return (React.createElement("div", { style: { minHeight: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14 } },
         React.createElement("style", null, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');"),
         React.createElement("div", { style: { background: BG, borderBottom: "1px solid " + BDR, position: "sticky", top: 0, zIndex: 50 } },
@@ -18797,6 +18918,7 @@ function App() {
             tab === "fiscal" && React.createElement(FiscalTab, { cards: cards, invoices: invoices }),
             tab === "invoices" && React.createElement(InvoicesTab, { invoices: invoices, setInvoices: setInvoices }),
             tab === "analytics" && React.createElement(AnalyticsTab, { cards: cards }),
+            tab === "lots" && React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards }),
             tab === "psa" && React.createElement(PSATab, null)),
         sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); }, editCard: ec, defMode: dm }),
         showLot && React.createElement(LotModal, { cards: cards, onSell: ups, onClose: () => setShowLot(false) }),
