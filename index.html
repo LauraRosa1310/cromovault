@@ -17824,7 +17824,7 @@ function ColTab({ cards, onEdit, onDelete, onDuplicate }) {
             React.createElement("div", { style: { padding: "10px 14px", borderBottom: "1px solid " + BDR, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" } },
                 React.createElement("input", { value: sr, onChange: e => setSr(e.target.value), placeholder: "\uD83D\uDD0D Buscar...", style: Object.assign(Object.assign({}, IS), { maxWidth: 160, background: BGS, padding: "6px 10px" }) }),
                 React.createElement("div", { style: { display: "flex", gap: 5, flexWrap: "wrap", flex: 1 } }, [["all", "Todas"], ["futbol", "⚽"], ["futbol_m", "⚽ Masc."], ["futbol_f", "⚽ Fem."], ["nba", "🏀"], ["trading", "🃏"], ["baseball", "⚾"], ["f1", "🏎️"], ["fav", "⭐"], ["psa", "PSA"]].map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setFl(k), style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid " + (fl === k ? BLUE : BDR), background: fl === k ? "#eff4ff" : "transparent", color: fl === k ? BLUE : SUB, fontSize: 11, fontWeight: 500, cursor: "pointer" } }, l)))),
-                React.createElement("div", { style: { display: "flex", gap: 4, marginLeft: "auto" } }, [["gallery", "⊞"], ["list", "☰"]].map(([v, icon]) => (React.createElement("button", { key: v, onClick: () => setView(v), style: { padding: "5px 10px", borderRadius: 6, border: "1.5px solid " + (view === v ? BLUE : BDR), background: view === v ? "#eff4ff" : "transparent", color: view === v ? BLUE : MUT, fontSize: 13, cursor: "pointer" } }, icon))))),
+                React.createElement("div", { style: { display: "flex", gap: 4, marginLeft: "auto" } }, [["gallery", "⊞"], ["list", "☰"], ["vitrina", "✨"]].map(([v, icon]) => (React.createElement("button", { key: v, onClick: () => setView(v), style: { padding: "5px 10px", borderRadius: 6, border: "1.5px solid " + (view === v ? BLUE : BDR), background: view === v ? "#eff4ff" : "transparent", color: view === v ? BLUE : MUT, fontSize: 13, cursor: "pointer" } }, icon))))),
             fi.length === 0 ? (React.createElement(Empty, { icon: "\u2B50", title: col.length === 0 ? "Colección vacía" : "Sin resultados", sub: col.length === 0 ? "Añade tus cartas personales" : "" })) : view === "gallery" ? (React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 14, padding: 16 } }, fi.map(c => (React.createElement("div", { key: c.id, style: { borderRadius: 12, border: "1px solid " + BDR, overflow: "hidden", background: BG, cursor: "pointer", transition: "box-shadow 0.15s" }, onMouseEnter: e => e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.10)", onMouseLeave: e => e.currentTarget.style.boxShadow = "none" },
                 React.createElement("div", { style: { width: "100%", aspectRatio: "3/4", background: BGS, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative" } },
                     c.imageUrl ? (React.createElement("img", { src: c.imageUrl, alt: c.name, style: { width: "100%", height: "100%", objectFit: "cover" }, onError: e => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; } })) : null,
@@ -17846,6 +17846,22 @@ function ColTab({ cards, onEdit, onDelete, onDuplicate }) {
                             React.createElement("button", { onClick: () => onDelete(c.id), style: { background: "none", border: "none", fontSize: 13, cursor: "pointer", color: MUT, padding: "2px 4px" } }, "\u2715"))))))))) : (React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
                 React.createElement(TH, { cols: [["Carta"], ["Rareza"], ["Coste", "right"], ["Estado", "center"], ["", "right"]] }),
                 React.createElement("tbody", null, fi.map(c => React.createElement(CardRow, { key: c.id, card: c, onEdit: onEdit, onDelete: onDelete, onSell: () => { }, onDuplicate: onDuplicate, showPnl: false })))))),
+        colSection === "cards" && view === "vitrina" && React.createElement("div", { style: { background: "#0a0a0f", borderRadius: 16, padding: 24, minHeight: 400 } },
+            React.createElement("div", { style: { textAlign: "center", marginBottom: 24 } },
+                React.createElement("div", { style: { fontSize: 22, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em" } }, "\u2728 Mi Vitrina"),
+                React.createElement("div", { style: { fontSize: 12, color: "#6b7280", marginTop: 4 } },
+                    fi.length,
+                    " cartas \u00B7 valor total ",
+                    euk(fi.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0)))),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 20 } }, [...fi].sort((a, b) => (b.buyPrice || 0) - (a.buyPrice || 0)).map(c => (React.createElement("div", { key: c.id, style: { position: "relative", cursor: "pointer", transition: "transform 0.2s" }, onMouseEnter: e => e.currentTarget.style.transform = "translateY(-6px)", onMouseLeave: e => e.currentTarget.style.transform = "translateY(0)" },
+                React.createElement("div", { style: { borderRadius: 12, overflow: "hidden", aspectRatio: "3/4", background: "#1a1a2e", boxShadow: "0 0 20px rgba(99,102,241,0.3)", border: "1px solid rgba(255,255,255,0.1)" } },
+                    c.imageUrl ? React.createElement("img", { src: c.imageUrl, alt: c.name, style: { width: "100%", height: "100%", objectFit: "cover" } }) : (React.createElement("div", { style: { width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#4b5563" } },
+                        React.createElement("div", { style: { fontSize: 40 } }, "\uD83C\uDCCF"))),
+                    c.isFavorite && React.createElement("div", { style: { position: "absolute", top: 8, right: 8, fontSize: 16 } }, "\u2B50")),
+                React.createElement("div", { style: { marginTop: 8, textAlign: "center" } },
+                    React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: "#e5e7eb", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, c.name),
+                    React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: "#818cf8", marginTop: 2 } }, eu(c.buyPrice || 0)),
+                    c.condition && c.condition !== "Raw" && React.createElement("div", { style: { fontSize: 10, color: "#6ee7b7", marginTop: 1 } }, c.condition))))))),
         colSection === "rainbow" && React.createElement(RainbowSection, { rainbows: rainbows, saveRainbows: saveRainbows })));
 }
 function FiscalTab({ cards, invoices }) {
@@ -18156,35 +18172,28 @@ function AnalyticsTab({ cards }) {
                     React.createElement("div", { style: { fontSize: 18, fontWeight: 700, color: c } }, v))))),
                 React.createElement("div", { style: { background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "10px 14px", fontSize: 11, color: SUB } }, "\u26A0\uFE0F Estimaci\u00F3n orientativa seg\u00FAn tramos IRPF 2024 para ganancias patrimoniales (19% hasta 6.000\u20AC \u00B7 21% hasta 50.000\u20AC \u00B7 23% hasta 200.000\u20AC \u00B7 27% a partir de 200.000\u20AC). Consulta con un gestor para tu caso concreto."))) : React.createElement(Empty, { icon: "\uD83E\uDDFE", title: "Sin beneficios en " + yr, sub: "Cuando tengas ventas cerradas en el a\u00F1o actual aparecer\u00E1 la estimaci\u00F3n" })),
         React.createElement(Card, { style: { padding: "18px", marginBottom: 20 } },
-            React.createElement(SL, { style: { marginBottom: 8, fontSize: 13 } }, "\uD83E\uDDF2 Calculadora de precio m\u00E1ximo"),
+            React.createElement(SL, { style: { marginBottom: 8, fontSize: 13 } }, "\uD83E\uDDF2 Calculadora de precio de venta"),
             (() => {
-                const [cSell, setCSell] = useState("");
-                const [cRoi, setCRoi] = useState("30");
-                const [cFee, setCFee] = useState("5");
-                const [cShip, setCShip] = useState("0");
-                const sell = parseFloat(cSell) || 0, roi = parseFloat(cRoi) || 0, fee = parseFloat(cFee) || 0, ship = parseFloat(cShip) || 0;
-                const netSell = sell * (1 - fee / 100) - ship, maxBuy = netSell / (1 + roi / 100);
-                return (React.createElement("div", null,
+                const [cBuy, setCBuy] = React.useState(""), [cRoi, setCRoi] = React.useState("30"), [cFee, setCFee] = React.useState("5"), [cShip, setCShip] = React.useState("0");
+                const buy = parseFloat(cBuy) || 0, roi = parseFloat(cRoi) || 0, fee = parseFloat(cFee) || 0, ship = parseFloat(cShip) || 0;
+                const minSell = buy > 0 ? (buy * (1 + roi / 100) + ship) / (1 - fee / 100) : 0;
+                const netIncome = minSell * (1 - fee / 100) - ship;
+                const realRoi = buy > 0 ? ((netIncome - buy) / buy * 100) : 0;
+                return React.createElement("div", null,
                     React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 } },
-                        React.createElement("div", null,
-                            React.createElement("label", { style: LS }, "Precio venta objetivo (\u20AC)"),
-                            React.createElement("input", { type: "number", min: "0", step: "0.01", value: cSell, onChange: e => setCSell(e.target.value), placeholder: "0.00", style: IS })),
-                        React.createElement("div", null,
-                            React.createElement("label", { style: LS }, "ROI m\u00EDnimo (%)"),
-                            React.createElement("input", { type: "number", min: "0", step: "1", value: cRoi, onChange: e => setCRoi(e.target.value), placeholder: "30", style: IS }))),
+                        React.createElement("div", null, React.createElement("label", { style: LS }, "Precio de compra (\u20AC)"), React.createElement("input", { type: "number", min: "0", step: "0.01", value: cBuy, onChange: e => setCBuy(e.target.value), placeholder: "0.00", style: IS })),
+                        React.createElement("div", null, React.createElement("label", { style: LS }, "ROI m\u00EDnimo (%)"), React.createElement("input", { type: "number", min: "0", step: "1", value: cRoi, onChange: e => setCRoi(e.target.value), placeholder: "30", style: IS }))),
                     React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 } },
-                        React.createElement("div", null,
-                            React.createElement("label", { style: LS }, "Comisi\u00F3n (%)"),
-                            React.createElement("input", { type: "number", min: "0", step: "0.1", value: cFee, onChange: e => setCFee(e.target.value), placeholder: "5", style: IS })),
-                        React.createElement("div", null,
-                            React.createElement("label", { style: LS }, "Env\u00EDo (\u20AC)"),
-                            React.createElement("input", { type: "number", min: "0", step: "0.01", value: cShip, onChange: e => setCShip(e.target.value), placeholder: "0.00", style: IS }))),
-                    sell > 0 && React.createElement("div", { style: { background: maxBuy > 0 ? "#f0fdf8" : "#fff5f5", border: "1px solid " + (maxBuy > 0 ? "#d1fae5" : "#fecaca"), borderRadius: 10, padding: "14px 16px" } },
-                        React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: maxBuy > 0 ? GREEN : RED, marginBottom: 10 } }, maxBuy > 0 ? "✓ Resultado" : "⚠ No viable"),
-                        [["Precio venta", "€" + sell.toFixed(2), TXT], ["Comisión+envío", "-€" + (sell * fee / 100 + ship).toFixed(2), RED], ["Ingresos netos", "€" + netSell.toFixed(2), TXT], ["Precio máximo de compra", maxBuy > 0 ? "€" + maxBuy.toFixed(2) : "—", maxBuy > 0 ? GREEN : RED], ["ROI al comprar", roi + "%", SUB]].map(([l, v, c]) => (React.createElement("div", { key: l, style: { display: "flex", justifyContent: "space-between", marginBottom: 5 } },
-                            React.createElement("span", { style: { fontSize: 12, color: SUB } }, l),
-                            React.createElement("span", { style: { fontSize: 13, fontWeight: l.includes("ximo") ? 700 : 500, color: c } }, v)))))));
+                        React.createElement("div", null, React.createElement("label", { style: LS }, "Comisi\u00F3n (%)"), React.createElement("input", { type: "number", min: "0", step: "0.1", value: cFee, onChange: e => setCFee(e.target.value), placeholder: "5", style: IS })),
+                        React.createElement("div", null, React.createElement("label", { style: LS }, "Env\u00EDo (\u20AC)"), React.createElement("input", { type: "number", min: "0", step: "0.01", value: cShip, onChange: e => setCShip(e.target.value), placeholder: "0.00", style: IS }))),
+                    buy > 0 && React.createElement("div", { style: { background: "#f0fdf8", border: "1px solid #d1fae5", borderRadius: 10, padding: "14px 16px" } },
+                        React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: GREEN, marginBottom: 10 } }, "\u2713 Precio m\u00EDnimo de venta"),
+                        [["Precio de compra", "\u20AC" + buy.toFixed(2), TXT], ["Comisi\u00F3n+env\u00EDo", "+\u20AC" + (minSell * fee / 100 + ship).toFixed(2), RED], ["Precio m\u00EDnimo de venta", "\u20AC" + minSell.toFixed(2), GREEN], ["Ingreso neto", "\u20AC" + netIncome.toFixed(2), TXT], ["ROI real", realRoi.toFixed(1) + "%", cl(realRoi)]].map(([l, v, c]) =>
+                            React.createElement("div", { key: l, style: { display: "flex", justifyContent: "space-between", marginBottom: 5 } },
+                                React.createElement("span", { style: { fontSize: 12, color: SUB } }, l),
+                                React.createElement("span", { style: { fontSize: 13, fontWeight: l.includes("nimo de") ? 700 : 500, color: c } }, v)))));
             })()),
+
         React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 20 } },
             React.createElement(SL, { style: { marginBottom: 6, fontSize: 13 } }, "\u26A1 Velocidad de ventas"),
             (() => {
@@ -18796,6 +18805,22 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+  </script>
+</body>
+</htmlE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🃏 CromoVault</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script>
+
   </script>
 </body>
 </html>
