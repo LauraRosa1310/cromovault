@@ -18974,9 +18974,9 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
 
   </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-app-compat.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-auth-compat.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-firestore-compat.min.js"></script>
+<script src="./firebase-app.js"></script>
+<script src="./firebase-auth.js"></script>
+<script src="./firebase-firestore.js"></script>
 <script>
 (function() {
   function initFirebase() {
@@ -19005,7 +19005,6 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
     window._saveToFirestore = function(data) {
       if (!window._currentUser) return;
       db.collection('users').doc(window._currentUser.uid)
-        .collection('data').doc('main')
         .set(data, {merge: true})
         .catch(function(e) { console.error('Save error:', e); });
     };
@@ -19033,7 +19032,7 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
     auth.onAuthStateChanged(function(user) {
       window._currentUser = user;
       if (user) {
-        db.collection('users').doc(user.uid).collection('data').doc('main').get()
+        db.collection('users').doc(user.uid).get()
           .then(function(snap) {
             if (snap.exists) {
               var d = snap.data();
