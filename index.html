@@ -8,7 +8,19 @@
   <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="cv-login" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#1e293b);z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Inter,sans-serif;">
+    <div style="text-align:center;padding:40px;background:rgba(255,255,255,0.05);border-radius:20px;border:1px solid rgba(255,255,255,0.1);max-width:380px;width:90%;">
+      <div style="font-size:52px;margin-bottom:16px;">🃏</div>
+      <div style="font-size:28px;font-weight:700;color:#fff;margin-bottom:8px;">CromoVault</div>
+      <div style="font-size:14px;color:#94a3b8;margin-bottom:32px;">Tu gestor de cartas de inversión</div>
+      <button onclick="window._signIn()" style="width:100%;padding:14px 24px;background:#fff;color:#1e293b;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:Inter,sans-serif;">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continuar con Google
+      </button>
+      <p style="color:#475569;font-size:12px;margin-top:20px;">Tus datos se guardan de forma segura en la nube</p>
+    </div>
+  </div>
+  <div id="root" style="display:none;"></div>
   
   <script>
 var process={env:{NODE_ENV:'production'}};var __DEV__=false;
@@ -17222,7 +17234,9 @@ function dlPDF(cards) {
   <h1 style="font-size:18px;margin-bottom:4px">CromoVault</h1><p style="color:#6b7280;margin-bottom:16px">${new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}</p>
   <div class=k><div class=ki><div class=kl>INVERTIDO</div><div class=kv>€${ti.toFixed(2)}</div></div><div class=ki><div class=kl>P&L</div><div class=kv style="color:${tr >= 0 ? "green" : "red"}">${tr >= 0 ? "+" : ""}€${tr.toFixed(2)}</div></div><div class=ki><div class=kl>ROI</div><div class=kv style="color:${ri >= 0 ? "green" : "red"}">${ri >= 0 ? "+" : ""}${ri.toFixed(1)}%</div></div><div class=ki><div class=kl>EN CARTERA</div><div class=kv>${hold.length}</div></div></div>
   <h2>Ventas (${sold.length})</h2><table><thead><tr><th>Carta</th><th>Compra</th><th>Venta</th><th>Gastos</th><th>Beneficio</th><th>ROI</th></tr></thead><tbody>${sr}<tr class=tot><td>TOTAL</td><td align=right>€${tB.toFixed(2)}</td><td align=right>€${tS.toFixed(2)}</td><td align=right>-€${tF.toFixed(2)}</td><td align=right style="color:${tN >= 0 ? "green" : "red"}">${tN >= 0 ? "+" : ""}€${tN.toFixed(2)}</td><td></td></tr></tbody></table>
-  <h2>Cartera (${hold.length})</h2><table><thead><tr><th>Carta</th><th>Cat.</th><th>Rareza</th><th>Coste</th></tr></thead><tbody>${hr}</tbody></table></body></html>`;
+  <h2>Cartera (${hold.length})</h2><table><thead><tr><th>Carta</th><th>Cat.</th><th>Rareza</th><th>Coste</th></tr></thead><tbody>${hr}</tbody></table>
+
+</body></html>`;
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([html], { type: "text/html" }));
     a.download = "cromovault-" + new Date().toISOString().slice(0, 10) + ".html";
@@ -18888,8 +18902,8 @@ function App() {
         } catch(e) {}
     }, []);
     const [tab, setTab] = useState("dashboard"), [sf, setSF] = useState(false), [dm, setDm] = useState("inventory"), [ec, setEc] = useState(null), [sc, setSc] = useState(null);
-    useEffect(() => { localStorage.setItem("cv10", JSON.stringify(cards)); }, [cards]);
-    useEffect(() => { localStorage.setItem("cv10i", JSON.stringify(invoices)); }, [invoices]);
+    useEffect(() => { localStorage.setItem("cv10", JSON.stringify(cards)); if (window._currentUser && cards.length > 0) window._saveToFirestore && window._saveToFirestore({ cards: cards }); }, [cards]);
+    useEffect(() => { localStorage.setItem("cv10i", JSON.stringify(invoices)); if (window._currentUser) window._saveToFirestore && window._saveToFirestore({ invoices: invoices }); }, [invoices]);
     function ups(c) { setCards(p => p.find(x => x.id === c.id) ? p.map(x => x.id === c.id ? c : x) : [c, ...p]); }
     function del(id) { setCards(p => p.filter(c => c.id !== id)); }
     function oa(m) { setDm(m); setEc(null); setSF(true); }
@@ -18910,7 +18924,8 @@ function App() {
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => setShowLot(true) }, "Venta m\u00FAltiple"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => dlJSON(cards, invoices) }, "\u2B07"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => ulJSON(setCards, setInvoices) }, "\u2B06"),
-                    React.createElement(Btn, { sm: true, v: "outline", onClick: () => dlPDF(cards) }, "\uD83D\uDCC4")))),
+                    React.createElement(Btn, { sm: true, v: "outline", onClick: () => dlPDF(cards) }, "\uD83D\uDCC4"),
+                    React.createElement("button", { onClick: () => window._signOut && window._signOut(), style: { background: "none", border: "1.5px solid #fecaca", borderRadius: 6, cursor: "pointer", fontSize: 12, color: "#ef4444", padding: "4px 8px", fontFamily: "Inter,sans-serif", marginLeft: 4 } }, "\uD83D\uDEAA")))),
         React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "24px" } },
             tab === "dashboard" && React.createElement(DashTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
             tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
@@ -18926,8 +18941,10 @@ function App() {
         dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onClose: () => setDupCard(null) })));
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+window._mountApp = function() { ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App)); };
   </script>
+
+
 </body>
 </htmlE html>
 <html lang="es">
@@ -18939,10 +18956,118 @@ ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(
   <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="cv-login" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#1e293b);z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Inter,sans-serif;">
+    <div style="text-align:center;padding:40px;background:rgba(255,255,255,0.05);border-radius:20px;border:1px solid rgba(255,255,255,0.1);max-width:380px;width:90%;">
+      <div style="font-size:52px;margin-bottom:16px;">🃏</div>
+      <div style="font-size:28px;font-weight:700;color:#fff;margin-bottom:8px;">CromoVault</div>
+      <div style="font-size:14px;color:#94a3b8;margin-bottom:32px;">Tu gestor de cartas de inversión</div>
+      <button onclick="window._signIn()" style="width:100%;padding:14px 24px;background:#fff;color:#1e293b;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:Inter,sans-serif;">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continuar con Google
+      </button>
+      <p style="color:#475569;font-size:12px;margin-top:20px;">Tus datos se guardan de forma segura en la nube</p>
+    </div>
+  </div>
+  <div id="root" style="display:none;"></div>
   
   <script>
 
   </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-firestore-compat.min.js"></script>
+<script>
+(function() {
+  function initFirebase() {
+    if (typeof firebase === 'undefined') {
+      console.error('Firebase failed to load');
+      document.getElementById('root').style.display = 'block';
+      document.getElementById('cv-login').style.display = 'none';
+      if (window._mountApp) { window._mountApp(); window._appMounted = true; }
+      return;
+    }
+
+    firebase.initializeApp({
+      apiKey: "AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA",
+      authDomain: "cromovault.firebaseapp.com",
+      projectId: "cromovault",
+      storageBucket: "cromovault.firebasestorage.app",
+      messagingSenderId: "702300818534",
+      appId: "1:702300818534:web:b88155c3e6099890ef31a7"
+    });
+
+    var auth = firebase.auth();
+    var db = firebase.firestore();
+    window._currentUser = null;
+    window._appMounted = false;
+
+    window._saveToFirestore = function(data) {
+      if (!window._currentUser) return;
+      db.collection('users').doc(window._currentUser.uid)
+        .collection('data').doc('main')
+        .set(data, {merge: true})
+        .catch(function(e) { console.error('Save error:', e); });
+    };
+
+    window._signIn = function() {
+      var provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).catch(function(e) {
+        alert('Error: ' + e.message);
+      });
+    };
+
+    window._signOut = function() {
+      window._saveToFirestore({
+        cards: JSON.parse(localStorage.getItem('cv10')||'[]'),
+        invoices: JSON.parse(localStorage.getItem('cv10i')||'[]'),
+        psaItems: JSON.parse(localStorage.getItem('cv10p')||'[]'),
+        rainbows: JSON.parse(localStorage.getItem('cv10_rainbows')||'[]'),
+        lotsData: JSON.parse(localStorage.getItem('cv10_lots')||'[]'),
+        locs: localStorage.getItem('cv10_locs'),
+        minRoi: localStorage.getItem('cv10_minroi')
+      });
+      setTimeout(function() { auth.signOut(); }, 500);
+    };
+
+    auth.onAuthStateChanged(function(user) {
+      window._currentUser = user;
+      if (user) {
+        db.collection('users').doc(user.uid).collection('data').doc('main').get()
+          .then(function(snap) {
+            if (snap.exists) {
+              var d = snap.data();
+              if (d.cards) localStorage.setItem('cv10', JSON.stringify(d.cards));
+              if (d.invoices) localStorage.setItem('cv10i', JSON.stringify(d.invoices));
+              if (d.psaItems) localStorage.setItem('cv10p', JSON.stringify(d.psaItems));
+              if (d.rainbows) localStorage.setItem('cv10_rainbows', JSON.stringify(d.rainbows));
+              if (d.lotsData) localStorage.setItem('cv10_lots', JSON.stringify(d.lotsData));
+              if (d.locs) localStorage.setItem('cv10_locs', d.locs);
+              if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
+            }
+          })
+          .finally(function() {
+            document.getElementById('cv-login').style.display = 'none';
+            document.getElementById('root').style.display = 'block';
+            if (!window._appMounted && window._mountApp) {
+              window._mountApp();
+              window._appMounted = true;
+            }
+          });
+      } else {
+        document.getElementById('root').style.display = 'none';
+        document.getElementById('cv-login').style.display = 'flex';
+        window._appMounted = false;
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFirebase);
+  } else {
+    initFirebase();
+  }
+})();
+</script>
 </body>
 </html>
