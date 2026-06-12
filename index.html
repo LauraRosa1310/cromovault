@@ -18181,7 +18181,7 @@ function AnalyticsTab({ cards }) {
                         React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 12, color: SUB } },
                             s.avgFee.toFixed(1),
                             "%"))))))) : React.createElement(Empty, { icon: "\uD83C\uDFC6", title: "Sin datos", sub: "Registra ventas con plataforma para ver estad\u00EDsticas" }))),
-        React.createElement(Card, { style: { position: "relative", marginBottom: 20, padding: "18px" } },
+        React.createElement(Card, { style: { marginBottom: 20, padding: "18px" } },
             React.createElement(SL, { style: { marginBottom: 12 } },
                 "\uD83E\uDDFE Estimaci\u00F3n IRPF ",
                 yr),
@@ -18189,7 +18189,7 @@ function AnalyticsTab({ cards }) {
                 React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 12, marginBottom: 14 } }, [{ l: "Beneficio " + yr, v: eu(profit), c: cl(profit) }, { l: "IRPF estimado", v: eu(taxEst), c: RED }, { l: "Neto tras impuestos", v: eu(profit - taxEst), c: cl(profit - taxEst) }, { l: "Tipo efectivo", v: (profit > 0 ? (taxEst / profit * 100) : 0).toFixed(1) + "%", c: SUB }].map(({ l, v, c }) => (React.createElement("div", { key: l, style: { background: BGS, borderRadius: 10, padding: "12px 14px", border: "1px solid " + BDR } },
                     React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 4 } }, l),
                     React.createElement("div", { style: { fontSize: 18, fontWeight: 700, color: c } }, v))))),
-                React.createElement("div", { style: { background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "10px 14px", fontSize: 11, color: SUB } }, "\u26A0\uFE0F Estimaci\u00F3n orientativa seg\u00FAn tramos IRPF 2024 para ganancias patrimoniales (19% hasta 6.000\u20AC \u00B7 21% hasta 50.000\u20AC \u00B7 23% hasta 200.000\u20AC \u00B7 27% a partir de 200.000\u20AC). Consulta con un gestor para tu caso concreto."))) : React.createElement(Empty, { icon: "\uD83E\uDDFE", title: "Sin beneficios en " + yr, sub: "Cuando tengas ventas cerradas en el a\u00F1o actual aparecer\u00E1 la estimaci\u00F3n" }, React.createElement("div", { style: { position: "absolute", inset: 0, background: "rgba(255,255,255,0.85)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10 } }, React.createElement("div", { style: { fontSize: 28, marginBottom: 8 } }, "\uD83D\uDD12"), React.createElement("div", { style: { fontSize: 13, fontWeight: 600, color: TXT, marginBottom: 4 } }, "Funci\u00F3n Premium"), React.createElement("div", { style: { fontSize: 11, color: SUB } }, "Hazte Premium para desbloquear")))),
+                React.createElement("div", { style: { background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "10px 14px", fontSize: 11, color: SUB } }, "\u26A0\uFE0F Estimaci\u00F3n orientativa seg\u00FAn tramos IRPF 2024 para ganancias patrimoniales (19% hasta 6.000\u20AC \u00B7 21% hasta 50.000\u20AC \u00B7 23% hasta 200.000\u20AC \u00B7 27% a partir de 200.000\u20AC). Consulta con un gestor para tu caso concreto."))) : React.createElement(Empty, { icon: "\uD83E\uDDFE", title: "Sin beneficios en " + yr, sub: "Cuando tengas ventas cerradas en el a\u00F1o actual aparecer\u00E1 la estimaci\u00F3n" })),
         React.createElement(Card, { style: { padding: "18px", marginBottom: 20 } },
             React.createElement(SL, { style: { marginBottom: 8, fontSize: 13 } }, "\uD83E\uDDF2 Calculadora de precio de venta"),
             (() => {
@@ -18213,7 +18213,7 @@ function AnalyticsTab({ cards }) {
                                 React.createElement("span", { style: { fontSize: 13, fontWeight: l.includes("nimo de") ? 700 : 500, color: c } }, v)))));
             })()),
 
-        React.createElement(Card, { style: { position: "relative", padding: "14px 18px", marginBottom: 20 } },
+        React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 20 } },
             React.createElement(SL, { style: { marginBottom: 6, fontSize: 13 } }, "\u26A1 Velocidad de ventas"),
             (() => {
                 const sv = cards.filter(c => c.status === "sold" && c.sellDate);
@@ -18241,7 +18241,7 @@ function AnalyticsTab({ cards }) {
                         React.createElement("b", null,
                             days,
                             " d\u00EDas"),
-                        React.createElement("span", { style: { color: MUT, marginLeft: 4 } }, "para vender todo el stock")), React.createElement("div", { style: { position: "absolute", inset: 0, background: "rgba(255,255,255,0.85)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10 } }, React.createElement("div", { style: { fontSize: 28, marginBottom: 8 } }, "\uD83D\uDD12"), React.createElement("div", { style: { fontSize: 13, fontWeight: 600, color: TXT, marginBottom: 4 } }, "Funci\u00F3n Premium"), React.createElement("div", { style: { fontSize: 11, color: SUB } }, "Hazte Premium para desbloquear"))));
+                        React.createElement("span", { style: { color: MUT, marginLeft: 4 } }, "para vender todo el stock"))));
             })()),
         React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 20 } },
             React.createElement(SL, { style: { marginBottom: 10, fontSize: 13 } }, "\uD83D\uDCC5 Resumen por lote"),
@@ -18282,7 +18282,7 @@ function AnalyticsTab({ cards }) {
                                 React.createElement("div", { style: { height: "100%", width: pct + "%", background: pct > 80 ? GREEN : pct > 40 ? AMBER : BLUE, borderRadius: 2 } }))));
                     })));
             })()),
-        React.createElement(Card, { style: { position: "relative", padding: "14px 18px", marginBottom: 20 } },
+        React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 20 } },
             React.createElement(SL, { style: { marginBottom: 6, fontSize: 12 } }, "\uD83D\uDD25 Rentabilidad por jugador (Top 5)"),
             (() => {
                 const pm = {};
@@ -18307,9 +18307,9 @@ function AnalyticsTab({ cards }) {
                                 React.createElement("span", { style: { color: pos ? GREEN : RED } }, "ROI " + r.toFixed(0) + "%"))),
                         React.createElement("div", { style: { height: 4, borderRadius: 2, background: BDR, overflow: "hidden" } },
                             React.createElement("div", { style: { height: "100%", width: bw + "%", background: pos ? GREEN : RED, borderRadius: 2 } }))));
-                }), React.createElement("div", { style: { position: "absolute", inset: 0, background: "rgba(255,255,255,0.85)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10 } }, React.createElement("div", { style: { fontSize: 28, marginBottom: 8 } }, "\uD83D\uDD12"), React.createElement("div", { style: { fontSize: 13, fontWeight: 600, color: TXT, marginBottom: 4 } }, "Funci\u00F3n Premium"), React.createElement("div", { style: { fontSize: 11, color: SUB } }, "Hazte Premium para desbloquear"))));
+                })));
             })()),
-        React.createElement(Card, { style: { position: "relative", padding: "14px 18px", marginBottom: 20 } },
+        React.createElement(Card, { style: { padding: "14px 18px", marginBottom: 20 } },
             React.createElement(SL, { style: { marginBottom: 8, fontSize: 13 } }, "\u26A0\uFE0F An\u00E1lisis de errores (Top 5)"),
             (() => {
                 const mr = parseFloat(localStorage.getItem("cv10_minroi") || "30");
@@ -18335,9 +18335,9 @@ function AnalyticsTab({ cards }) {
                             React.createElement("div", { style: { textAlign: "right", flexShrink: 0, marginLeft: 10 } },
                                 React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: r >= 0 ? AMBER : RED } }, "ROI " + r.toFixed(0) + "%"),
                                 React.createElement("div", { style: { fontSize: 10, color: RED } }, "-" + eu(miss)))));
-                    }), React.createElement("div", { style: { position: "absolute", inset: 0, background: "rgba(255,255,255,0.85)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10 } }, React.createElement("div", { style: { fontSize: 28, marginBottom: 8 } }, "\uD83D\uDD12"), React.createElement("div", { style: { fontSize: 13, fontWeight: 600, color: TXT, marginBottom: 4 } }, "Funci\u00F3n Premium"), React.createElement("div", { style: { fontSize: 11, color: SUB } }, "Hazte Premium para desbloquear"))));
-            })(, React.createElement("div", { style: { position: "absolute", inset: 0, background: "rgba(255,255,255,0.85)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10 } }, React.createElement("div", { style: { fontSize: 28, marginBottom: 8 } }, "\uD83D\uDD12"), React.createElement("div", { style: { fontSize: 13, fontWeight: 600, color: TXT, marginBottom: 4 } }, "Funci\u00F3n Premium"), React.createElement("div", { style: { fontSize: 11, color: SUB } }, "Hazte Premium para desbloquear")))),
-        React.createElement(Card, { style: { position: "relative", padding: "18px", marginBottom: 20 } },
+                    })));
+            })()),
+        React.createElement(Card, { style: { padding: "18px", marginBottom: 20 } },
             React.createElement(SL, { style: { marginBottom: 12 } }, "\uD83C\uDFAF Margen m\u00EDnimo de venta"),
             (() => {
                 const [minRoi, setMinRoi] = useState(() => parseFloat(localStorage.getItem("cv10_minroi") || "30"));
@@ -18349,7 +18349,7 @@ function AnalyticsTab({ cards }) {
                         React.createElement("div", { style: { padding: "6px 12px", borderRadius: 8, background: RED + "18", border: "1px solid #fecaca", fontSize: 12, color: RED, fontWeight: 600 } },
                             "Al vender por debajo de ",
                             minRoi,
-                            "% saldr\u00E1 aviso en rojo")), React.createElement("div", { style: { position: "absolute", inset: 0, background: "rgba(255,255,255,0.85)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10 } }, React.createElement("div", { style: { fontSize: 28, marginBottom: 8 } }, "\uD83D\uDD12"), React.createElement("div", { style: { fontSize: 13, fontWeight: 600, color: TXT, marginBottom: 4 } }, "Funci\u00F3n Premium"), React.createElement("div", { style: { fontSize: 11, color: SUB } }, "Hazte Premium para desbloquear"))));
+                            "% saldr\u00E1 aviso en rojo"))));
             })()),
         React.createElement(Card, { style: { padding: "18px" } },
             React.createElement(SL, { style: { marginBottom: 12 } }, "\uD83D\uDCE6 Gestionar ubicaciones f\u00EDsicas"),
@@ -18902,7 +18902,6 @@ function App() {
             localStorage.setItem("cv10_last_backup", today);
         } catch(e) {}
     }, []);
-    const [showSettings, setShowSettings] = useState(false);
     const [tab, setTab] = useState("dashboard"), [sf, setSF] = useState(false), [dm, setDm] = useState("inventory"), [ec, setEc] = useState(null), [sc, setSc] = useState(null);
     useEffect(() => { localStorage.setItem("cv10", JSON.stringify(cards)); if (window._currentUser && cards.length > 0) window._saveToFirestore && window._saveToFirestore({ cards: cards }); }, [cards]);
     useEffect(() => { localStorage.setItem("cv10i", JSON.stringify(invoices)); if (window._currentUser) window._saveToFirestore && window._saveToFirestore({ invoices: invoices }); }, [invoices]);
@@ -18924,22 +18923,8 @@ function App() {
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => setShowLot(true) }, "Venta m\u00FAltiple"),
-                    React.createElement("button", { onClick: () => setShowSettings(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\u2699\uFE0F"))))
-            showSettings && React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }, onClick: () => setShowSettings(false) },
-                React.createElement("div", { style: { background: BG, borderRadius: 16, padding: 28, minWidth: 320, maxWidth: 420, width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }, onClick: e => e.stopPropagation() },
-                    React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
-                        React.createElement("div", { style: { fontSize: 16, fontWeight: 700 } }, "\u2699\uFE0F Ajustes"),
-                        React.createElement("button", { onClick: () => setShowSettings(false), style: { background: "none", border: "none", fontSize: 18, cursor: "pointer", color: MUT } }, "\u2715")),
-                    React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
-                        React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 4 } }, "CUENTA"),
-                        React.createElement("button", { onClick: () => { setShowSettings(false); window._signOut && window._signOut(); }, style: { width: "100%", padding: "10px 14px", background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#ef4444", textAlign: "left", fontFamily: "Inter,sans-serif" } },
-                            "\uD83D\uDEAA Cerrar sesi\u00F3n", window._currentUser ? React.createElement("span", { style: { fontSize: 11, color: MUT, marginLeft: 8 } }, window._currentUser.email) : null),
-                        React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 4, marginTop: 12 } }, "PREMIUM \uD83D\uDD12"),
-                        React.createElement("div", { style: { padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, fontSize: 13, color: MUT } }, "\u2B07 Exportar backup JSON"),
-                        React.createElement("div", { style: { padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, fontSize: 13, color: MUT } }, "\u2B06 Importar backup JSON"),
-                        React.createElement("div", { style: { padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, fontSize: 13, color: MUT } }, "\uD83D\uDCC4 Exportar PDF"),
-                        React.createElement("div", { style: { padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, fontSize: 13, color: MUT } }, "\uD83C\uDF10 Cambio de idioma"),
-                        React.createElement("button", { style: { width: "100%", padding: "12px", background: BLUE, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#fff", fontFamily: "Inter,sans-serif", marginTop: 8 } }, "\u2B50 Hazte Premium \u2014 \u20AC4.99/mes"))))
+                    React.createElement("button", { onClick: () => setShowSettings(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\u2699\uFE0F")))),
+            showSettings && React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }, onClick: function() { setShowSettings(false); } }, React.createElement("div", { style: { background: BG, borderRadius: 16, padding: 28, minWidth: 300, maxWidth: 400, width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }, onClick: function(e) { e.stopPropagation(); } }, React.createElement("div", { style: { fontSize: 16, fontWeight: 700, marginBottom: 20 } }, "\u2699\uFE0F Ajustes"), React.createElement("button", { onClick: function() { setShowSettings(false); window._signOut && window._signOut(); }, style: { width: "100%", padding: "10px 14px", background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#ef4444", fontFamily: "Inter,sans-serif" } }, "\uD83D\uDEAA Cerrar sesi\u00F3n"), React.createElement("div", { style: { marginTop: 16, padding: 12, background: BGS, borderRadius: 10, fontSize: 12, color: MUT } }, "\uD83D\uDD12 Exportar/Importar disponible en Premium"))),
         React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "24px" } },
             tab === "dashboard" && React.createElement(DashTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
             tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
@@ -18959,100 +18944,6 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
   </script>
 
 
-<script src="./firebase-app.js"></script>
-<script src="./firebase-auth.js"></script>
-<script src="./firebase-firestore.js"></script>
-<script>
-(function() {
-  function initFirebase() {
-    if (typeof firebase === 'undefined') {
-      console.error('Firebase failed to load');
-      document.getElementById('root').style.display = 'block';
-      document.getElementById('cv-login').style.display = 'none';
-      if (window._mountApp) { window._mountApp(); window._appMounted = true; }
-      return;
-    }
-
-    firebase.initializeApp({
-      apiKey: "AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA",
-      authDomain: "cromovault.firebaseapp.com",
-      projectId: "cromovault",
-      storageBucket: "cromovault.firebasestorage.app",
-      messagingSenderId: "702300818534",
-      appId: "1:702300818534:web:b88155c3e6099890ef31a7"
-    });
-
-    var auth = firebase.auth();
-    var db = firebase.firestore();
-    window._currentUser = null;
-    window._appMounted = false;
-
-    window._saveToFirestore = function(data) {
-      if (!window._currentUser) return;
-      db.collection('users').doc(window._currentUser.uid)
-        .set(data, {merge: true})
-        .catch(function(e) { console.error('Save error:', e); });
-    };
-
-    window._signIn = function() {
-      var provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch(function(e) {
-        alert('Error: ' + e.message);
-      });
-    };
-
-    window._signOut = function() {
-      window._saveToFirestore({
-        cards: JSON.parse(localStorage.getItem('cv10')||'[]'),
-        invoices: JSON.parse(localStorage.getItem('cv10i')||'[]'),
-        psaItems: JSON.parse(localStorage.getItem('cv10p')||'[]'),
-        rainbows: JSON.parse(localStorage.getItem('cv10_rainbows')||'[]'),
-        lotsData: JSON.parse(localStorage.getItem('cv10_lots')||'[]'),
-        locs: localStorage.getItem('cv10_locs'),
-        minRoi: localStorage.getItem('cv10_minroi')
-      });
-      setTimeout(function() { auth.signOut(); }, 500);
-    };
-
-    auth.onAuthStateChanged(function(user) {
-      window._currentUser = user;
-      if (user) {
-        db.collection('users').doc(user.uid).get()
-          .then(function(snap) {
-            if (snap.exists) {
-              var d = snap.data();
-              if (d.cards) localStorage.setItem('cv10', JSON.stringify(d.cards));
-              if (d.invoices) localStorage.setItem('cv10i', JSON.stringify(d.invoices));
-              if (d.psaItems) localStorage.setItem('cv10p', JSON.stringify(d.psaItems));
-              if (d.rainbows) localStorage.setItem('cv10_rainbows', JSON.stringify(d.rainbows));
-              if (d.lotsData) localStorage.setItem('cv10_lots', JSON.stringify(d.lotsData));
-              if (d.locs) localStorage.setItem('cv10_locs', d.locs);
-              if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
-            }
-          })
-          .finally(function() {
-            document.getElementById('cv-login').style.display = 'none';
-            document.getElementById('root').style.display = 'block';
-            if (!window._appMounted && window._mountApp) {
-              window._mountApp();
-              window._appMounted = true;
-            }
-          });
-      } else {
-        document.getElementById('root').style.display = 'none';
-        document.getElementById('cv-login').style.display = 'flex';
-        window._appMounted = false;
-      }
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initFirebase);
-  } else {
-    initFirebase();
-  }
-})();
-</script>
 </body>
 </htmlE html>
 <html lang="es">
@@ -19085,101 +18976,6 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-app-compat.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-auth-compat.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-firestore-compat.min.js"></script>
-<script>
-(function() {
-  function initFirebase() {
-    if (typeof firebase === 'undefined') {
-      console.error('Firebase failed to load');
-      document.getElementById('root').style.display = 'block';
-      document.getElementById('cv-login').style.display = 'none';
-      if (window._mountApp) { window._mountApp(); window._appMounted = true; }
-      return;
-    }
-
-    firebase.initializeApp({
-      apiKey: "AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA",
-      authDomain: "cromovault.firebaseapp.com",
-      projectId: "cromovault",
-      storageBucket: "cromovault.firebasestorage.app",
-      messagingSenderId: "702300818534",
-      appId: "1:702300818534:web:b88155c3e6099890ef31a7"
-    });
-
-    var auth = firebase.auth();
-    var db = firebase.firestore();
-    window._currentUser = null;
-    window._appMounted = false;
-
-    window._saveToFirestore = function(data) {
-      if (!window._currentUser) return;
-      db.collection('users').doc(window._currentUser.uid)
-        .collection('data').doc('main')
-        .set(data, {merge: true})
-        .catch(function(e) { console.error('Save error:', e); });
-    };
-
-    window._signIn = function() {
-      var provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch(function(e) {
-        alert('Error: ' + e.message);
-      });
-    };
-
-    window._signOut = function() {
-      window._saveToFirestore({
-        cards: JSON.parse(localStorage.getItem('cv10')||'[]'),
-        invoices: JSON.parse(localStorage.getItem('cv10i')||'[]'),
-        psaItems: JSON.parse(localStorage.getItem('cv10p')||'[]'),
-        rainbows: JSON.parse(localStorage.getItem('cv10_rainbows')||'[]'),
-        lotsData: JSON.parse(localStorage.getItem('cv10_lots')||'[]'),
-        locs: localStorage.getItem('cv10_locs'),
-        minRoi: localStorage.getItem('cv10_minroi')
-      });
-      setTimeout(function() { auth.signOut(); }, 500);
-    };
-
-    auth.onAuthStateChanged(function(user) {
-      window._currentUser = user;
-      if (user) {
-        db.collection('users').doc(user.uid).collection('data').doc('main').get()
-          .then(function(snap) {
-            if (snap.exists) {
-              var d = snap.data();
-              if (d.cards) localStorage.setItem('cv10', JSON.stringify(d.cards));
-              if (d.invoices) localStorage.setItem('cv10i', JSON.stringify(d.invoices));
-              if (d.psaItems) localStorage.setItem('cv10p', JSON.stringify(d.psaItems));
-              if (d.rainbows) localStorage.setItem('cv10_rainbows', JSON.stringify(d.rainbows));
-              if (d.lotsData) localStorage.setItem('cv10_lots', JSON.stringify(d.lotsData));
-              if (d.locs) localStorage.setItem('cv10_locs', d.locs);
-              if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
-            }
-          })
-          .finally(function() {
-            document.getElementById('cv-login').style.display = 'none';
-            document.getElementById('root').style.display = 'block';
-            if (!window._appMounted && window._mountApp) {
-              window._mountApp();
-              window._appMounted = true;
-            }
-          });
-      } else {
-        document.getElementById('root').style.display = 'none';
-        document.getElementById('cv-login').style.display = 'flex';
-        window._appMounted = false;
-      }
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initFirebase);
-  } else {
-    initFirebase();
-  }
-})();
-</script>
-<script src="./firebase-app.js"></script>
-<script src="./firebase-auth.js"></script>
-<script src="./firebase-firestore.js"></script>
 <script>
 (function() {
   function initFirebase() {
