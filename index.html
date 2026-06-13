@@ -18999,7 +18999,10 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
 
     window._saveToFirestore = function(data) {
       if (!window._currentUser) return;
-      db.collection('users').doc(window._currentUser.uid).set(data, {merge: true}).catch(function(e) { console.error('Save error:', e); });
+      try {
+        var clean = JSON.parse(JSON.stringify(data));
+        db.collection('users').doc(window._currentUser.uid).set(clean, {merge: true}).catch(function(e) { console.error('Save error:', e); });
+      } catch(e) { console.error('Save prepare error:', e); }
     };
 
     window._signIn = function() {
