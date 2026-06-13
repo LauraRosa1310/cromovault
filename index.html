@@ -13359,8 +13359,7 @@ var mediaEventTypes =
     ),
   nonDelegatedEvents = new Set(
     "beforetoggle cancel close invalid load scroll scrollend toggle"
-      .split(" ")
-      .concat(mediaEventTypes)
+      .split(" ").concat(mediaEventTypes)
   );
 function processDispatchQueue(dispatchQueue, eventSystemFlags) {
   eventSystemFlags = 0 !== (eventSystemFlags & 4);
@@ -14036,9 +14035,7 @@ function accumulateEnterLeaveListenersForEvent(
 var NORMALIZE_NEWLINES_REGEX = /\r\n?/g,
   NORMALIZE_NULL_AND_REPLACEMENT_REGEX = /\u0000|\uFFFD/g;
 function normalizeMarkupForTextOrAttribute(markup) {
-  return ("string" === typeof markup ? markup : "" + markup)
-    .replace(NORMALIZE_NEWLINES_REGEX, "\n")
-    .replace(NORMALIZE_NULL_AND_REPLACEMENT_REGEX, "");
+  return ("string" === typeof markup ? markup : "" + markup).replace(NORMALIZE_NEWLINES_REGEX, "\n").replace(NORMALIZE_NULL_AND_REPLACEMENT_REGEX, "");
 }
 function checkForUnmatchedText(serverText, clientText) {
   clientText = normalizeMarkupForTextOrAttribute(clientText);
@@ -15116,9 +15113,7 @@ var scheduleTimeout = "function" === typeof setTimeout ? setTimeout : void 0,
       : "undefined" !== typeof localPromise
         ? function (callback) {
             return localPromise
-              .resolve(null)
-              .then(callback)
-              .catch(handleErrorInNextTick);
+              .resolve(null).then(callback).catch(handleErrorInNextTick);
           }
         : scheduleTimeout;
 function handleErrorInNextTick(error) {
@@ -18864,6 +18859,7 @@ function LotModal({ cards, onSell, onClose }) {
                         sel.length,
                         " cartas"))))));
 }
+function isPremium() { return window._isAdmin === true; }
 function App() {
     const [cards, setCards] = useState(() => { try {
         return JSON.parse(localStorage.getItem("cv10") || "[]");
@@ -18924,7 +18920,7 @@ function App() {
                     React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => setShowLot(true) }, "Venta m\u00FAltiple"),
                     React.createElement("button", { onClick: () => setShowSettings(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\u2699\uFE0F")))),
-            showSettings && React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }, onClick: function() { setShowSettings(false); } }, React.createElement("div", { style: { background: BG, borderRadius: 16, padding: 28, minWidth: 300, maxWidth: 400, width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }, onClick: function(e) { e.stopPropagation(); } }, React.createElement("div", { style: { fontSize: 16, fontWeight: 700, marginBottom: 20 } }, "\u2699\uFE0F Ajustes"), React.createElement("button", { onClick: function() { setShowSettings(false); window._signOut && window._signOut(); }, style: { width: "100%", padding: "10px 14px", background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#ef4444", fontFamily: "Inter,sans-serif" } }, "\uD83D\uDEAA Cerrar sesi\u00F3n"), React.createElement("div", { style: { marginTop: 16, padding: 12, background: BGS, borderRadius: 10, fontSize: 12, color: MUT } }, "\uD83D\uDD12 Exportar/Importar disponible en Premium"))),
+            showSettings && React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }, onClick: function() { setShowSettings(false); } }, React.createElement("div", { style: { background: BG, borderRadius: 16, padding: 28, minWidth: 300, maxWidth: 400, width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }, onClick: function(e) { e.stopPropagation(); } }, React.createElement("div", { style: { fontSize: 16, fontWeight: 700, marginBottom: 20 } }, "\u2699\uFE0F Ajustes"), React.createElement("button", { onClick: function() { setShowSettings(false); window._signOut && window._signOut(); }, style: { width: "100%", padding: "10px 14px", background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#ef4444", fontFamily: "Inter,sans-serif" } }, "\uD83D\uDEAA Cerrar sesi\u00F3n"), React.createElement("div", { style: { marginTop: 16, padding: 12, background: BGS, borderRadius: 10, fontSize: 12, color: MUT } }, isPremium() ? "\u2B50 Cuenta Premium activa" : "\uD83D\uDD12 Hazte Premium"))),
         React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "24px" } },
             tab === "dashboard" && React.createElement(DashTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
             tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
@@ -19003,9 +18999,7 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
 
     window._saveToFirestore = function(data) {
       if (!window._currentUser) return;
-      db.collection('users').doc(window._currentUser.uid)
-        .set(data, {merge: true})
-        .catch(function(e) { console.error('Save error:', e); });
+      db.collection('users').doc(window._currentUser.uid).set(data, {merge: true}).catch(function(e) { console.error('Save error:', e); });
     };
 
     window._signIn = function() {
@@ -19030,9 +19024,10 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
 
     auth.onAuthStateChanged(function(user) {
       window._currentUser = user;
+      window._isAdmin = false;
       if (user) {
-        db.collection('users').doc(user.uid).get()
-          .then(function(snap) {
+        db.collection('admins').doc(user.uid).get().then(function(s) { window._isAdmin = s.exists && s.data().admin === true; }).catch(function() {});
+        db.collection('users').doc(user.uid).get().then(function(snap) {
             if (snap.exists) {
               var d = snap.data();
               if (d.cards) localStorage.setItem('cv10', JSON.stringify(d.cards));
@@ -19043,8 +19038,7 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
               if (d.locs) localStorage.setItem('cv10_locs', d.locs);
               if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
             }
-          })
-          .finally(function() {
+          }).finally(function() {
             document.getElementById('cv-login').style.display = 'none';
             document.getElementById('root').style.display = 'block';
             if (!window._appMounted && window._mountApp) {
