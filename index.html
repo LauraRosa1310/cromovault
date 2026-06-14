@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🃏 CromoVault</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style>
-</head>
+  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style></head>
 <body>
   <div id="cv-login" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#1e293b);z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Inter,sans-serif;">
     <div style="text-align:center;padding:40px;background:rgba(255,255,255,0.05);border-radius:20px;border:1px solid rgba(255,255,255,0.1);max-width:380px;width:90%;">
@@ -18948,8 +18947,7 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🃏 CromoVault</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style>
-</head>
+  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style></head>
 <body>
   <div id="cv-login" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#1e293b);z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Inter,sans-serif;">
     <div style="text-align:center;padding:40px;background:rgba(255,255,255,0.05);border-radius:20px;border:1px solid rgba(255,255,255,0.1);max-width:380px;width:90%;">
@@ -18969,17 +18967,11 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
 
   </script>
 
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
 <script>
 (function() {
-  var API_KEY = "AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA";
-  var DB_URL = "https://cromovault-default-rtdb.europe-west1.firebasedatabase.app";
-  var AUTH_URL = "https://identitytoolkit.googleapis.com/v1";
-  
-  window._currentUser = null;
-  window._isAdmin = false;
-  window._appMounted = false;
-  window._idToken = null;
-
   function toArray(val) {
     if (!val) return [];
     if (Array.isArray(val)) return val;
@@ -18989,127 +18981,71 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
     }
     return [];
   }
-
-  function saveData(data) {
-    if (!window._currentUser || !window._idToken) return;
-    var uid = window._currentUser.uid;
-    var str = JSON.stringify(data, function(k,v){return v===undefined?null:v;});
-    fetch(DB_URL+'/users/'+uid+'.json?auth='+window._idToken, {
-      method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: str
-    }).catch(function(e){console.error('Save:',e);});
-  }
-
-  function loadData(uid, cb) {
-    fetch(DB_URL+'/users/'+uid+'.json?auth='+window._idToken)
-      .then(function(r){return r.json();})
-      .then(function(d){cb(d);})
-      .catch(function(e){console.error('Load:',e);cb(null);});
-  }
-
-  function showApp() {
-    document.getElementById('cv-login').style.display = 'none';
-    document.getElementById('root').style.display = 'block';
-    if (!window._appMounted && window._mountApp) { window._mountApp(); window._appMounted = true; }
-  }
-
-  function showLogin() {
-    document.getElementById('root').style.display = 'none';
-    document.getElementById('cv-login').style.display = 'flex';
-    window._appMounted = false;
-  }
-
-  window._saveToFirestore = saveData;
-
-  window._signOut = function() {
-    saveData({ cards: JSON.parse(localStorage.getItem('cv10')||'[]'), invoices: JSON.parse(localStorage.getItem('cv10i')||'[]'), psaItems: JSON.parse(localStorage.getItem('cv10p')||'[]'), rainbows: JSON.parse(localStorage.getItem('cv10_rainbows')||'[]'), lotsData: JSON.parse(localStorage.getItem('cv10_lots')||'[]'), locs: localStorage.getItem('cv10_locs')||'', minRoi: localStorage.getItem('cv10_minroi')||'40' });
-    setTimeout(function(){
-      window._currentUser = null; window._idToken = null; window._isAdmin = false;
-      localStorage.removeItem('cv10_auth');
-      showLogin();
-    }, 800);
-  };
-
-  window._signIn = function() {
-    // Use Google OAuth via Firebase Auth REST
-    var provider = 'google.com';
-    fetch('https://www.googleapis.com/identitytoolkit/v3/relyingparty/createAuthUri?key='+API_KEY, {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({identifier: provider, continueUri: location.href, providerId: provider})
-    }).then(function(r){return r.json();})
-    .then(function(d){
-      if (d.authUri) { window.location.href = d.authUri; }
-    }).catch(function(e){alert('Error iniciando sesión: '+e.message);});
-  };
-
-  // Check if returning from OAuth redirect
-  function checkRedirect() {
-    var hash = window.location.hash;
-    if (hash && hash.includes('id_token')) {
-      var params = new URLSearchParams(hash.substring(1));
-      var idToken = params.get('id_token');
-      if (idToken) {
-        // Exchange id_token for Firebase token
-        fetch(AUTH_URL+'/accounts:signInWithIdp?key='+API_KEY, {
-          method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({requestUri: location.href.split('#')[0], postBody: 'id_token='+idToken+'&providerId=google.com', returnSecureToken: true, returnIdpCredential: true})
-        }).then(function(r){return r.json();})
-        .then(function(d){
-          if (d.idToken) {
-            window._idToken = d.idToken;
-            window._currentUser = {uid: d.localId, email: d.email};
-            window._isAdmin = (d.localId === 'fUCSfpRb7qdA8zHJssUsaxFRtgD3');
-            localStorage.setItem('cv10_auth', JSON.stringify({token: d.idToken, uid: d.localId, email: d.email, exp: Date.now() + 3500000}));
-            history.replaceState(null, '', location.pathname);
-            clearAndLoad(d.localId);
-          }
-        });
-        return true;
-      }
+  function initFirebase() {
+    if (typeof firebase === 'undefined') {
+      document.getElementById('root').style.display = 'block';
+      document.getElementById('cv-login').style.display = 'none';
+      if (window._mountApp) { window._mountApp(); window._appMounted = true; }
+      return;
     }
-    return false;
-  }
-
-  function clearAndLoad(uid) {
-    localStorage.removeItem('cv10'); localStorage.removeItem('cv10i'); localStorage.removeItem('cv10p');
-    localStorage.removeItem('cv10_rainbows'); localStorage.removeItem('cv10_lots'); localStorage.removeItem('cv10_locs'); localStorage.removeItem('cv10_minroi');
-    loadData(uid, function(d) {
-      if (d) {
-        localStorage.setItem('cv10', JSON.stringify(toArray(d.cards)));
-        localStorage.setItem('cv10i', JSON.stringify(toArray(d.invoices)));
-        localStorage.setItem('cv10p', JSON.stringify(toArray(d.psaItems)));
-        localStorage.setItem('cv10_rainbows', JSON.stringify(toArray(d.rainbows)));
-        localStorage.setItem('cv10_lots', JSON.stringify(toArray(d.lotsData)));
-        if (d.locs) localStorage.setItem('cv10_locs', d.locs);
-        if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
+    firebase.initializeApp({ apiKey: "AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA", authDomain: "cromovault.firebaseapp.com", databaseURL: "https://cromovault-default-rtdb.europe-west1.firebasedatabase.app", projectId: "cromovault", storageBucket: "cromovault.firebasestorage.app", messagingSenderId: "702300818534", appId: "1:702300818534:web:b88155c3e6099890ef31a7" });
+    var auth = firebase.auth();
+    var db = firebase.database();
+    window._currentUser = null;
+    window._isAdmin = false;
+    window._appMounted = false;
+    window._saveToFirestore = function(data) {
+      if (!window._currentUser) return;
+      var uid = window._currentUser.uid;
+      var str = JSON.stringify(data, function(k,v){return v===undefined?null:v;});
+      var clean = JSON.parse(str);
+      db.ref('users/'+uid).update(clean).catch(function(e){console.error('Save:',e);});
+    };
+    window._signIn = function() {
+      auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()).catch(function(e){alert('Error: '+e.message);});
+    };
+    window._signOut = function() {
+      window._saveToFirestore({ cards: JSON.parse(localStorage.getItem('cv10')||'[]'), invoices: JSON.parse(localStorage.getItem('cv10i')||'[]'), psaItems: JSON.parse(localStorage.getItem('cv10p')||'[]'), rainbows: JSON.parse(localStorage.getItem('cv10_rainbows')||'[]'), lotsData: JSON.parse(localStorage.getItem('cv10_lots')||'[]'), locs: localStorage.getItem('cv10_locs')||'', minRoi: localStorage.getItem('cv10_minroi')||'40' });
+      setTimeout(function(){ auth.signOut(); }, 800);
+    };
+    auth.getRedirectResult().then(function(result) {
+      if (result && result.user) { console.log('Redirect login:', result.user.email); }
+    }).catch(function(e) { console.error('Redirect error:', e); });
+    auth.onAuthStateChanged(function(user) {
+      window._currentUser = user;
+      window._isAdmin = false;
+      if (user) {
+        window._isAdmin = (user.uid === 'fUCSfpRb7qdA8zHJssUsaxFRtgD3');
+        localStorage.removeItem('cv10'); localStorage.removeItem('cv10i'); localStorage.removeItem('cv10p');
+        localStorage.removeItem('cv10_rainbows'); localStorage.removeItem('cv10_lots'); localStorage.removeItem('cv10_locs'); localStorage.removeItem('cv10_minroi');
+        db.ref('users/'+user.uid).once('value', function(snap) {
+          var d = snap.val();
+          if (d) {
+            localStorage.setItem('cv10', JSON.stringify(toArray(d.cards)));
+            localStorage.setItem('cv10i', JSON.stringify(toArray(d.invoices)));
+            localStorage.setItem('cv10p', JSON.stringify(toArray(d.psaItems)));
+            localStorage.setItem('cv10_rainbows', JSON.stringify(toArray(d.rainbows)));
+            localStorage.setItem('cv10_lots', JSON.stringify(toArray(d.lotsData)));
+            if (d.locs) localStorage.setItem('cv10_locs', d.locs);
+            if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
+          }
+          document.getElementById('cv-login').style.display = 'none';
+          document.getElementById('root').style.display = 'block';
+          if (!window._appMounted && window._mountApp) { window._mountApp(); window._appMounted = true; }
+        }, function(e) {
+          console.error('Load:',e);
+          document.getElementById('cv-login').style.display = 'none';
+          document.getElementById('root').style.display = 'block';
+          if (!window._appMounted && window._mountApp) { window._mountApp(); window._appMounted = true; }
+        });
+      } else {
+        document.getElementById('root').style.display = 'none';
+        document.getElementById('cv-login').style.display = 'flex';
+        window._appMounted = false;
       }
-      showApp();
     });
   }
-
-  // Try saved session
-  function trySession() {
-    var saved = localStorage.getItem('cv10_auth');
-    if (saved) {
-      try {
-        var s = JSON.parse(saved);
-        if (s.exp > Date.now()) {
-          window._idToken = s.token;
-          window._currentUser = {uid: s.uid, email: s.email};
-          window._isAdmin = (s.uid === 'fUCSfpRb7qdA8zHJssUsaxFRtgD3');
-          clearAndLoad(s.uid);
-          return true;
-        }
-      } catch(e) {}
-      localStorage.removeItem('cv10_auth');
-    }
-    return false;
-  }
-
-  document.addEventListener('DOMContentLoaded', function() {
-    if (!checkRedirect()) {
-      if (!trySession()) { showLogin(); }
-    }
-  });
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initFirebase); } else { initFirebase(); }
 })();
 </script>
 </body>
