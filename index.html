@@ -18974,15 +18974,24 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-database-compat.min.js"></script>
 <script>
 (function() {
+  function toArray(val) {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'object') {
+      var keys = Object.keys(val);
+      var isNumeric = keys.every(function(k) { return !isNaN(parseInt(k)); });
+      if (isNumeric) return keys.sort(function(a,b){return parseInt(a)-parseInt(b);}).map(function(k){return val[k];});
+    }
+    return [];
+  }
   function initFirebase() {
     if (typeof firebase === 'undefined') {
-      console.error('Firebase failed to load');
       document.getElementById('root').style.display = 'block';
       document.getElementById('cv-login').style.display = 'none';
       if (window._mountApp) { window._mountApp(); window._appMounted = true; }
       return;
     }
-    firebase.initializeApp({ apiKey: "AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA", authDomain: "cromovault.firebaseapp.com", projectId: "cromovault", databaseURL: "https://cromovault-default-rtdb.europe-west1.firebasedatabase.app", storageBucket: "cromovault.firebasestorage.app", messagingSenderId: "702300818534", appId: "1:702300818534:web:b88155c3e6099890ef31a7" });
+    firebase.initializeApp({ apiKey: "AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA", authDomain: "cromovault.firebaseapp.com", databaseURL: "https://cromovault-default-rtdb.europe-west1.firebasedatabase.app", projectId: "cromovault", storageBucket: "cromovault.firebasestorage.app", messagingSenderId: "702300818534", appId: "1:702300818534:web:b88155c3e6099890ef31a7" });
     var auth = firebase.auth();
     var db = firebase.database();
     window._currentUser = null;
@@ -18991,47 +19000,38 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
     window._saveToFirestore = function(data) {
       if (!window._currentUser) return;
       var uid = window._currentUser.uid;
-      try {
-        var str = JSON.stringify(data, function(k,v){ return v===undefined ? null : v; });
-        var clean = JSON.parse(str);
-        if (clean.cards) db.ref('users/' + uid + '/cards').set(clean.cards).catch(function(e){ console.error('save cards:',e); });
-        if (clean.invoices) db.ref('users/' + uid + '/invoices').set(clean.invoices).catch(function(e){ console.error('save invoices:',e); });
-      } catch(e) { console.error('Save error:',e); }
+      var str = JSON.stringify(data, function(k,v){ return v===undefined?null:v; });
+      var clean = JSON.parse(str);
+      db.ref('users/'+uid).update(clean).catch(function(e){ console.error('Save:',e); });
     };
     window._signIn = function() {
-      var provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch(function(e) { alert('Error: ' + e.message); });
+      auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function(e){ alert('Error: '+e.message); });
     };
     window._signOut = function() {
-      window._saveToFirestore({
-        cards: JSON.parse(localStorage.getItem('cv10')||'[]'),
-        invoices: JSON.parse(localStorage.getItem('cv10i')||'[]')
-      });
-      setTimeout(function() { auth.signOut(); }, 800);
+      window._saveToFirestore({ cards: JSON.parse(localStorage.getItem('cv10')||'[]'), invoices: JSON.parse(localStorage.getItem('cv10i')||'[]'), psaItems: JSON.parse(localStorage.getItem('cv10p')||'[]'), rainbows: JSON.parse(localStorage.getItem('cv10_rainbows')||'[]'), lotsData: JSON.parse(localStorage.getItem('cv10_lots')||'[]'), locs: localStorage.getItem('cv10_locs')||'', minRoi: localStorage.getItem('cv10_minroi')||'40' });
+      setTimeout(function(){ auth.signOut(); }, 800);
     };
     auth.onAuthStateChanged(function(user) {
       window._currentUser = user;
       window._isAdmin = false;
       if (user) {
         window._isAdmin = (user.uid === 'fUCSfpRb7qdA8zHJssUsaxFRtgD3');
-        localStorage.removeItem('cv10'); localStorage.removeItem('cv10i'); localStorage.removeItem('cv10p');
-        localStorage.removeItem('cv10_rainbows'); localStorage.removeItem('cv10_lots');
-        localStorage.removeItem('cv10_locs'); localStorage.removeItem('cv10_minroi');
-        db.ref('users/' + user.uid).once('value').then(function(snap) {
+        localStorage.removeItem('cv10'); localStorage.removeItem('cv10i'); localStorage.removeItem('cv10p'); localStorage.removeItem('cv10_rainbows'); localStorage.removeItem('cv10_lots'); localStorage.removeItem('cv10_locs'); localStorage.removeItem('cv10_minroi');
+        db.ref('users/'+user.uid).once('value', function(snap) {
           var d = snap.val();
           if (d) {
-            if (d.cards) localStorage.setItem('cv10', JSON.stringify(d.cards));
-            if (d.invoices) localStorage.setItem('cv10i', JSON.stringify(d.invoices));
-            if (d.psaItems) localStorage.setItem('cv10p', JSON.stringify(d.psaItems));
-            if (d.rainbows) localStorage.setItem('cv10_rainbows', JSON.stringify(d.rainbows));
-            if (d.lotsData) localStorage.setItem('cv10_lots', JSON.stringify(d.lotsData));
+            localStorage.setItem('cv10', JSON.stringify(toArray(d.cards)));
+            localStorage.setItem('cv10i', JSON.stringify(toArray(d.invoices)));
+            localStorage.setItem('cv10p', JSON.stringify(toArray(d.psaItems)));
+            localStorage.setItem('cv10_rainbows', JSON.stringify(toArray(d.rainbows)));
+            localStorage.setItem('cv10_lots', JSON.stringify(toArray(d.lotsData)));
             if (d.locs) localStorage.setItem('cv10_locs', d.locs);
             if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
           }
           document.getElementById('cv-login').style.display = 'none';
           document.getElementById('root').style.display = 'block';
           if (!window._appMounted && window._mountApp) { window._mountApp(); window._appMounted = true; }
-        }).catch(function(e) {
+        }, function(e) {
           console.error('Load error:',e);
           document.getElementById('cv-login').style.display = 'none';
           document.getElementById('root').style.display = 'block';
