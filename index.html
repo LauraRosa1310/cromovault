@@ -18988,7 +18988,9 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
       if (window._mountApp) { window._mountApp(); window._appMounted = true; }
       return;
     }
-    firebase.initializeApp({ apiKey: "AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA", authDomain: "cromovault.firebaseapp.com", databaseURL: "https://cromovault-default-rtdb.europe-west1.firebasedatabase.app", projectId: "cromovault", storageBucket: "cromovault.firebasestorage.app", messagingSenderId: "702300818534", appId: "1:702300818534:web:b88155c3e6099890ef31a7" });
+    if (firebase.apps.length === 0) {
+      firebase.initializeApp({ apiKey: "AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA", authDomain: "cromovault.firebaseapp.com", databaseURL: "https://cromovault-default-rtdb.europe-west1.firebasedatabase.app", projectId: "cromovault", storageBucket: "cromovault.firebasestorage.app", messagingSenderId: "702300818534", appId: "1:702300818534:web:b88155c3e6099890ef31a7" });
+    }
     var auth = firebase.auth();
     var db = firebase.database();
     window._currentUser = null;
@@ -18998,46 +19000,57 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
       if (!window._currentUser) return;
       var uid = window._currentUser.uid;
       var str = JSON.stringify(data, function(k,v){return v===undefined?null:v;});
-      var clean = JSON.parse(str);
-      db.ref('users/'+uid).update(clean).catch(function(e){console.error('Save:',e);});
+      db.ref('users/'+uid).update(JSON.parse(str)).catch(function(e){console.error('Save:',e);});
     };
     window._signIn = function() {
-      auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()).catch(function(e){alert('Error: '+e.message);});
+      var provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).catch(function(e) {
+        console.log('Popup failed, trying redirect:', e.code);
+        auth.signInWithRedirect(provider);
+      });
     };
     window._signOut = function() {
       window._saveToFirestore({ cards: JSON.parse(localStorage.getItem('cv10')||'[]'), invoices: JSON.parse(localStorage.getItem('cv10i')||'[]'), psaItems: JSON.parse(localStorage.getItem('cv10p')||'[]'), rainbows: JSON.parse(localStorage.getItem('cv10_rainbows')||'[]'), lotsData: JSON.parse(localStorage.getItem('cv10_lots')||'[]'), locs: localStorage.getItem('cv10_locs')||'', minRoi: localStorage.getItem('cv10_minroi')||'40' });
       setTimeout(function(){ auth.signOut(); }, 800);
     };
+    function loadUserData(uid) {
+      localStorage.removeItem('cv10'); localStorage.removeItem('cv10i'); localStorage.removeItem('cv10p');
+      localStorage.removeItem('cv10_rainbows'); localStorage.removeItem('cv10_lots'); localStorage.removeItem('cv10_locs'); localStorage.removeItem('cv10_minroi');
+      db.ref('users/'+uid).once('value', function(snap) {
+        var d = snap.val();
+        if (d) {
+          localStorage.setItem('cv10', JSON.stringify(toArray(d.cards)));
+          localStorage.setItem('cv10i', JSON.stringify(toArray(d.invoices)));
+          localStorage.setItem('cv10p', JSON.stringify(toArray(d.psaItems)));
+          localStorage.setItem('cv10_rainbows', JSON.stringify(toArray(d.rainbows)));
+          localStorage.setItem('cv10_lots', JSON.stringify(toArray(d.lotsData)));
+          if (d.locs) localStorage.setItem('cv10_locs', d.locs);
+          if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
+        }
+        document.getElementById('cv-login').style.display = 'none';
+        document.getElementById('root').style.display = 'block';
+        if (!window._appMounted && window._mountApp) { window._mountApp(); window._appMounted = true; }
+      }, function(e) {
+        console.error('Load:', e);
+        document.getElementById('cv-login').style.display = 'none';
+        document.getElementById('root').style.display = 'block';
+        if (!window._appMounted && window._mountApp) { window._mountApp(); window._appMounted = true; }
+      });
+    }
+    // Handle redirect result first
     auth.getRedirectResult().then(function(result) {
-      if (result && result.user) { console.log('Redirect login:', result.user.email); }
-    }).catch(function(e) { console.error('Redirect error:', e); });
+      if (result && result.user) {
+        window._currentUser = result.user;
+        window._isAdmin = (result.user.uid === 'fUCSfpRb7qdA8zHJssUsaxFRtgD3');
+        loadUserData(result.user.uid);
+      }
+    }).catch(function(e) { console.error('Redirect result:', e); });
+    // Then watch auth state
     auth.onAuthStateChanged(function(user) {
       window._currentUser = user;
-      window._isAdmin = false;
       if (user) {
         window._isAdmin = (user.uid === 'fUCSfpRb7qdA8zHJssUsaxFRtgD3');
-        localStorage.removeItem('cv10'); localStorage.removeItem('cv10i'); localStorage.removeItem('cv10p');
-        localStorage.removeItem('cv10_rainbows'); localStorage.removeItem('cv10_lots'); localStorage.removeItem('cv10_locs'); localStorage.removeItem('cv10_minroi');
-        db.ref('users/'+user.uid).once('value', function(snap) {
-          var d = snap.val();
-          if (d) {
-            localStorage.setItem('cv10', JSON.stringify(toArray(d.cards)));
-            localStorage.setItem('cv10i', JSON.stringify(toArray(d.invoices)));
-            localStorage.setItem('cv10p', JSON.stringify(toArray(d.psaItems)));
-            localStorage.setItem('cv10_rainbows', JSON.stringify(toArray(d.rainbows)));
-            localStorage.setItem('cv10_lots', JSON.stringify(toArray(d.lotsData)));
-            if (d.locs) localStorage.setItem('cv10_locs', d.locs);
-            if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
-          }
-          document.getElementById('cv-login').style.display = 'none';
-          document.getElementById('root').style.display = 'block';
-          if (!window._appMounted && window._mountApp) { window._mountApp(); window._appMounted = true; }
-        }, function(e) {
-          console.error('Load:',e);
-          document.getElementById('cv-login').style.display = 'none';
-          document.getElementById('root').style.display = 'block';
-          if (!window._appMounted && window._mountApp) { window._mountApp(); window._appMounted = true; }
-        });
+        if (!window._appMounted) { loadUserData(user.uid); }
       } else {
         document.getElementById('root').style.display = 'none';
         document.getElementById('cv-login').style.display = 'flex';
