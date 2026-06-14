@@ -18969,9 +18969,9 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
 
   </script>
 
-<script src="./firebase-app.js"></script>
-<script src="./firebase-auth.js"></script>
-<script src="./firebase-firestore.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-firestore-compat.min.js"></script>
 <script>
 (function() {
   function initFirebase() {
@@ -19030,6 +19030,7 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
       window._isAdmin = false;
       if (user) {
         db.collection('admins').doc(user.uid).get().then(function(s) { window._isAdmin = s.exists && s.data().admin === true; }).catch(function() {});
+        localStorage.removeItem('cv10'); localStorage.removeItem('cv10i'); localStorage.removeItem('cv10p'); localStorage.removeItem('cv10_rainbows'); localStorage.removeItem('cv10_lots'); localStorage.removeItem('cv10_locs'); localStorage.removeItem('cv10_minroi');
         db.collection('users').doc(user.uid).get().then(function(snap) {
             if (snap.exists) {
               var d = snap.data();
