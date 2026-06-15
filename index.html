@@ -17413,7 +17413,7 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
     function sf(k, v) { setF(p => (Object.assign(Object.assign({}, p), { [k]: v }))); }
     function addImgs(files) { Array.from(files).forEach(file => { const r = new FileReader(); r.onload = e => setImgs(p => [...p, e.target.result]); r.readAsDataURL(file); }); }
     const tB = (parseFloat(f.buyPrice) || 0) * (f.quantity || 1), tS = (parseFloat(f.sellPrice) || 0) * (f.quantity || 1), fA = tS * ((parseFloat(f.platformFee) || 0) / 100), sA = parseFloat(f.shippingCost) || 0, ns = tS - fA - sA - tB;
-    const tabs = f.mode === "inventory" ? [["info", "Info"], ["buy", "Compra"], ["sell", "Venta"], ["photos", "Fotos"]] : [["info", "Info"], ["buy", "Precio"], ["photos", "Fotos"]];
+    const tabs = f.mode === "inventory" ? [["info", "Info"], ["buy", "Compra"], ["sell", "Venta"]] : [["info", "Info"], ["buy", "Precio"]];
     return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, overflowY: "auto" } },
         React.createElement("div", { style: { background: BG, borderRadius: 16, width: "100%", maxWidth: 480, maxHeight: "94vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", border: "1px solid " + BDR } },
             React.createElement("div", { style: { padding: "18px 24px 0", display: "flex", justifyContent: "space-between", alignItems: "center" } },
@@ -17520,9 +17520,6 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                         React.createElement("span", { style: { fontSize: 12, color: SUB } }, l),
                         React.createElement("span", { style: { fontSize: 13, fontWeight: l === "Beneficio neto" ? 700 : 500, color: c } }, v)))))),
                 tab === "photos" && (React.createElement("div", null,
-                    React.createElement("div", { onClick: () => fr.current && fr.current.click(), onDragOver: e => e.preventDefault(), onDrop: e => { e.preventDefault(); addImgs(e.dataTransfer.files); }, style: { border: "1.5px dashed " + BDR, borderRadius: 10, padding: 18, textAlign: "center", cursor: "pointer", color: MUT, fontSize: 12, background: BGS } },
-                        "\uD83D\uDCF8 Arrastra o selecciona im\u00E1genes",
-                        React.createElement("input", { ref: fr, type: "file", accept: "image/*", multiple: true, style: { display: "none" }, onChange: e => addImgs(e.target.files) })),
                     imgs.length > 0 && React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 } }, imgs.map((src, i) => React.createElement("div", { key: i, style: { position: "relative" } },
                         React.createElement("img", { src: src, style: { width: 60, height: 60, objectFit: "cover", borderRadius: 8, border: "1px solid " + BDR } }),
                         React.createElement("button", { onClick: () => setImgs(p => p.filter((_, j) => j !== i)), style: { position: "absolute", top: -4, right: -4, background: RED, border: "none", borderRadius: "50%", width: 16, height: 16, color: "#fff", fontSize: 9, cursor: "pointer" } }, "\u2715")))))),
@@ -18887,6 +18884,7 @@ function LotModal({ cards, onSell, onClose }) {
                         sel.length,
                         " cartas"))))));
 }
+function isPremium(){return window._isAdmin===true;}
 function App() {
     const [cards, setCards] = useState(() => { try {
         return JSON.parse(localStorage.getItem("cv10") || "[]");
@@ -18959,8 +18957,8 @@ function App() {
             tab === "fiscal" && React.createElement(FiscalTab, { cards: cards, invoices: invoices }),
             tab === "invoices" && React.createElement(InvoicesTab, { invoices: invoices, setInvoices: setInvoices }),
             tab === "analytics" && React.createElement(AnalyticsTab, { cards: cards }),
-            tab === "lots" && React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards }),
-            tab === "psa" && React.createElement(PSATab, null)),
+            tab === "lots" && (isPremium() ? React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards }) : React.createElement("div",{style:{maxWidth:500,margin:"80px auto",textAlign:"center",padding:40}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"\uD83D\uDD12"),React.createElement("div",{style:{fontSize:20,fontWeight:700,marginBottom:8}},"Funci\\u00F3n Premium"),React.createElement("div",{style:{color:SUB,marginBottom:24}},"Los lotes son una funci\\u00F3n Premium"),React.createElement("button",{onClick:function(){setShowSettings(true);},style:{padding:"12px 24px",background:BLUE,border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B50 Hazte Premium"))),
+            tab === "psa" && (isPremium() ? React.createElement(PSATab, null) : React.createElement("div",{style:{maxWidth:500,margin:"80px auto",textAlign:"center",padding:40}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"\uD83D\uDD12"),React.createElement("div",{style:{fontSize:20,fontWeight:700,marginBottom:8}},"Funci\\u00F3n Premium"),React.createElement("div",{style:{color:SUB,marginBottom:24}},"PSA/BGS es una funci\\u00F3n Premium"),React.createElement("button",{onClick:function(){setShowSettings(true);},style:{padding:"12px 24px",background:BLUE,border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B50 Hazte Premium")))),
         sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); }, editCard: ec, defMode: dm }),
         showLot && React.createElement(LotModal, { cards: cards, onSell: ups, onClose: () => setShowLot(false) }),
         sc && React.createElement(SellModal, { card: sc, onSave: ups, onClose: () => setSc(null) }),
