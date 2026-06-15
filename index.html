@@ -19029,8 +19029,10 @@ window._mountApp = function() { window._mountApp = function() { ReactDOM.createR
         console.error("Firestore error:", e);
       }).finally(function(){
         console.log("Mounting app...");
-        document.getElementById("cv-login").style.display="none";
-        document.getElementById("root").style.display="block";
+        var loginEl=document.getElementById("cv-login");
+        var rootEl=document.getElementById("root");
+        if(loginEl){loginEl.style.cssText="display:none!important";}
+        if(rootEl){rootEl.style.cssText="display:block!important";}
         if(!window._appMounted&&window._mountApp){window._mountApp();window._appMounted=true;}
         console.log("App mounted:", window._appMounted);
       });
