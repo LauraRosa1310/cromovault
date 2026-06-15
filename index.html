@@ -19001,12 +19001,7 @@ window._mountApp = function() { window._mountApp = function() { ReactDOM.createR
 
     window._signIn=function(){
       var provider=new firebase.auth.GoogleAuthProvider();
-      var isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if(isMobile){
-        auth.signInWithRedirect(provider);
-      } else {
-        auth.signInWithPopup(provider).catch(function(){auth.signInWithRedirect(provider);});
-      }
+      auth.signInWithRedirect(provider);
     };
 
     window._signOut=function(){
