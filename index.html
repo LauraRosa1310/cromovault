@@ -17390,7 +17390,7 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
     function sf(k, v) { setF(p => (Object.assign(Object.assign({}, p), { [k]: v }))); }
     function addImgs(files) { Array.from(files).forEach(file => { const r = new FileReader(); r.onload = e => setImgs(p => [...p, e.target.result]); r.readAsDataURL(file); }); }
     const tB = (parseFloat(f.buyPrice) || 0) * (f.quantity || 1), tS = (parseFloat(f.sellPrice) || 0) * (f.quantity || 1), fA = tS * ((parseFloat(f.platformFee) || 0) / 100), sA = parseFloat(f.shippingCost) || 0, ns = tS - fA - sA - tB;
-    const tabs = f.mode === "inventory" ? [["info", "Info"], ["buy", "Compra"], ["sell", "Venta"], ["photos", "Fotos"]] : [["info", "Info"], ["buy", "Precio"], ["photos", "Fotos"]];
+    const tabs = f.mode === "inventory" ? [["info", "Info"], ["buy", "Compra"], ["sell", "Venta"]] : [["info", "Info"], ["buy", "Precio"]];
     return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, overflowY: "auto" } },
         React.createElement("div", { style: { background: BG, borderRadius: 16, width: "100%", maxWidth: 480, maxHeight: "94vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", border: "1px solid " + BDR } },
             React.createElement("div", { style: { padding: "18px 24px 0", display: "flex", justifyContent: "space-between", alignItems: "center" } },
@@ -17927,7 +17927,7 @@ function FiscalTab({ cards, invoices }) {
             React.createElement(KT, { label: "Beneficio neto", value: sg(tN) + euk(tN), accent: cl(tN) })),
         iY.length > 0 && React.createElement(Card, { style: { marginBottom: 20, padding: "14px 18px", border: "1px solid #d1fae5", background: "#f0fdf8" } },
             React.createElement(SL, { style: { marginBottom: 8, color: GREEN } }, "\u2713 Gastos de facturas incluidos en el beneficio neto"),
-            React.createElement("div", { style: { display: "flex", gap: 20, flexWrap: "wrap", fontSize: 13 } },
+            React.createElement("div", { style: { display: "flex", gap: 20, flexWrap: "wrap", fontSize: 13, color: "#1f2937" } },
                 React.createElement("span", null,
                     "IVA soportado: ",
                     React.createElement("b", { style: { color: RED } }, eu(tI))),
@@ -19013,8 +19013,7 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
     window._signIn = function() {
       var provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider).catch(function(e) {
-        console.error('Popup error:', e);
-        auth.signInWithRedirect(provider);
+        alert('Error: ' + e.message);
       });
     };
 
