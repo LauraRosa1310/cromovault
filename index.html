@@ -6,8 +6,30 @@
   <title>🃏 CromoVault</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style>
+  <style>
+    :root{--bg:#fff;--bgs:#f7f8fa;--bdr:#e8eaed;--txt:#0a0a0a;--sub:#6b7280;--mut:#9ca3af;}
+    body.dark{--bg:#0f172a;--bgs:#1e293b;--bdr:#334155;--txt:#f1f5f9;--sub:#94a3b8;--mut:#64748b;}
+    body.dark input,body.dark select,body.dark textarea{background:#1e293b!important;color:#f1f5f9!important;border-color:#334155!important;}
+    body.dark button{color:inherit;}
+  </style>
+  <style>
+    #cv-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg,#fff);border-top:1px solid var(--bdr,#e8eaed);z-index:100;padding-bottom:env(safe-area-inset-bottom);}
+    #cv-bottom-nav-inner{display:flex;height:56px;}
+    #cv-bottom-nav button{flex:1;border:none;background:none;font-size:10px;font-family:Inter,sans-serif;color:var(--sub,#6b7280);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 2px;min-width:0;}
+    #cv-bottom-nav button.active{color:#3b82f6;}
+    #cv-bottom-nav button span.icon{font-size:18px;}
+    #cv-bottom-nav button span.label{font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
+    @media(max-width:768px){
+      #cv-bottom-nav{display:block;}
+      #cv-top-nav{display:none!important;}
+      #cv-root{padding-bottom:calc(56px + env(safe-area-inset-bottom));}
+      input,select{font-size:16px!important;}
+      table{display:block;overflow-x:auto;}
+    }
+  </style>
 </head>
 <body>
+<script>if(localStorage.getItem("cv10_dark")==="1"){document.body.classList.add("dark");}</script>
   <div id="cv-login" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#1e293b);z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Inter,sans-serif;">
     <div style="text-align:center;padding:40px;background:rgba(255,255,255,0.05);border-radius:20px;border:1px solid rgba(255,255,255,0.1);max-width:380px;width:90%;">
       <div style="font-size:52px;margin-bottom:16px;">🃏</div>
@@ -17149,7 +17171,7 @@ var Recharts=(function(){
 const { useState, useEffect, useRef } = React;
 
 const BLUE = "#1d6bfc", GREEN = "#00c48c", RED = "#f03e3e", AMBER = "#f59e0b", PURPLE = "#8b5cf6";
-const BG = "#fff", BGS = "#f7f8fa", BDR = "#e8eaed", TXT = "#0a0a0a", SUB = "#6b7280", MUT = "#9ca3af";
+const BG = "var(--bg,#fff)", BGS = "var(--bgs,#f7f8fa)", BDR = "var(--bdr,#e8eaed)", TXT = "var(--txt,#0a0a0a)", SUB = "var(--sub,#6b7280)", MUT = "var(--mut,#9ca3af)";
 const CATS = { futbol: "⚽ Fútbol", futbol_m: "⚽ Fútbol Masc.", futbol_f: "👟 Fútbol Fem.", nba: "🏀 NBA", trading: "🃏 Trading", baseball: "⚾ Baseball", f1: "🏎️ F1", other: "🏅 Otro" };
 const RARS = ["Común", "Poco común", "Rara", "Ultra Rara", "Legendaria"];
 const RCLR = { "Común": "#9ca3af", "Poco común": "#10b981", "Rara": "#3b82f6", "Ultra Rara": "#8b5cf6", "Legendaria": "#f59e0b" };
@@ -17157,8 +17179,9 @@ const CONDS = ["Raw", "PSA 1", "PSA 2", "PSA 3", "PSA 4", "PSA 5", "PSA 6", "PSA
 const PLATS = ["eBay", "Wallapop", "Cardmarket", "Vinted", "TCGPlayer", "Otro"];
 const DEFAULT_LOCATIONS = ["Caja 1", "Caja 2", "Caja 3", "Caja 4"];
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
-function eu(n) { return "€" + (+(n || 0)).toFixed(2); }
-function euk(n) { n = +(n || 0); return n >= 1000 ? "€" + (n / 1000).toFixed(1) + "k" : "€" + n.toFixed(2); }
+function getCurrencySymbol(){var c=localStorage.getItem("cv10_currency")||"EUR";return{EUR:"\u20AC",GBP:"\u00A3",USD:"$",AUD:"A$"}[c]||"\u20AC";}
+function eu(n){return getCurrencySymbol()+(Math.abs(n)||0).toFixed(2);}
+function euk(n){n=+(n||0);var s=getCurrencySymbol();return n>=1000?s+(n/1000).toFixed(1)+"k":s+n.toFixed(2);}
 function pc(s, b) { return b ? ((s - b) / b * 100) : 0; }
 function sg(n) { return n >= 0 ? "+" : ""; }
 function cl(n) { return n >= 0 ? GREEN : RED; }
@@ -18923,7 +18946,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 26, height: 26, background: BLUE, borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 } }, "\uD83C\uDCCF"),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault")),
-                    React.createElement("nav", { style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
+                    React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => setShowLot(true) }, "Venta m\u00FAltiple"),
@@ -18941,7 +18964,14 @@ function App() {
         sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); }, editCard: ec, defMode: dm }),
         showLot && React.createElement(LotModal, { cards: cards, onSell: ups, onClose: () => setShowLot(false) }),
         sc && React.createElement(SellModal, { card: sc, onSave: ups, onClose: () => setSc(null) }),
-        dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onClose: () => setDupCard(null) })));
+        dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onClose: () => setDupCard(null) }),
+        React.createElement("div", { id: "cv-bottom-nav" },
+            React.createElement("div", { id: "cv-bottom-nav-inner" },
+                [["dashboard","\uD83D\uDCCA","Dashboard"],["inventory","\uD83D\uDCE6","Inv."],["collection","\u2B50","Colec."],["fiscal","\uD83E\uDDFE","Fiscal"],["invoices","\uD83D\uDDC2","Fact."],["analytics","\uD83D\uDCC8","An\u00E1lisis"],["lots","\uD83D\uDCE6","Lotes"],["psa","\uD83C\uDFC6","PSA"]].map(function(item) {
+                    return React.createElement("button", { key: item[0], className: tab === item[0] ? "active" : "", onClick: function() { setTab(item[0]); } },
+                        React.createElement("span", { className: "icon" }, item[1]),
+                        React.createElement("span", { className: "label" }, item[2]));
+                })))));
 }
 
 window._mountApp = function() { ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App)); };
