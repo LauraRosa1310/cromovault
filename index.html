@@ -19030,11 +19030,14 @@ window._mountApp = function() { window._mountApp = function() { ReactDOM.createR
       });
     }
 
+    console.log("Firebase init OK");
     auth.getRedirectResult().then(function(result){
+      console.log("getRedirectResult:", result && result.user ? "USER="+result.user.email : "no user");
       if(result&&result.user){showApp(result.user);}
-    }).catch(function(e){console.error("Redirect:",e);});
+    }).catch(function(e){console.error("Redirect error:",e);});
 
     auth.onAuthStateChanged(function(user){
+      console.log("onAuthStateChanged:", user ? "USER="+user.email : "null");
       window._currentUser=user;
       if(user){
         window._isAdmin=(user.uid==="fUCSfpRb7qdA8zHJssUsaxFRtgD3");
