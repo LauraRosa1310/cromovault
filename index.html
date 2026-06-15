@@ -19010,9 +19010,11 @@ window._mountApp = function() { window._mountApp = function() { ReactDOM.createR
     };
 
     function showApp(user){
+      console.log("showApp called for", user.email);
       window._currentUser=user;
       window._isAdmin=(user.uid==="fUCSfpRb7qdA8zHJssUsaxFRtgD3");
       db.collection("users").doc(user.uid).collection("data").doc("main").get().then(function(snap){
+        console.log("Firestore loaded, exists:", snap.exists);
         if(snap.exists){
           var d=snap.data();
           if(d.cards)localStorage.setItem("cv10",JSON.stringify(d.cards));
@@ -19023,10 +19025,14 @@ window._mountApp = function() { window._mountApp = function() { ReactDOM.createR
           if(d.locs)localStorage.setItem("cv10_locs",d.locs);
           if(d.minRoi)localStorage.setItem("cv10_minroi",String(d.minRoi));
         }
+      }).catch(function(e){
+        console.error("Firestore error:", e);
       }).finally(function(){
+        console.log("Mounting app...");
         document.getElementById("cv-login").style.display="none";
         document.getElementById("root").style.display="block";
         if(!window._appMounted&&window._mountApp){window._mountApp();window._appMounted=true;}
+        console.log("App mounted:", window._appMounted);
       });
     }
 
