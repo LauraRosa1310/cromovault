@@ -17596,7 +17596,7 @@ function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl }) {
             React.createElement("td", { style: { padding: "12px 12px", verticalAlign: "middle" }, onClick: e => e.stopPropagation() },
                 React.createElement("div", { style: { display: "flex", gap: 4, justifyContent: "flex-end", flexWrap: "wrap" } },
                     React.createElement(Btn, { sm: true, v: "outline", style: { color: BLUE, borderColor: "#eff4ff" }, onClick: () => setLst(true) }, "\uD83D\uDCCB"),
-                    React.createElement("a", { href: "https://www.130point.com/sales/?q=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", style: { padding: "7px 9px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 11, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "\uD83D\uDD0D"),
+                    React.createElement("div", { style: { display: "inline-flex", gap: 4 } }, React.createElement("a", { href: "https://www.ebay.es/sch/i.html?_nkw=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", title: "Buscar en eBay", style: { padding: "5px 7px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 10, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "eBay"), React.createElement("a", { href: "https://www.cardmarket.com/es/YuGiOh/Products/Search?searchString=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", title: "Buscar en Cardmarket", style: { padding: "5px 7px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 10, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "CM")),
                     !isSold && card.mode === "inventory" && React.createElement(Btn, { sm: true, v: "outline", style: { color: GREEN, borderColor: "#d1fae5" }, onClick: () => onSell(card) }, "Vender"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => onEdit(card) }, "\u270F"),
                     React.createElement(Btn, { sm: true, v: "outline", style: { color: PURPLE, borderColor: "#e9d5ff" }, onClick: () => onDuplicate && onDuplicate(card) }, "\u29C9"),
@@ -18884,6 +18884,7 @@ function LotModal({ cards, onSell, onClose }) {
                         sel.length,
                         " cartas"))))));
 }
+function generateDescription(card){var L=[];L.push("[CARTA] "+card.name);if(card.series)L.push("[SET] "+card.series);if(card.rarity)L.push("[RAREZA] "+card.rarity);if(card.condition)L.push("[CONDICION] "+card.condition);if(card.quantity&&card.quantity>1)L.push("[CANTIDAD] "+card.quantity+" unidades");L.push("");L.push("- Envio disponible");L.push("- Carta en perfecto estado segun descripcion");L.push("- Pago seguro");if(card.notes)L.push("[NOTAS] "+card.notes);return L.join("\n");}
 function isPremium(){return window._isAdmin===true;}
 function App() {
     const [cards, setCards] = useState(() => { try {
