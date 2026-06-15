@@ -5,126 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🃏 CromoVault</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style>  <link rel="manifest" href="./manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="CromoVault">
-  <meta name="theme-color" content="#3b82f6">
-  <link rel="apple-touch-icon" href="https://via.placeholder.com/192x192/3b82f6/ffffff?text=CV">
-  <style>
-    :root {
-      --bg: #fff;
-      --bgs: #f7f8fa;
-      --bdr: #e8eaed;
-      --txt: #0a0a0a;
-      --sub: #6b7280;
-      --mut: #9ca3af;
-      --blue: #3b82f6;
-    }
-    body.dark {
-      --bg: #0f172a;
-      --bgs: #1e293b;
-      --bdr: #334155;
-      --txt: #f1f5f9;
-      --sub: #94a3b8;
-      --mut: #64748b;
-      --blue: #60a5fa;
-    }
-    body.dark input, body.dark select, body.dark textarea {
-      background: #1e293b !important;
-      color: #f1f5f9 !important;
-      border-color: #334155 !important;
-    }
-    body.dark button { color: inherit; }
-    body.dark table td, body.dark table th { border-color: #334155 !important; }
-    * { transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
-    
-    /* ===== MOBILE RESPONSIVE ===== */
-    /* Bottom navigation bar on mobile */
-    #cv-bottom-nav {
-      display: none;
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--bg);
-      border-top: 1px solid var(--bdr);
-      z-index: 100;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-    #cv-bottom-nav-inner {
-      display: flex;
-      height: 56px;
-    }
-    #cv-bottom-nav button {
-      flex: 1;
-      border: none;
-      background: none;
-      font-size: 10px;
-      font-family: Inter, sans-serif;
-      color: var(--sub);
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      padding: 4px 2px;
-      min-width: 0;
-    }
-    #cv-bottom-nav button.active {
-      color: var(--blue);
-    }
-    #cv-bottom-nav button span.icon { font-size: 18px; }
-    #cv-bottom-nav button span.label { font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-    
-    @media (max-width: 768px) {
-      /* Show bottom nav, hide top nav */
-      #cv-bottom-nav { display: block; }
-      #cv-top-nav { display: none !important; }
-      
-      /* Padding for bottom nav */
-      #cv-content { padding-bottom: calc(56px + env(safe-area-inset-bottom)) !important; }
-      
-      /* Header adjustments */
-      #cv-header-inner { padding: 0 12px !important; }
-      #cv-logo { font-size: 15px !important; }
-      
-      /* Content padding */
-      #cv-content-inner { padding: 12px !important; }
-      
-      /* Cards full width */
-      .cv-grid-2 { grid-template-columns: 1fr !important; }
-      .cv-grid-3 { grid-template-columns: 1fr 1fr !important; }
-      
-      /* Settings modal full screen on mobile */
-      #cv-settings-modal .cv-modal-box {
-        min-width: unset !important;
-        max-width: unset !important;
-        width: 100% !important;
-        min-height: 60vh;
-        border-radius: 20px 20px 0 0 !important;
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-      }
-      
-      /* Bigger touch targets */
-      button { min-height: 36px; }
-      input, select { min-height: 40px; font-size: 16px !important; }
-      
-      /* Table scroll */
-      table { display: block; overflow-x: auto; }
-    }
-    
-    @media (max-width: 480px) {
-      .cv-grid-3 { grid-template-columns: 1fr !important; }
-      #cv-header-inner { padding: 0 8px !important; }
-    }
-  </style>
+  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style>
 </head>
 <body>
-<script>if(localStorage.getItem("cv10_dark")==="1"){document.body.classList.add("dark");}</script>
-  <div id="cv-login" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#1e293b);z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Inter,sans-serif;">
+  <div id="cv-login" style="display:flex;position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#1e293b);z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Inter,sans-serif;">
     <div style="text-align:center;padding:40px;background:rgba(255,255,255,0.05);border-radius:20px;border:1px solid rgba(255,255,255,0.1);max-width:380px;width:90%;">
       <div style="font-size:52px;margin-bottom:16px;">🃏</div>
       <div style="font-size:28px;font-weight:700;color:#fff;margin-bottom:8px;">CromoVault</div>
@@ -13475,7 +13359,8 @@ var mediaEventTypes =
     ),
   nonDelegatedEvents = new Set(
     "beforetoggle cancel close invalid load scroll scrollend toggle"
-      .split(" ").concat(mediaEventTypes)
+      .split(" ")
+      .concat(mediaEventTypes)
   );
 function processDispatchQueue(dispatchQueue, eventSystemFlags) {
   eventSystemFlags = 0 !== (eventSystemFlags & 4);
@@ -14151,7 +14036,9 @@ function accumulateEnterLeaveListenersForEvent(
 var NORMALIZE_NEWLINES_REGEX = /\r\n?/g,
   NORMALIZE_NULL_AND_REPLACEMENT_REGEX = /\u0000|\uFFFD/g;
 function normalizeMarkupForTextOrAttribute(markup) {
-  return ("string" === typeof markup ? markup : "" + markup).replace(NORMALIZE_NEWLINES_REGEX, "\n").replace(NORMALIZE_NULL_AND_REPLACEMENT_REGEX, "");
+  return ("string" === typeof markup ? markup : "" + markup)
+    .replace(NORMALIZE_NEWLINES_REGEX, "\n")
+    .replace(NORMALIZE_NULL_AND_REPLACEMENT_REGEX, "");
 }
 function checkForUnmatchedText(serverText, clientText) {
   clientText = normalizeMarkupForTextOrAttribute(clientText);
@@ -15229,7 +15116,9 @@ var scheduleTimeout = "function" === typeof setTimeout ? setTimeout : void 0,
       : "undefined" !== typeof localPromise
         ? function (callback) {
             return localPromise
-              .resolve(null).then(callback).catch(handleErrorInNextTick);
+              .resolve(null)
+              .then(callback)
+              .catch(handleErrorInNextTick);
           }
         : scheduleTimeout;
 function handleErrorInNextTick(error) {
@@ -17260,24 +17149,34 @@ var Recharts=(function(){
 const { useState, useEffect, useRef } = React;
 
 const BLUE = "#1d6bfc", GREEN = "#00c48c", RED = "#f03e3e", AMBER = "#f59e0b", PURPLE = "#8b5cf6";
-const BG = "var(--bg,#fff)", BGS = "var(--bgs,#f7f8fa)", BDR = "var(--bdr,#e8eaed)", TXT = "var(--txt,#0a0a0a)", SUB = "var(--sub,#6b7280)", MUT = "var(--mut,#9ca3af)";
+const BG = "#fff", BGS = "#f7f8fa", BDR = "#e8eaed", TXT = "#0a0a0a", SUB = "#6b7280", MUT = "#9ca3af";
 const CATS = { futbol: "⚽ Fútbol", futbol_m: "⚽ Fútbol Masc.", futbol_f: "👟 Fútbol Fem.", nba: "🏀 NBA", trading: "🃏 Trading", baseball: "⚾ Baseball", f1: "🏎️ F1", other: "🏅 Otro" };
 const RARS = ["Común", "Poco común", "Rara", "Ultra Rara", "Legendaria"];
-const RCLR = { "Común": MUT, "Poco común": "#10b981", "Rara": "#3b82f6", "Ultra Rara": "#8b5cf6", "Legendaria": "#f59e0b" };
+const RCLR = { "Común": "#9ca3af", "Poco común": "#10b981", "Rara": "#3b82f6", "Ultra Rara": "#8b5cf6", "Legendaria": "#f59e0b" };
 const CONDS = ["Raw", "PSA 1", "PSA 2", "PSA 3", "PSA 4", "PSA 5", "PSA 6", "PSA 7", "PSA 8", "PSA 9", "PSA 10", "BGS 9", "BGS 9.5", "BGS 10"];
 const PLATS = ["eBay", "Wallapop", "Cardmarket", "Vinted", "TCGPlayer", "Otro"];
 const DEFAULT_LOCATIONS = ["Caja 1", "Caja 2", "Caja 3", "Caja 4"];
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
-function getCurrencySymbol() { var c = localStorage.getItem("cv10_currency") || "EUR"; return { EUR: "\u20AC", GBP: "\u00A3", USD: "$", AUD: "A$" }[c] || "\u20AC"; }
-function eu(n) { return getCurrencySymbol() + (Math.abs(n)||0).toFixed(2); }
-function euk(n) { n = +(n || 0); var s = getCurrencySymbol(); return n >= 1000 ? s + (n / 1000).toFixed(1) + "k" : s + n.toFixed(2); }
+function eu(n) { return "€" + (+(n || 0)).toFixed(2); }
+function euk(n) { n = +(n || 0); return n >= 1000 ? "€" + (n / 1000).toFixed(1) + "k" : "€" + n.toFixed(2); }
 function pc(s, b) { return b ? ((s - b) / b * 100) : 0; }
 function sg(n) { return n >= 0 ? "+" : ""; }
 function cl(n) { return n >= 0 ? GREEN : RED; }
 function np(c) { return (c.sellPrice || 0) * (c.quantity || 1) * (1 - (c.platformFee || 0) / 100) - (c.shippingCost || 0) - (c.buyPrice || 0) * (c.quantity || 1); }
-function daysSince(dateStr) { if (!dateStr) return null; return Math.floor((Date.now() - new Date(dateStr)) / 86400000); }
-function apyCalc(c) { if (!c.sellDate || !c.buyDate) return null; const d = (new Date(c.sellDate) - new Date(c.buyDate)) / 86400000; if (d <= 0) return null; const base = (c.buyPrice || 0) * (c.quantity || 1); if (!base) return null; const r = pc((c.sellPrice || 0) * (1 - (c.platformFee || 0) / 100) - (c.shippingCost || 0), base); return (Math.pow(1 + r / 100, 365 / d) - 1) * 100; }
-
+function daysSince(dateStr) { if (!dateStr)
+    return null; return Math.floor((Date.now() - new Date(dateStr)) / 86400000); }
+function apyCalc(c) {
+    if (!c.sellDate || !c.buyDate)
+        return null;
+    const d = (new Date(c.sellDate) - new Date(c.buyDate)) / 86400000;
+    if (d <= 0)
+        return null;
+    const base = (c.buyPrice || 0) * (c.quantity || 1);
+    if (!base)
+        return null;
+    const r = pc((c.sellPrice || 0) * (1 - (c.platformFee || 0) / 100) - (c.shippingCost || 0), base);
+    return (Math.pow(1 + r / 100, 365 / d) - 1) * 100;
+}
 function dlJSON(cards, invoices) {
     const psaItems = JSON.parse(localStorage.getItem("cv10p") || "[]");
     const locs = localStorage.getItem("cv10_locs") || null;
@@ -17331,123 +17230,7 @@ function dlPDF(cards) {
     const sr = sold.map(c => { const bp = (c.buyPrice || 0) * (c.quantity || 1), sp = (c.sellPrice || 0) * (c.quantity || 1), f = sp * ((c.platformFee || 0) / 100), sh = c.shippingCost || 0, n = sp - f - sh - bp, r = pc(sp - f - sh, bp); return `<tr><td>${c.name}</td><td align=right>€${bp.toFixed(2)}</td><td align=right>€${sp.toFixed(2)}</td><td align=right>-€${(f + sh).toFixed(2)}</td><td align=right style="color:${n >= 0 ? "green" : "red"}">${n >= 0 ? "+" : ""}€${n.toFixed(2)}</td><td align=right style="color:${r >= 0 ? "green" : "red"}">${r >= 0 ? "+" : ""}${r.toFixed(1)}%</td></tr>`; }).join("");
     const hr = hold.map(c => `<tr><td>${c.name}${c.isFavorite ? " ⭐" : ""}</td><td>${CATS[c.category] || c.category}</td><td>${c.rarity}</td><td align=right>€${((c.buyPrice || 0) * (c.quantity || 1)).toFixed(2)}</td></tr>`).join("");
     const tB = sold.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0), tS = sold.reduce((a, c) => a + (c.sellPrice || 0) * (c.quantity || 1), 0), tF = sold.reduce((a, c) => a + (c.sellPrice || 0) * (c.quantity || 1) * ((c.platformFee || 0) / 100) + (c.shippingCost || 0), 0), tN = tS - tF - tB;
-    const html = `<!DOCTYPE html><html><head><meta charset=utf-8><title>CromoVault</title><style>body{font-family:sans-serif;padding:24px;font-size:12px}.k{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}.ki{border:1px solid #e8eaed;border-radius:6px;padding:10px}.kl{font-size:10px;color:#6b7280}.kv{font-size:18px;font-weight:700}h2{font-size:12px;font-weight:600;margin:14px 0 6px;border-bottom:1px solid #e8eaed;padding-bottom:4px}table{width:100%;border-collapse:collapse}th{padding:5px 7px;text-align:left;font-size:10px;font-weight:600;color:#6b7280;border-bottom:1px solid #e8eaed}td{padding:6px 7px;border-bottom:1px solid #f3f4f6}.tot{font-weight:700;background:#f7f8fa}</style>  <link rel="manifest" href="./manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="CromoVault">
-  <meta name="theme-color" content="#3b82f6">
-  <link rel="apple-touch-icon" href="https://via.placeholder.com/192x192/3b82f6/ffffff?text=CV">
-  <style>
-    :root {
-      --bg: #fff;
-      --bgs: #f7f8fa;
-      --bdr: #e8eaed;
-      --txt: #0a0a0a;
-      --sub: #6b7280;
-      --mut: #9ca3af;
-      --blue: #3b82f6;
-    }
-    body.dark {
-      --bg: #0f172a;
-      --bgs: #1e293b;
-      --bdr: #334155;
-      --txt: #f1f5f9;
-      --sub: #94a3b8;
-      --mut: #64748b;
-      --blue: #60a5fa;
-    }
-    body.dark input, body.dark select, body.dark textarea {
-      background: #1e293b !important;
-      color: #f1f5f9 !important;
-      border-color: #334155 !important;
-    }
-    body.dark button { color: inherit; }
-    body.dark table td, body.dark table th { border-color: #334155 !important; }
-    * { transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
-    
-    /* ===== MOBILE RESPONSIVE ===== */
-    /* Bottom navigation bar on mobile */
-    #cv-bottom-nav {
-      display: none;
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--bg);
-      border-top: 1px solid var(--bdr);
-      z-index: 100;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-    #cv-bottom-nav-inner {
-      display: flex;
-      height: 56px;
-    }
-    #cv-bottom-nav button {
-      flex: 1;
-      border: none;
-      background: none;
-      font-size: 10px;
-      font-family: Inter, sans-serif;
-      color: var(--sub);
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      padding: 4px 2px;
-      min-width: 0;
-    }
-    #cv-bottom-nav button.active {
-      color: var(--blue);
-    }
-    #cv-bottom-nav button span.icon { font-size: 18px; }
-    #cv-bottom-nav button span.label { font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-    
-    @media (max-width: 768px) {
-      /* Show bottom nav, hide top nav */
-      #cv-bottom-nav { display: block; }
-      #cv-top-nav { display: none !important; }
-      
-      /* Padding for bottom nav */
-      #cv-content { padding-bottom: calc(56px + env(safe-area-inset-bottom)) !important; }
-      
-      /* Header adjustments */
-      #cv-header-inner { padding: 0 12px !important; }
-      #cv-logo { font-size: 15px !important; }
-      
-      /* Content padding */
-      #cv-content-inner { padding: 12px !important; }
-      
-      /* Cards full width */
-      .cv-grid-2 { grid-template-columns: 1fr !important; }
-      .cv-grid-3 { grid-template-columns: 1fr 1fr !important; }
-      
-      /* Settings modal full screen on mobile */
-      #cv-settings-modal .cv-modal-box {
-        min-width: unset !important;
-        max-width: unset !important;
-        width: 100% !important;
-        min-height: 60vh;
-        border-radius: 20px 20px 0 0 !important;
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-      }
-      
-      /* Bigger touch targets */
-      button { min-height: 36px; }
-      input, select { min-height: 40px; font-size: 16px !important; }
-      
-      /* Table scroll */
-      table { display: block; overflow-x: auto; }
-    }
-    
-    @media (max-width: 480px) {
-      .cv-grid-3 { grid-template-columns: 1fr !important; }
-      #cv-header-inner { padding: 0 8px !important; }
-    }
-  </style>
-</head><body>
+    const html = `<!DOCTYPE html><html><head><meta charset=utf-8><title>CromoVault</title><style>body{font-family:sans-serif;padding:24px;font-size:12px}.k{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}.ki{border:1px solid #e8eaed;border-radius:6px;padding:10px}.kl{font-size:10px;color:#6b7280}.kv{font-size:18px;font-weight:700}h2{font-size:12px;font-weight:600;margin:14px 0 6px;border-bottom:1px solid #e8eaed;padding-bottom:4px}table{width:100%;border-collapse:collapse}th{padding:5px 7px;text-align:left;font-size:10px;font-weight:600;color:#6b7280;border-bottom:1px solid #e8eaed}td{padding:6px 7px;border-bottom:1px solid #f3f4f6}.tot{font-weight:700;background:#f7f8fa}</style></head><body>
   <h1 style="font-size:18px;margin-bottom:4px">CromoVault</h1><p style="color:#6b7280;margin-bottom:16px">${new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}</p>
   <div class=k><div class=ki><div class=kl>INVERTIDO</div><div class=kv>€${ti.toFixed(2)}</div></div><div class=ki><div class=kl>P&L</div><div class=kv style="color:${tr >= 0 ? "green" : "red"}">${tr >= 0 ? "+" : ""}€${tr.toFixed(2)}</div></div><div class=ki><div class=kl>ROI</div><div class=kv style="color:${ri >= 0 ? "green" : "red"}">${ri >= 0 ? "+" : ""}${ri.toFixed(1)}%</div></div><div class=ki><div class=kl>EN CARTERA</div><div class=kv>${hold.length}</div></div></div>
   <h2>Ventas (${sold.length})</h2><table><thead><tr><th>Carta</th><th>Compra</th><th>Venta</th><th>Gastos</th><th>Beneficio</th><th>ROI</th></tr></thead><tbody>${sr}<tr class=tot><td>TOTAL</td><td align=right>€${tB.toFixed(2)}</td><td align=right>€${tS.toFixed(2)}</td><td align=right>-€${tF.toFixed(2)}</td><td align=right style="color:${tN >= 0 ? "green" : "red"}">${tN >= 0 ? "+" : ""}€${tN.toFixed(2)}</td><td></td></tr></tbody></table>
@@ -17465,7 +17248,7 @@ const IS = { width: "100%", padding: "9px 12px", borderRadius: 8, border: "1.5px
 const LS = { display: "block", color: SUB, fontSize: 11, fontWeight: 500, marginBottom: 5 };
 function Btn({ children, onClick, disabled, v, sm, full, style }) {
     v = v || "primary";
-    let bg = BLUE, fg = BG, bo = "none";
+    let bg = BLUE, fg = "#fff", bo = "none";
     if (disabled) {
         bg = BDR;
         fg = MUT;
@@ -17481,7 +17264,7 @@ function Btn({ children, onClick, disabled, v, sm, full, style }) {
     }
     else if (v === "success") {
         bg = GREEN;
-        fg = BG;
+        fg = "#fff";
     }
     return (React.createElement("button", { onClick: onClick, disabled: disabled, style: Object.assign({ padding: sm ? "7px 13px" : "10px 18px", borderRadius: 8, fontFamily: "Inter,sans-serif", fontWeight: 600, fontSize: sm ? 11 : 13, cursor: disabled ? "not-allowed" : "pointer", width: full ? "100%" : "auto", whiteSpace: "nowrap", opacity: disabled ? 0.5 : 1, background: bg, color: fg, border: bo }, (style || {})) }, children));
 }
@@ -17607,7 +17390,7 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
     function sf(k, v) { setF(p => (Object.assign(Object.assign({}, p), { [k]: v }))); }
     function addImgs(files) { Array.from(files).forEach(file => { const r = new FileReader(); r.onload = e => setImgs(p => [...p, e.target.result]); r.readAsDataURL(file); }); }
     const tB = (parseFloat(f.buyPrice) || 0) * (f.quantity || 1), tS = (parseFloat(f.sellPrice) || 0) * (f.quantity || 1), fA = tS * ((parseFloat(f.platformFee) || 0) / 100), sA = parseFloat(f.shippingCost) || 0, ns = tS - fA - sA - tB;
-    const tabs = f.mode === "inventory" ? [["info", "Info"], ["buy", "Compra"], ["sell", "Venta"]] : [["info", "Info"], ["buy", "Precio"]];
+    const tabs = f.mode === "inventory" ? [["info", "Info"], ["buy", "Compra"], ["sell", "Venta"], ["photos", "Fotos"]] : [["info", "Info"], ["buy", "Precio"], ["photos", "Fotos"]];
     return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, overflowY: "auto" } },
         React.createElement("div", { style: { background: BG, borderRadius: 16, width: "100%", maxWidth: 480, maxHeight: "94vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", border: "1px solid " + BDR } },
             React.createElement("div", { style: { padding: "18px 24px 0", display: "flex", justifyContent: "space-between", alignItems: "center" } },
@@ -17660,7 +17443,9 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                     React.createElement("div", null,
                         React.createElement("label", { style: LS }, "Notas"),
                         React.createElement("textarea", { value: f.notes, onChange: e => sf("notes", e.target.value), rows: 2, placeholder: "Condici\u00F3n extra, n\u00FAmero...", style: Object.assign(Object.assign({}, IS), { resize: "vertical" }) })),
-                    f.mode === "collection" && React.createElement("div", { style: { gridColumn: "1/-1", marginTop: 4 } }, React.createElement("label", { style: LS }, "\uD83D\uDDBC URL de imagen"), React.createElement("input", { type: "text", value: f.imageUrl || "", onChange: e => sf("imageUrl", e.target.value), placeholder: "https://...", style: IS })),
+                    React.createElement("div", { style: { gridColumn: "1/-1" } },
+                        React.createElement("label", { style: LS }, "\uD83D\uDDBC URL de imagen (postimages.org, imgbb...)"),
+                        React.createElement("input", { value: f.imageUrl || "", onChange: e => sf("imageUrl", e.target.value), placeholder: "https://i.postimg.cc/...", style: IS })),
                     React.createElement("div", { style: { marginTop: 10 } },
                         React.createElement("label", { style: LS }, "\uD83D\uDCE6 Ubicaci\u00F3n f\u00EDsica"),
                         React.createElement("select", { value: f.location || "", onChange: e => sf("location", e.target.value), style: IS },
@@ -17711,6 +17496,13 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                     f.sellPrice && React.createElement("div", { style: { borderRadius: 10, padding: "12px 14px", background: ns >= 0 ? "#f0fdf8" : "#fff5f5", border: "1px solid " + (ns >= 0 ? "#d1fae5" : "#fecaca") } }, [["Ingresos", eu(tS), TXT], ["Comisión", "-" + eu(fA), RED], ["Envío", "-" + eu(sA), RED], ["Coste", "-" + eu(tB), SUB], ["Beneficio neto", (ns >= 0 ? "+" : "") + eu(ns), cl(ns)]].map(([l, v, c]) => React.createElement("div", { key: l, style: { display: "flex", justifyContent: "space-between", marginBottom: 5 } },
                         React.createElement("span", { style: { fontSize: 12, color: SUB } }, l),
                         React.createElement("span", { style: { fontSize: 13, fontWeight: l === "Beneficio neto" ? 700 : 500, color: c } }, v)))))),
+                tab === "photos" && (React.createElement("div", null,
+                    React.createElement("div", { onClick: () => fr.current && fr.current.click(), onDragOver: e => e.preventDefault(), onDrop: e => { e.preventDefault(); addImgs(e.dataTransfer.files); }, style: { border: "1.5px dashed " + BDR, borderRadius: 10, padding: 18, textAlign: "center", cursor: "pointer", color: MUT, fontSize: 12, background: BGS } },
+                        "\uD83D\uDCF8 Arrastra o selecciona im\u00E1genes",
+                        React.createElement("input", { ref: fr, type: "file", accept: "image/*", multiple: true, style: { display: "none" }, onChange: e => addImgs(e.target.files) })),
+                    imgs.length > 0 && React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 } }, imgs.map((src, i) => React.createElement("div", { key: i, style: { position: "relative" } },
+                        React.createElement("img", { src: src, style: { width: 60, height: 60, objectFit: "cover", borderRadius: 8, border: "1px solid " + BDR } }),
+                        React.createElement("button", { onClick: () => setImgs(p => p.filter((_, j) => j !== i)), style: { position: "absolute", top: -4, right: -4, background: RED, border: "none", borderRadius: "50%", width: 16, height: 16, color: "#fff", fontSize: 9, cursor: "pointer" } }, "\u2715")))))),
                 React.createElement("div", { style: { marginTop: 18 } },
                     React.createElement(Btn, { full: true, onClick: () => {
                             if (!f.name.trim())
@@ -18059,7 +17851,7 @@ function ColTab({ cards, onEdit, onDelete, onDuplicate }) {
                         React.createElement("div", { style: { fontSize: 32 } }, "\uD83C\uDCCF"),
                         React.createElement("div", { style: { fontSize: 10, marginTop: 4 } }, "Sin foto")),
                     c.isFavorite && React.createElement("div", { style: { position: "absolute", top: 6, right: 6, fontSize: 14 } }, "\u2B50"),
-                    c.condition && c.condition !== "Raw" && React.createElement("div", { style: { position: "absolute", top: 6, left: 6, background: PURPLE, color: BG, fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 10 } }, c.condition)),
+                    c.condition && c.condition !== "Raw" && React.createElement("div", { style: { position: "absolute", top: 6, left: 6, background: PURPLE, color: "#fff", fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 10 } }, c.condition)),
                 React.createElement("div", { style: { padding: "10px 10px 8px" } },
                     React.createElement("div", { style: { fontSize: 12, fontWeight: 600, marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, c.name),
                     React.createElement("div", { style: { fontSize: 10, color: SUB, marginBottom: 6 } },
@@ -18075,8 +17867,8 @@ function ColTab({ cards, onEdit, onDelete, onDuplicate }) {
                 React.createElement("tbody", null, fi.map(c => React.createElement(CardRow, { key: c.id, card: c, onEdit: onEdit, onDelete: onDelete, onSell: () => { }, onDuplicate: onDuplicate, showPnl: false })))))),
         colSection === "cards" && view === "vitrina" && React.createElement("div", { style: { background: "#0a0a0f", borderRadius: 16, padding: 24, minHeight: 400 } },
             React.createElement("div", { style: { textAlign: "center", marginBottom: 24 } },
-                React.createElement("div", { style: { fontSize: 22, fontWeight: 700, color: BG, letterSpacing: "-0.02em" } }, "\u2728 Mi Vitrina"),
-                React.createElement("div", { style: { fontSize: 12, color: SUB, marginTop: 4 } },
+                React.createElement("div", { style: { fontSize: 22, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em" } }, "\u2728 Mi Vitrina"),
+                React.createElement("div", { style: { fontSize: 12, color: "#6b7280", marginTop: 4 } },
                     fi.length,
                     " cartas \u00B7 valor total ",
                     euk(fi.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0)))),
@@ -18135,15 +17927,15 @@ function FiscalTab({ cards, invoices }) {
             React.createElement(KT, { label: "Beneficio neto", value: sg(tN) + euk(tN), accent: cl(tN) })),
         iY.length > 0 && React.createElement(Card, { style: { marginBottom: 20, padding: "14px 18px", border: "1px solid #d1fae5", background: "#f0fdf8" } },
             React.createElement(SL, { style: { marginBottom: 8, color: GREEN } }, "\u2713 Gastos de facturas incluidos en el beneficio neto"),
-            React.createElement("div", { style: { display: "flex", gap: 20, flexWrap: "wrap", fontSize: 13, color: "#1f2937", fontWeight: 500 } },
+            React.createElement("div", { style: { display: "flex", gap: 20, flexWrap: "wrap", fontSize: 13 } },
                 React.createElement("span", null,
                     "IVA soportado: ",
-                    React.createElement("b", { style: { color: "#dc2626" } }, eu(tI))),
-                React.createElement("span", null, "+"),
+                    React.createElement("b", { style: { color: RED } }, eu(tI))),
+                React.createElement("span", { style: { color: MUT } }, "+"),
                 React.createElement("span", null,
                     "Env\u00EDo+aduanas: ",
-                    React.createElement("b", { style: { color: "#d97706" } }, eu(tG))),
-                React.createElement("span", null, "="),
+                    React.createElement("b", { style: { color: AMBER } }, eu(tG))),
+                React.createElement("span", { style: { color: MUT } }, "="),
                 React.createElement("span", null,
                     "Total deducido: ",
                     React.createElement("b", { style: { color: RED } },
@@ -18649,7 +18441,7 @@ function RainbowSection({ rainbows, saveRainbows }) {
                     slot.url ? React.createElement("img", { src: slot.url, alt: slot.label, style: { width: "100%", height: "100%", objectFit: "cover" } }) : (React.createElement("div", { style: { textAlign: "center", color: MUT } },
                         React.createElement("div", { style: { fontSize: 24 } }, "\uD83C\uDCCF"),
                         React.createElement("div", { style: { fontSize: 10, marginTop: 4 } }, "Sin foto"))),
-                    slot.owned && React.createElement("div", { style: { position: "absolute", top: 4, right: 4, background: GREEN, borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: BG, fontWeight: 700 } }, "\u2713")),
+                    slot.owned && React.createElement("div", { style: { position: "absolute", top: 4, right: 4, background: GREEN, borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#fff", fontWeight: 700 } }, "\u2713")),
                 React.createElement("div", { style: { padding: "6px 8px", textAlign: "center", fontSize: 13, fontWeight: 700, color: slot.owned ? GREEN : MUT } }, slot.label || "??"))))))))));
 }
 function LotsTab({ lots, saveLots, cards, setCards }) {
@@ -19039,7 +18831,7 @@ function LotModal({ cards, onSell, onClose }) {
                             eu(totalCost)),
                         React.createElement(Btn, { sm: true, v: "outline", onClick: selectAll }, "Seleccionar todas"))),
                 React.createElement("div", { style: { maxHeight: 220, overflowY: "auto", border: "1px solid " + BDR, borderRadius: 8, marginBottom: 14 } }, filteredListed.map(c => (React.createElement("div", { key: c.id, onClick: () => toggle(c.id), style: { display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderBottom: "1px solid " + BDR, cursor: "pointer", background: sel.includes(c.id) ? "#eff4ff" : BG } },
-                    React.createElement("div", { style: { width: 16, height: 16, borderRadius: 4, border: "2px solid " + (sel.includes(c.id) ? BLUE : BDR), background: sel.includes(c.id) ? BLUE : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 } }, sel.includes(c.id) && React.createElement("span", { style: { color: BG, fontSize: 10, fontWeight: 700 } }, "\u2713")),
+                    React.createElement("div", { style: { width: 16, height: 16, borderRadius: 4, border: "2px solid " + (sel.includes(c.id) ? BLUE : BDR), background: sel.includes(c.id) ? BLUE : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 } }, sel.includes(c.id) && React.createElement("span", { style: { color: "#fff", fontSize: 10, fontWeight: 700 } }, "\u2713")),
                     React.createElement("div", { style: { flex: 1, minWidth: 0 } },
                         React.createElement("div", { style: { fontSize: 13, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, c.name),
                         React.createElement("div", { style: { fontSize: 11, color: MUT } },
@@ -19072,9 +18864,6 @@ function LotModal({ cards, onSell, onClose }) {
                         sel.length,
                         " cartas"))))));
 }
-
-const CURRENCIES = { EUR: { symbol: "€", label: "Euro" }, GBP: { symbol: "£", label: "Libra" }, USD: { symbol: "$", label: "Dólar" }, AUD: { symbol: "A$", label: "Dólar AU" } };
-function isPremium() { return window._isAdmin === true; }
 function App() {
     const [cards, setCards] = useState(() => { try {
         return JSON.parse(localStorage.getItem("cv10") || "[]");
@@ -19089,12 +18878,7 @@ function App() {
         return [];
     } });
     function saveLots(l) { setLots(l); localStorage.setItem("cv10_lots", JSON.stringify(l)); }
-    const [showSettings, setShowSettings] = useState(false);
-    const [darkMode, setDarkMode] = useState(() => localStorage.getItem("cv10_dark") === "1");
-    const [currency, setCurrency] = useState(() => localStorage.getItem("cv10_currency") || "EUR");
     const [showLot, setShowLot] = useState(false);
-    useEffect(() => { localStorage.setItem("cv10_currency", currency); }, [currency]);
-    useEffect(() => { localStorage.setItem("cv10_dark", darkMode ? "1" : "0"); document.body.classList.toggle("dark", darkMode); }, [darkMode]);
     const [dupCard, setDupCard] = useState(null);
     const [invoices, setInvoices] = useState(() => { try {
         return JSON.parse(localStorage.getItem("cv10i") || "[]");
@@ -19126,52 +18910,38 @@ function App() {
     function oe(c) { setEc(c); setDm(c.mode); setSF(true); }
     function dup(c) { setDupCard(c); }
     const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Fiscal"], ["invoices", "Facturas"], ["analytics", "Análisis"], ["lots", "Lotes"], ["psa", "PSA/BGS"]];
-    return (React.createElement("div", { id: "cv-content", style: { minHeight: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14 } },
+    return (React.createElement("div", { style: { minHeight: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14 } },
         React.createElement("style", null, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');"),
         React.createElement("div", { style: { background: BG, borderBottom: "1px solid " + BDR, position: "sticky", top: 0, zIndex: 50 } },
-            React.createElement("div", { id: "cv-header-inner", style: { maxWidth: 1100, margin: "0 auto", padding: "0 24px", display: "flex", justifyContent: "space-between", alignItems: "center", height: 54 } },
+            React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "0 24px", display: "flex", justifyContent: "space-between", alignItems: "center", height: 54 } },
                 React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 24 } },
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 26, height: 26, background: BLUE, borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 } }, "\uD83C\uDCCF"),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault")),
-                    React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
+                    React.createElement("nav", { style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => setShowLot(true) }, "Venta m\u00FAltiple"),
-                    React.createElement("button", { onClick: () => setShowSettings(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\u2699\uFE0F")))),
-            showSettings && React.createElement("div", { id: "cv-settings-modal", style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }, onClick: function() { setShowSettings(false); } }, React.createElement("div", { className: "cv-modal-box", style: { background: BG, borderRadius: 16, padding: 28, minWidth: 300, maxWidth: 400, width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }, onClick: function(e) { e.stopPropagation(); } }, React.createElement("div", { style: { fontSize: 16, fontWeight: 700, marginBottom: 20 } }, "\u2699\uFE0F Ajustes"), React.createElement("button", { onClick: function() { setShowSettings(false); window._signOut && window._signOut(); }, style: { width: "100%", padding: "10px 14px", background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#ef4444", fontFamily: "Inter,sans-serif" } }, "\uD83D\uDEAA Cerrar sesi\u00F3n"), React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 4, marginTop: 16 } }, "APARIENCIA"),
-                React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, marginBottom: 8 } },
-                    React.createElement("span", { style: { fontSize: 13 } }, "\uD83D\uDCB0 Divisa"),
-                    React.createElement("select", { value: currency, onChange: function(e) { setCurrency(e.target.value); }, style: { border: "1px solid " + BDR, borderRadius: 6, padding: "8px 10px", fontSize: 14, background: BG, color: TXT, cursor: "pointer", minHeight: 40 } },
-                        Object.entries(CURRENCIES).map(function(e) { return React.createElement("option", { key: e[0], value: e[0] }, e[1].symbol + " " + e[1].label); }))),
-                React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 4 } }, "APARIENCIA"),
-                React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10 } },
-                    React.createElement("span", { style: { fontSize: 13 } }, darkMode ? "\uD83C\uDF19 Modo oscuro" : "\u2600\uFE0F Modo claro"),
-                    React.createElement("button", { onClick: function() { setDarkMode(function(d){return !d;}); }, style: { padding: "4px 12px", background: darkMode ? BLUE : BGS, border: "1px solid " + BDR, borderRadius: 20, cursor: "pointer", fontSize: 12, color: darkMode ? BG : TXT, fontFamily: "Inter,sans-serif" } }, darkMode ? "ON" : "OFF")),
-                React.createElement("div", { style: { marginTop: 12, padding: 12, background: BGS, borderRadius: 10, fontSize: 12, color: MUT } }, isPremium() ? "\u2B50 Cuenta Premium activa" : "\uD83D\uDD12 Hazte Premium"))),
-        React.createElement("div", { id: "cv-content-inner", style: { maxWidth: 1100, margin: "0 auto", padding: "24px" } },
+                    React.createElement(Btn, { sm: true, v: "outline", onClick: () => dlJSON(cards, invoices) }, "\u2B07"),
+                    React.createElement(Btn, { sm: true, v: "outline", onClick: () => ulJSON(setCards, setInvoices) }, "\u2B06"),
+                    React.createElement(Btn, { sm: true, v: "outline", onClick: () => dlPDF(cards) }, "\uD83D\uDCC4"),
+                    React.createElement("button", { onClick: () => window._signOut && window._signOut(), style: { background: "none", border: "1.5px solid #fecaca", borderRadius: 6, cursor: "pointer", fontSize: 12, color: "#ef4444", padding: "4px 8px", fontFamily: "Inter,sans-serif", marginLeft: 4 } }, "\uD83D\uDEAA")))),
+        React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "24px" } },
             tab === "dashboard" && React.createElement(DashTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
             tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
             tab === "collection" && React.createElement(ColTab, { cards: cards, onEdit: oe, onDelete: del, onDuplicate: dup }),
             tab === "fiscal" && React.createElement(FiscalTab, { cards: cards, invoices: invoices }),
             tab === "invoices" && React.createElement(InvoicesTab, { invoices: invoices, setInvoices: setInvoices }),
             tab === "analytics" && React.createElement(AnalyticsTab, { cards: cards }),
-            tab === "lots" && (isPremium() ? React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards }) : React.createElement("div", { style: { maxWidth: 500, margin: "80px auto", textAlign: "center", padding: 40 } }, React.createElement("div", { style: { fontSize: 48, marginBottom: 16 } }, "\uD83D\uDD12"), React.createElement("div", { style: { fontSize: 20, fontWeight: 700, marginBottom: 8 } }, "Funci\\u00F3n Premium"), React.createElement("div", { style: { color: SUB, marginBottom: 24 } }, "Los lotes son una funci\\u00F3n exclusiva Premium"), React.createElement("button", { onClick: function() { setShowSettings(true); }, style: { padding: "12px 24px", background: BLUE, border: "none", borderRadius: 10, color: BG, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, "\u2B50 Hazte Premium"))),
-            tab === "psa" && (isPremium() ? React.createElement(PSATab, null) : React.createElement("div", { style: { maxWidth: 500, margin: "80px auto", textAlign: "center", padding: 40 } }, React.createElement("div", { style: { fontSize: 48, marginBottom: 16 } }, "\uD83D\uDD12"), React.createElement("div", { style: { fontSize: 20, fontWeight: 700, marginBottom: 8 } }, "Funci\\u00F3n Premium"), React.createElement("div", { style: { color: SUB, marginBottom: 24 } }, "PSA/BGS es una funci\\u00F3n exclusiva Premium"), React.createElement("button", { onClick: function() { setShowSettings(true); }, style: { padding: "12px 24px", background: BLUE, border: "none", borderRadius: 10, color: BG, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, "\u2B50 Hazte Premium")))),
+            tab === "lots" && React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards }),
+            tab === "psa" && React.createElement(PSATab, null)),
         sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); }, editCard: ec, defMode: dm }),
         showLot && React.createElement(LotModal, { cards: cards, onSell: ups, onClose: () => setShowLot(false) }),
         sc && React.createElement(SellModal, { card: sc, onSave: ups, onClose: () => setSc(null) }),
-        dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onClose: () => setDupCard(null) }),
-        React.createElement("div", { id: "cv-bottom-nav" },
-            React.createElement("div", { id: "cv-bottom-nav-inner" },
-                [["dashboard","📊","Dashboard"],["inventory","📦","Inv."],["collection","⭐","Colec."],["fiscal","🧾","Fiscal"],["invoices","🗂","Fact."],["analytics","📈","Análisis"],["lots","📦","Lotes"],["psa","🏆","PSA"]].map(function(item) {
-                    return React.createElement("button", { key: item[0], className: tab === item[0] ? "active" : "", onClick: function() { setTab(item[0]); } },
-                        React.createElement("span", { className: "icon" }, item[1]),
-                        React.createElement("span", { className: "label" }, item[2]));
-                })))));
+        dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onClose: () => setDupCard(null) })));
 }
 
-window._mountApp = function() { ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App)); };
+window._mountApp = function() { window._mountApp = function() { ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App)); }; };
   </script>
 
 
@@ -19183,125 +18953,10 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🃏 CromoVault</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style>  <link rel="manifest" href="./manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="CromoVault">
-  <meta name="theme-color" content="#3b82f6">
-  <link rel="apple-touch-icon" href="https://via.placeholder.com/192x192/3b82f6/ffffff?text=CV">
-  <style>
-    :root {
-      --bg: #fff;
-      --bgs: #f7f8fa;
-      --bdr: #e8eaed;
-      --txt: #0a0a0a;
-      --sub: #6b7280;
-      --mut: #9ca3af;
-      --blue: #3b82f6;
-    }
-    body.dark {
-      --bg: #0f172a;
-      --bgs: #1e293b;
-      --bdr: #334155;
-      --txt: #f1f5f9;
-      --sub: #94a3b8;
-      --mut: #64748b;
-      --blue: #60a5fa;
-    }
-    body.dark input, body.dark select, body.dark textarea {
-      background: #1e293b !important;
-      color: #f1f5f9 !important;
-      border-color: #334155 !important;
-    }
-    body.dark button { color: inherit; }
-    body.dark table td, body.dark table th { border-color: #334155 !important; }
-    * { transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
-    
-    /* ===== MOBILE RESPONSIVE ===== */
-    /* Bottom navigation bar on mobile */
-    #cv-bottom-nav {
-      display: none;
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--bg);
-      border-top: 1px solid var(--bdr);
-      z-index: 100;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-    #cv-bottom-nav-inner {
-      display: flex;
-      height: 56px;
-    }
-    #cv-bottom-nav button {
-      flex: 1;
-      border: none;
-      background: none;
-      font-size: 10px;
-      font-family: Inter, sans-serif;
-      color: var(--sub);
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      padding: 4px 2px;
-      min-width: 0;
-    }
-    #cv-bottom-nav button.active {
-      color: var(--blue);
-    }
-    #cv-bottom-nav button span.icon { font-size: 18px; }
-    #cv-bottom-nav button span.label { font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-    
-    @media (max-width: 768px) {
-      /* Show bottom nav, hide top nav */
-      #cv-bottom-nav { display: block; }
-      #cv-top-nav { display: none !important; }
-      
-      /* Padding for bottom nav */
-      #cv-content { padding-bottom: calc(56px + env(safe-area-inset-bottom)) !important; }
-      
-      /* Header adjustments */
-      #cv-header-inner { padding: 0 12px !important; }
-      #cv-logo { font-size: 15px !important; }
-      
-      /* Content padding */
-      #cv-content-inner { padding: 12px !important; }
-      
-      /* Cards full width */
-      .cv-grid-2 { grid-template-columns: 1fr !important; }
-      .cv-grid-3 { grid-template-columns: 1fr 1fr !important; }
-      
-      /* Settings modal full screen on mobile */
-      #cv-settings-modal .cv-modal-box {
-        min-width: unset !important;
-        max-width: unset !important;
-        width: 100% !important;
-        min-height: 60vh;
-        border-radius: 20px 20px 0 0 !important;
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-      }
-      
-      /* Bigger touch targets */
-      button { min-height: 36px; }
-      input, select { min-height: 40px; font-size: 16px !important; }
-      
-      /* Table scroll */
-      table { display: block; overflow-x: auto; }
-    }
-    
-    @media (max-width: 480px) {
-      .cv-grid-3 { grid-template-columns: 1fr !important; }
-      #cv-header-inner { padding: 0 8px !important; }
-    }
-  </style>
+  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style>
 </head>
 <body>
-  <div id="cv-login" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#1e293b);z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Inter,sans-serif;">
+  <div id="cv-login" style="display:flex;position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#1e293b);z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Inter,sans-serif;">
     <div style="text-align:center;padding:40px;background:rgba(255,255,255,0.05);border-radius:20px;border:1px solid rgba(255,255,255,0.1);max-width:380px;width:90%;">
       <div style="font-size:52px;margin-bottom:16px;">🃏</div>
       <div style="font-size:28px;font-weight:700;color:#fff;margin-bottom:8px;">CromoVault</div>
@@ -19319,99 +18974,12 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
 
   </script>
 
+
 <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
 <script>
-(function() {
-  function toArray(val) {
-    if (!val) return [];
-    if (Array.isArray(val)) return val;
-    if (typeof val === 'object') {
-      var keys = Object.keys(val).sort(function(a,b){return parseInt(a)-parseInt(b);});
-      return keys.map(function(k){return val[k];});
-    }
-    return [];
-  }
-  function initFirebase() {
-    if (typeof firebase === 'undefined') {
-      document.getElementById('root').style.display = 'block';
-      document.getElementById('cv-login').style.display = 'none';
-      if (window._mountApp) { window._mountApp(); window._appMounted = true; }
-      return;
-    }
-    if (firebase.apps.length === 0) {
-      firebase.initializeApp({ apiKey: "AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA", authDomain: "cromovault.firebaseapp.com", databaseURL: "https://cromovault-default-rtdb.europe-west1.firebasedatabase.app", projectId: "cromovault", storageBucket: "cromovault.firebasestorage.app", messagingSenderId: "702300818534", appId: "1:702300818534:web:b88155c3e6099890ef31a7" });
-    }
-    var auth = firebase.auth();
-    var db = firebase.database();
-    window._currentUser = null;
-    window._isAdmin = false;
-    window._appMounted = false;
-    window._saveToFirestore = function(data) {
-      if (!window._currentUser) return;
-      var uid = window._currentUser.uid;
-      var str = JSON.stringify(data, function(k,v){return v===undefined?null:v;});
-      db.ref('users/'+uid).update(JSON.parse(str)).catch(function(e){console.error('Save:',e);});
-    };
-    window._signIn = function() {
-      var provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch(function(e) {
-        console.log('Popup failed, trying redirect:', e.code);
-        auth.signInWithRedirect(provider);
-      });
-    };
-    window._signOut = function() {
-      window._saveToFirestore({ cards: JSON.parse(localStorage.getItem('cv10')||'[]'), invoices: JSON.parse(localStorage.getItem('cv10i')||'[]'), psaItems: JSON.parse(localStorage.getItem('cv10p')||'[]'), rainbows: JSON.parse(localStorage.getItem('cv10_rainbows')||'[]'), lotsData: JSON.parse(localStorage.getItem('cv10_lots')||'[]'), locs: localStorage.getItem('cv10_locs')||'', minRoi: localStorage.getItem('cv10_minroi')||'40' });
-      setTimeout(function(){ auth.signOut(); }, 800);
-    };
-    function loadUserData(uid) {
-      localStorage.removeItem('cv10'); localStorage.removeItem('cv10i'); localStorage.removeItem('cv10p');
-      localStorage.removeItem('cv10_rainbows'); localStorage.removeItem('cv10_lots'); localStorage.removeItem('cv10_locs'); localStorage.removeItem('cv10_minroi');
-      db.ref('users/'+uid).once('value', function(snap) {
-        var d = snap.val();
-        if (d) {
-          localStorage.setItem('cv10', JSON.stringify(toArray(d.cards)));
-          localStorage.setItem('cv10i', JSON.stringify(toArray(d.invoices)));
-          localStorage.setItem('cv10p', JSON.stringify(toArray(d.psaItems)));
-          localStorage.setItem('cv10_rainbows', JSON.stringify(toArray(d.rainbows)));
-          localStorage.setItem('cv10_lots', JSON.stringify(toArray(d.lotsData)));
-          if (d.locs) localStorage.setItem('cv10_locs', d.locs);
-          if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
-        }
-        document.getElementById('cv-login').style.display = 'none';
-        document.getElementById('root').style.display = 'block';
-        if (!window._appMounted && window._mountApp) { window._mountApp(); window._appMounted = true; }
-      }, function(e) {
-        console.error('Load:', e);
-        document.getElementById('cv-login').style.display = 'none';
-        document.getElementById('root').style.display = 'block';
-        if (!window._appMounted && window._mountApp) { window._mountApp(); window._appMounted = true; }
-      });
-    }
-    // Handle redirect result first
-    auth.getRedirectResult().then(function(result) {
-      if (result && result.user) {
-        window._currentUser = result.user;
-        window._isAdmin = (result.user.uid === 'fUCSfpRb7qdA8zHJssUsaxFRtgD3');
-        loadUserData(result.user.uid);
-      }
-    }).catch(function(e) { console.error('Redirect result:', e); });
-    // Then watch auth state
-    auth.onAuthStateChanged(function(user) {
-      window._currentUser = user;
-      if (user) {
-        window._isAdmin = (user.uid === 'fUCSfpRb7qdA8zHJssUsaxFRtgD3');
-        if (!window._appMounted) { loadUserData(user.uid); }
-      } else {
-        document.getElementById('root').style.display = 'none';
-        document.getElementById('cv-login').style.display = 'flex';
-        window._appMounted = false;
-      }
-    });
-  }
-  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initFirebase); } else { initFirebase(); }
-})();
+(function(){function toArr(v){if(!v)return[];if(Array.isArray(v))return v;if(typeof v==="object"){var k=Object.keys(v).sort(function(a,b){return parseInt(a)-parseInt(b);});return k.map(function(i){return v[i];});}return[];}function init(){if(typeof firebase==="undefined"){document.getElementById("root").style.display="block";document.getElementById("cv-login").style.display="none";if(window._mountApp){window._mountApp();window._appMounted=true;}return;}if(firebase.apps.length===0)firebase.initializeApp({apiKey:"AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA",authDomain:"cromovault.firebaseapp.com",databaseURL:"https://cromovault-default-rtdb.europe-west1.firebasedatabase.app",projectId:"cromovault",storageBucket:"cromovault.firebasestorage.app",messagingSenderId:"702300818534",appId:"1:702300818534:web:b88155c3e6099890ef31a7"});var auth=firebase.auth(),db=firebase.database();window._currentUser=null;window._isAdmin=false;window._appMounted=false;window._saveToFirestore=function(data){if(!window._currentUser)return;try{var s=JSON.stringify(data,function(k,v){return v===undefined?null:v;});db.ref("users/"+window._currentUser.uid).update(JSON.parse(s));}catch(e){console.error("Save:",e);}};window._signIn=function(){auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function(){auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());});};window._signOut=function(){window._saveToFirestore({cards:JSON.parse(localStorage.getItem("cv10")||"[]"),invoices:JSON.parse(localStorage.getItem("cv10i")||"[]"),psaItems:JSON.parse(localStorage.getItem("cv10p")||"[]"),rainbows:JSON.parse(localStorage.getItem("cv10_rainbows")||"[]"),lotsData:JSON.parse(localStorage.getItem("cv10_lots")||"[]"),locs:localStorage.getItem("cv10_locs")||"",minRoi:localStorage.getItem("cv10_minroi")||"40"});setTimeout(function(){auth.signOut();},800);};function showApp(){document.getElementById("cv-login").style.display="none";document.getElementById("root").style.display="block";if(!window._appMounted&&window._mountApp){window._mountApp();window._appMounted=true;}}function load(uid){["cv10","cv10i","cv10p","cv10_rainbows","cv10_lots","cv10_locs","cv10_minroi"].forEach(function(k){localStorage.removeItem(k);});db.ref("users/"+uid).once("value",function(snap){var d=snap.val();if(d){if(d.cards)localStorage.setItem("cv10",JSON.stringify(toArr(d.cards)));if(d.invoices)localStorage.setItem("cv10i",JSON.stringify(toArr(d.invoices)));if(d.psaItems)localStorage.setItem("cv10p",JSON.stringify(toArr(d.psaItems)));if(d.rainbows)localStorage.setItem("cv10_rainbows",JSON.stringify(toArr(d.rainbows)));if(d.lotsData)localStorage.setItem("cv10_lots",JSON.stringify(toArr(d.lotsData)));if(d.locs)localStorage.setItem("cv10_locs",d.locs);if(d.minRoi)localStorage.setItem("cv10_minroi",String(d.minRoi));}showApp();},function(){showApp();});}auth.getRedirectResult().then(function(r){if(r&&r.user){window._currentUser=r.user;window._isAdmin=(r.user.uid==="fUCSfpRb7qdA8zHJssUsaxFRtgD3");load(r.user.uid);}}).catch(function(){});auth.onAuthStateChanged(function(user){window._currentUser=user;if(user){window._isAdmin=(user.uid==="fUCSfpRb7qdA8zHJssUsaxFRtgD3");if(!window._appMounted)load(user.uid);}else{document.getElementById("root").style.display="none";document.getElementById("cv-login").style.display="flex";window._appMounted=false;}});}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",init);}else{init();}})();
 </script>
 </body>
 </html>
