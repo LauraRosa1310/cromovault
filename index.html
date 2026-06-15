@@ -19020,7 +19020,7 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
 
     window._signIn=function(){
       var provider=new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch(function(){auth.signInWithRedirect(provider);});
+      auth.signInWithRedirect(provider);
     };
 
     window._signOut=function(){
