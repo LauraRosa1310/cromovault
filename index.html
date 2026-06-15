@@ -18977,31 +18977,39 @@ window._mountApp = function() { window._mountApp = function() { ReactDOM.createR
 
 <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
 <script>
 (function(){
+  function toArr(v){if(!v)return[];if(Array.isArray(v))return v;if(typeof v==="object"){var k=Object.keys(v).sort(function(a,b){return parseInt(a)-parseInt(b);});return k.map(function(i){return v[i];});}return[];}
+
+  function showLogin(){
+    document.getElementById("cv-login").style.cssText="display:flex!important";
+    document.getElementById("root").style.cssText="display:none!important";
+  }
+
+  function showApp(){
+    document.getElementById("cv-login").style.cssText="display:none!important";
+    document.getElementById("root").style.cssText="display:block!important";
+    if(!window._appMounted&&window._mountApp){window._mountApp();window._appMounted=true;}
+  }
+
   function initFirebase(){
-    if(typeof firebase==="undefined"){
-      document.getElementById("root").style.display="block";
-      document.getElementById("cv-login").style.display="none";
-      if(window._mountApp){window._mountApp();window._appMounted=true;}
-      return;
-    }
-    if(firebase.apps.length===0)firebase.initializeApp({apiKey:"AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA",authDomain:"cromovault.firebaseapp.com",projectId:"cromovault",storageBucket:"cromovault.firebasestorage.app",messagingSenderId:"702300818534",appId:"1:702300818534:web:b88155c3e6099890ef31a7"});
+    if(typeof firebase==="undefined"){showApp();return;}
+    if(firebase.apps.length===0)firebase.initializeApp({apiKey:"AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA",authDomain:"cromovault.firebaseapp.com",databaseURL:"https://cromovault-default-rtdb.europe-west1.firebasedatabase.app",projectId:"cromovault",storageBucket:"cromovault.firebasestorage.app",messagingSenderId:"702300818534",appId:"1:702300818534:web:b88155c3e6099890ef31a7"});
     var auth=firebase.auth();
-    var db=firebase.firestore();
+    var db=firebase.database();
     window._currentUser=null;
     window._isAdmin=false;
     window._appMounted=false;
 
     window._saveToFirestore=function(data){
       if(!window._currentUser)return;
-      db.collection("users").doc(window._currentUser.uid).collection("data").doc("main").set(data,{merge:true}).catch(function(e){console.error("Save:",e);});
+      var clean=JSON.parse(JSON.stringify(data,function(k,v){return v===undefined?null:v;}));
+      db.ref("users/"+window._currentUser.uid).update(clean).catch(function(e){console.error("Save:",e);});
     };
 
     window._signIn=function(){
-      var provider=new firebase.auth.GoogleAuthProvider();
-      auth.signInWithRedirect(provider);
+      auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());
     };
 
     window._signOut=function(){
@@ -19009,54 +19017,42 @@ window._mountApp = function() { window._mountApp = function() { ReactDOM.createR
       setTimeout(function(){auth.signOut();},800);
     };
 
-    function showApp(user){
-      console.log("showApp called for", user.email);
-      window._currentUser=user;
-      window._isAdmin=(user.uid==="fUCSfpRb7qdA8zHJssUsaxFRtgD3");
-      db.collection("users").doc(user.uid).collection("data").doc("main").get().then(function(snap){
-        console.log("Firestore loaded, exists:", snap.exists);
-        if(snap.exists){
-          var d=snap.data();
-          if(d.cards)localStorage.setItem("cv10",JSON.stringify(d.cards));
-          if(d.invoices)localStorage.setItem("cv10i",JSON.stringify(d.invoices));
-          if(d.psaItems)localStorage.setItem("cv10p",JSON.stringify(d.psaItems));
-          if(d.rainbows)localStorage.setItem("cv10_rainbows",JSON.stringify(d.rainbows));
-          if(d.lotsData)localStorage.setItem("cv10_lots",JSON.stringify(d.lotsData));
+    function loadAndShow(uid){
+      db.ref("users/"+uid).once("value").then(function(snap){
+        var d=snap.val();
+        if(d){
+          if(d.cards)localStorage.setItem("cv10",JSON.stringify(toArr(d.cards)));
+          if(d.invoices)localStorage.setItem("cv10i",JSON.stringify(toArr(d.invoices)));
+          if(d.psaItems)localStorage.setItem("cv10p",JSON.stringify(toArr(d.psaItems)));
+          if(d.rainbows)localStorage.setItem("cv10_rainbows",JSON.stringify(toArr(d.rainbows)));
+          if(d.lotsData)localStorage.setItem("cv10_lots",JSON.stringify(toArr(d.lotsData)));
           if(d.locs)localStorage.setItem("cv10_locs",d.locs);
           if(d.minRoi)localStorage.setItem("cv10_minroi",String(d.minRoi));
         }
-      }).catch(function(e){
-        console.error("Firestore error:", e);
-      }).finally(function(){
-        console.log("Mounting app...");
-        var loginEl=document.getElementById("cv-login");
-        var rootEl=document.getElementById("root");
-        if(loginEl){loginEl.style.cssText="display:none!important";}
-        if(rootEl){rootEl.style.cssText="display:block!important";}
-        if(!window._appMounted&&window._mountApp){window._mountApp();window._appMounted=true;}
-        console.log("App mounted:", window._appMounted);
-      });
+        showApp();
+      }).catch(function(){showApp();});
     }
 
-    console.log("Firebase init OK");
-    auth.getRedirectResult().then(function(result){
-      console.log("getRedirectResult:", result && result.user ? "USER="+result.user.email : "no user");
-      if(result&&result.user){showApp(result.user);}
-    }).catch(function(e){console.error("Redirect error:",e);});
+    auth.getRedirectResult().then(function(r){
+      if(r&&r.user){
+        window._currentUser=r.user;
+        window._isAdmin=(r.user.uid==="fUCSfpRb7qdA8zHJssUsaxFRtgD3");
+        loadAndShow(r.user.uid);
+      }
+    }).catch(function(e){console.error("Redirect:",e);});
 
     auth.onAuthStateChanged(function(user){
-      console.log("onAuthStateChanged:", user ? "USER="+user.email : "null");
       window._currentUser=user;
       if(user){
         window._isAdmin=(user.uid==="fUCSfpRb7qdA8zHJssUsaxFRtgD3");
-        if(!window._appMounted){showApp(user);}
+        if(!window._appMounted){loadAndShow(user.uid);}
       } else {
-        document.getElementById("root").style.display="none";
-        document.getElementById("cv-login").style.display="flex";
+        showLogin();
         window._appMounted=false;
       }
     });
   }
+
   if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",initFirebase);}else{initFirebase();}
 })();
 </script>
