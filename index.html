@@ -18974,9 +18974,9 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
 
   </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.3.0/firebase-app-compat.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.3.0/firebase-auth-compat.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.3.0/firebase-database-compat.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script>
 (function() {
   function initFirebase() {
@@ -18991,7 +18991,6 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
     firebase.initializeApp({
       apiKey: "AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA",
       authDomain: "cromovault.firebaseapp.com",
-      databaseURL: "https://cromovault-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "cromovault",
       storageBucket: "cromovault.firebasestorage.app",
       messagingSenderId: "702300818534",
@@ -18999,58 +18998,66 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
     });
 
     var auth = firebase.auth();
-    var db = firebase.database();
+    var db = firebase.firestore();
     window._currentUser = null;
-    window._isAdmin = false;
     window._appMounted = false;
 
-    function toArr(v){if(!v)return[];if(Array.isArray(v))return v;if(typeof v==='object'){return Object.keys(v).sort(function(a,b){return parseInt(a)-parseInt(b);}).map(function(i){return v[i];});}return[];}
-
-    function showApp(){
-      document.getElementById('cv-login').style.display='none';
-      document.getElementById('root').style.display='block';
-      if(!window._appMounted&&window._mountApp){window._mountApp();window._appMounted=true;}
-    }
-
-    window._saveToFirestore=function(data){
-      if(!window._currentUser)return;
-      var clean=JSON.parse(JSON.stringify(data,function(k,v){return v===undefined?null:v;}));
-      db.ref('users/'+window._currentUser.uid).update(clean).catch(function(e){console.error('Save:',e);});
+    window._saveToFirestore = function(data) {
+      if (!window._currentUser) return;
+      db.collection('users').doc(window._currentUser.uid)
+        .collection('data').doc('main')
+        .set(data, {merge: true})
+        .catch(function(e) { console.error('Save error:', e); });
     };
 
-    window._signIn=function(){
-      var provider=new firebase.auth.GoogleAuthProvider();
-      auth.signInWithRedirect(provider);
+    window._signIn = function() {
+      var provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).catch(function(e) {
+        alert('Error: ' + e.message);
+      });
     };
 
-    window._signOut=function(){
-      window._saveToFirestore({cards:JSON.parse(localStorage.getItem('cv10')||'[]'),invoices:JSON.parse(localStorage.getItem('cv10i')||'[]'),psaItems:JSON.parse(localStorage.getItem('cv10p')||'[]'),rainbows:JSON.parse(localStorage.getItem('cv10_rainbows')||'[]'),lotsData:JSON.parse(localStorage.getItem('cv10_lots')||'[]'),locs:localStorage.getItem('cv10_locs')||'',minRoi:localStorage.getItem('cv10_minroi')||'40'});
-      setTimeout(function(){auth.signOut();},500);
+    window._signOut = function() {
+      window._saveToFirestore({
+        cards: JSON.parse(localStorage.getItem('cv10')||'[]'),
+        invoices: JSON.parse(localStorage.getItem('cv10i')||'[]'),
+        psaItems: JSON.parse(localStorage.getItem('cv10p')||'[]'),
+        rainbows: JSON.parse(localStorage.getItem('cv10_rainbows')||'[]'),
+        lotsData: JSON.parse(localStorage.getItem('cv10_lots')||'[]'),
+        locs: localStorage.getItem('cv10_locs'),
+        minRoi: localStorage.getItem('cv10_minroi')
+      });
+      setTimeout(function() { auth.signOut(); }, 500);
     };
 
-    auth.onAuthStateChanged(function(user){
-      window._currentUser=user;
-      if(user){
-        window._isAdmin=(user.uid==='fUCSfpRb7qdA8zHJssUsaxFRtgD3');
-        if(!window._appMounted){
-          db.ref('users/'+user.uid).once('value').then(function(snap){
-            var d=snap.val();
-            if(d){
-              if(d.cards)localStorage.setItem('cv10',JSON.stringify(toArr(d.cards)));
-              if(d.invoices)localStorage.setItem('cv10i',JSON.stringify(toArr(d.invoices)));
-              if(d.psaItems)localStorage.setItem('cv10p',JSON.stringify(toArr(d.psaItems)));
-              if(d.rainbows)localStorage.setItem('cv10_rainbows',JSON.stringify(toArr(d.rainbows)));
-              if(d.lotsData)localStorage.setItem('cv10_lots',JSON.stringify(toArr(d.lotsData)));
-              if(d.locs)localStorage.setItem('cv10_locs',d.locs);
-              if(d.minRoi)localStorage.setItem('cv10_minroi',String(d.minRoi));
+    auth.onAuthStateChanged(function(user) {
+      window._currentUser = user;
+      if (user) {
+        db.collection('users').doc(user.uid).collection('data').doc('main').get()
+          .then(function(snap) {
+            if (snap.exists) {
+              var d = snap.data();
+              if (d.cards) localStorage.setItem('cv10', JSON.stringify(d.cards));
+              if (d.invoices) localStorage.setItem('cv10i', JSON.stringify(d.invoices));
+              if (d.psaItems) localStorage.setItem('cv10p', JSON.stringify(d.psaItems));
+              if (d.rainbows) localStorage.setItem('cv10_rainbows', JSON.stringify(d.rainbows));
+              if (d.lotsData) localStorage.setItem('cv10_lots', JSON.stringify(d.lotsData));
+              if (d.locs) localStorage.setItem('cv10_locs', d.locs);
+              if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
             }
-            showApp();
-          }).catch(function(){showApp();});
-        }
-      }else{
-        document.getElementById('root').style.display='none';
-        document.getElementById('cv-login').style.display='flex';
-        window._appMounted=false;
+          })
+          .finally(function() {
+            document.getElementById('cv-login').style.display = 'none';
+            document.getElementById('root').style.display = 'block';
+            if (!window._appMounted && window._mountApp) {
+              window._mountApp();
+              window._appMounted = true;
+            }
+          });
+      } else {
+        document.getElementById('root').style.display = 'none';
+        document.getElementById('cv-login').style.display = 'flex';
+        window._appMounted = false;
       }
     });
   }
@@ -19064,27 +19071,3 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
