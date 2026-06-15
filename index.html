@@ -18977,9 +18977,82 @@ window._mountApp = function() { window._mountApp = function() { ReactDOM.createR
 
 <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
 <script>
-(function(){function toArr(v){if(!v)return[];if(Array.isArray(v))return v;if(typeof v==="object"){var k=Object.keys(v).sort(function(a,b){return parseInt(a)-parseInt(b);});return k.map(function(i){return v[i];});}return[];}function init(){if(typeof firebase==="undefined"){document.getElementById("root").style.display="block";document.getElementById("cv-login").style.display="none";if(window._mountApp){window._mountApp();window._appMounted=true;}return;}if(firebase.apps.length===0)firebase.initializeApp({apiKey:"AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA",authDomain:"cromovault.firebaseapp.com",databaseURL:"https://cromovault-default-rtdb.europe-west1.firebasedatabase.app",projectId:"cromovault",storageBucket:"cromovault.firebasestorage.app",messagingSenderId:"702300818534",appId:"1:702300818534:web:b88155c3e6099890ef31a7"});var auth=firebase.auth(),db=firebase.database();window._currentUser=null;window._isAdmin=false;window._appMounted=false;window._saveToFirestore=function(data){if(!window._currentUser)return;try{var s=JSON.stringify(data,function(k,v){return v===undefined?null:v;});db.ref("users/"+window._currentUser.uid).update(JSON.parse(s));}catch(e){console.error("Save:",e);}};window._signIn=function(){auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function(){auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());});};window._signOut=function(){window._saveToFirestore({cards:JSON.parse(localStorage.getItem("cv10")||"[]"),invoices:JSON.parse(localStorage.getItem("cv10i")||"[]"),psaItems:JSON.parse(localStorage.getItem("cv10p")||"[]"),rainbows:JSON.parse(localStorage.getItem("cv10_rainbows")||"[]"),lotsData:JSON.parse(localStorage.getItem("cv10_lots")||"[]"),locs:localStorage.getItem("cv10_locs")||"",minRoi:localStorage.getItem("cv10_minroi")||"40"});setTimeout(function(){auth.signOut();},800);};function showApp(){document.getElementById("cv-login").style.display="none";document.getElementById("root").style.display="block";if(!window._appMounted&&window._mountApp){window._mountApp();window._appMounted=true;}}function load(uid){["cv10","cv10i","cv10p","cv10_rainbows","cv10_lots","cv10_locs","cv10_minroi"].forEach(function(k){localStorage.removeItem(k);});db.ref("users/"+uid).once("value",function(snap){var d=snap.val();if(d){if(d.cards)localStorage.setItem("cv10",JSON.stringify(toArr(d.cards)));if(d.invoices)localStorage.setItem("cv10i",JSON.stringify(toArr(d.invoices)));if(d.psaItems)localStorage.setItem("cv10p",JSON.stringify(toArr(d.psaItems)));if(d.rainbows)localStorage.setItem("cv10_rainbows",JSON.stringify(toArr(d.rainbows)));if(d.lotsData)localStorage.setItem("cv10_lots",JSON.stringify(toArr(d.lotsData)));if(d.locs)localStorage.setItem("cv10_locs",d.locs);if(d.minRoi)localStorage.setItem("cv10_minroi",String(d.minRoi));}showApp();},function(){showApp();});}auth.getRedirectResult().then(function(r){if(r&&r.user){window._currentUser=r.user;window._isAdmin=(r.user.uid==="fUCSfpRb7qdA8zHJssUsaxFRtgD3");load(r.user.uid);}}).catch(function(){});auth.onAuthStateChanged(function(user){window._currentUser=user;if(user){window._isAdmin=(user.uid==="fUCSfpRb7qdA8zHJssUsaxFRtgD3");if(!window._appMounted)load(user.uid);}else{document.getElementById("root").style.display="none";document.getElementById("cv-login").style.display="flex";window._appMounted=false;}});}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",init);}else{init();}})();
+(function(){
+  function initFirebase(){
+    if(typeof firebase==="undefined"){
+      document.getElementById("root").style.display="block";
+      document.getElementById("cv-login").style.display="none";
+      if(window._mountApp){window._mountApp();window._appMounted=true;}
+      return;
+    }
+    if(firebase.apps.length===0)firebase.initializeApp({apiKey:"AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA",authDomain:"cromovault.firebaseapp.com",projectId:"cromovault",storageBucket:"cromovault.firebasestorage.app",messagingSenderId:"702300818534",appId:"1:702300818534:web:b88155c3e6099890ef31a7"});
+    var auth=firebase.auth();
+    var db=firebase.firestore();
+    window._currentUser=null;
+    window._isAdmin=false;
+    window._appMounted=false;
+
+    window._saveToFirestore=function(data){
+      if(!window._currentUser)return;
+      db.collection("users").doc(window._currentUser.uid).collection("data").doc("main").set(data,{merge:true}).catch(function(e){console.error("Save:",e);});
+    };
+
+    window._signIn=function(){
+      var provider=new firebase.auth.GoogleAuthProvider();
+      var isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if(isMobile){
+        auth.signInWithRedirect(provider);
+      } else {
+        auth.signInWithPopup(provider).catch(function(){auth.signInWithRedirect(provider);});
+      }
+    };
+
+    window._signOut=function(){
+      window._saveToFirestore({cards:JSON.parse(localStorage.getItem("cv10")||"[]"),invoices:JSON.parse(localStorage.getItem("cv10i")||"[]"),psaItems:JSON.parse(localStorage.getItem("cv10p")||"[]"),rainbows:JSON.parse(localStorage.getItem("cv10_rainbows")||"[]"),lotsData:JSON.parse(localStorage.getItem("cv10_lots")||"[]"),locs:localStorage.getItem("cv10_locs")||"",minRoi:localStorage.getItem("cv10_minroi")||"40"});
+      setTimeout(function(){auth.signOut();},800);
+    };
+
+    function showApp(user){
+      window._currentUser=user;
+      window._isAdmin=(user.uid==="fUCSfpRb7qdA8zHJssUsaxFRtgD3");
+      db.collection("users").doc(user.uid).collection("data").doc("main").get().then(function(snap){
+        if(snap.exists){
+          var d=snap.data();
+          if(d.cards)localStorage.setItem("cv10",JSON.stringify(d.cards));
+          if(d.invoices)localStorage.setItem("cv10i",JSON.stringify(d.invoices));
+          if(d.psaItems)localStorage.setItem("cv10p",JSON.stringify(d.psaItems));
+          if(d.rainbows)localStorage.setItem("cv10_rainbows",JSON.stringify(d.rainbows));
+          if(d.lotsData)localStorage.setItem("cv10_lots",JSON.stringify(d.lotsData));
+          if(d.locs)localStorage.setItem("cv10_locs",d.locs);
+          if(d.minRoi)localStorage.setItem("cv10_minroi",String(d.minRoi));
+        }
+      }).finally(function(){
+        document.getElementById("cv-login").style.display="none";
+        document.getElementById("root").style.display="block";
+        if(!window._appMounted&&window._mountApp){window._mountApp();window._appMounted=true;}
+      });
+    }
+
+    auth.getRedirectResult().then(function(result){
+      if(result&&result.user){showApp(result.user);}
+    }).catch(function(e){console.error("Redirect:",e);});
+
+    auth.onAuthStateChanged(function(user){
+      window._currentUser=user;
+      if(user){
+        window._isAdmin=(user.uid==="fUCSfpRb7qdA8zHJssUsaxFRtgD3");
+        if(!window._appMounted){showApp(user);}
+      } else {
+        document.getElementById("root").style.display="none";
+        document.getElementById("cv-login").style.display="flex";
+        window._appMounted=false;
+      }
+    });
+  }
+  if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",initFirebase);}else{initFirebase();}
+})();
 </script>
 </body>
 </html>
