@@ -18910,13 +18910,14 @@ function dlPriceList(cards){
     document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 function getPublicSlug(){return localStorage.getItem("cv10_slug")||"";}
-function savePublicProfile(cards,slug){
-    console.log("savePublicProfile called, slug:", slug, "user:", window._currentUser?"ok":"null", "db:", window._db?"ok":"null");
+function savePublicProfile(cards,slug,contact,payment,shipping){
     if(!slug)return;
     var user=window._currentUser||(typeof firebase!=="undefined"&&firebase.apps.length>0?firebase.auth().currentUser:null);
     if(!user){alert("Necesitas estar logueado");return;}
     if(!window._db){alert("DB no disponible");return;}
-    var pub={slug:slug,uid:window._currentUser.uid,cards:cards,updatedAt:Date.now()};
+    var listed=cards.filter(function(c){return c.status==="listed"||c.mode==="collection";});
+    var pub={slug:slug,uid:user.uid,cards:listed,updatedAt:Date.now(),contact:contact||"",payment:payment||"",shipping:shipping||""};
+    console.log("Saving pub:", pub.contact, pub.payment, pub.shipping, "cards:", listed.length);
     window._db.ref("public/"+slug).set(pub).then(function(){
         alert("Perfil guardado! Comparte: "+window.location.origin+window.location.pathname+"?p="+slug);
     }).catch(function(e){console.error("Error:",e);alert("Error al guardar: "+e.message);});
