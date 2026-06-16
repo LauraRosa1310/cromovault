@@ -17343,7 +17343,7 @@ function SellModal({ card, onSave, onClose }) {
         }
         else {
             // All units sold
-            onSave(Object.assign(Object.assign({}, card), { status: "sold", sellPrice: parseFloat(pr) || 0, sellDate: dt, platformFee: parseFloat(fe) || 0, shippingCost: parseFloat(sh) || 0, platform: pl }));
+            var reviewCode="CV-"+Math.random().toString(36).substr(2,4).toUpperCase();onSave(Object.assign(Object.assign({},card),{status:"sold",sellPrice:parseFloat(pr)||0,sellDate:dt,platformFee:parseFloat(fe)||0,shippingCost:parseFloat(sh)||0,platform:pl,reviewCode:reviewCode}));setTimeout(function(){alert("Codigo para el comprador: "+reviewCode);},100);
         }
         onClose();
     }
@@ -17596,7 +17596,7 @@ function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl }) {
             React.createElement("td", { style: { padding: "12px 12px", verticalAlign: "middle" }, onClick: e => e.stopPropagation() },
                 React.createElement("div", { style: { display: "flex", gap: 4, justifyContent: "flex-end", flexWrap: "wrap" } },
                     React.createElement(Btn, { sm: true, v: "outline", style: { color: BLUE, borderColor: "#eff4ff" }, onClick: () => setLst(true) }, "\uD83D\uDCCB"),
-                    React.createElement("a", { href: "https://www.130point.com/sales/?q=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", style: { padding: "7px 9px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 11, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "\uD83D\uDD0D"),
+                    React.createElement("a", { href: "https://www.ebay.es/sch/i.html?_nkw=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", style: { padding: "5px 7px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 11, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "eBay"),
                     !isSold && card.mode === "inventory" && React.createElement(Btn, { sm: true, v: "outline", style: { color: GREEN, borderColor: "#d1fae5" }, onClick: () => onSell(card) }, "Vender"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => onEdit(card) }, "\u270F"),
                     React.createElement(Btn, { sm: true, v: "outline", style: { color: PURPLE, borderColor: "#e9d5ff" }, onClick: () => onDuplicate && onDuplicate(card) }, "\u29C9"),
@@ -19001,6 +19001,242 @@ return ce("div",{style:{minHeight:"100vh",background:"#f7f8fa",fontFamily:"Inter
 );
 }
 
+function savePublicProfile(cards,slug,contact,payment,shipping,avatar,banner){if(!slug)return;var user=window._currentUser||(typeof firebase!=="undefined"&&firebase.apps.length>0?firebase.auth().currentUser:null);if(!user){alert("Necesitas estar logueado");return;}if(!window._db){alert("DB no disponible");return;}var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";});var sold=cards.filter(function(c){return c.status==="sold";});var validCodes=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;});var pub={slug:slug,uid:user.uid,cards:listed,sold:sold,validCodes:validCodes,updatedAt:Date.now(),contact:contact||"",payment:payment||"",shipping:shipping||"",avatar:avatar||"",banner:banner||""};window._db.ref("public/"+slug).set(pub).then(function(){alert("Perfil guardado! Comparte: "+window.location.origin+window.location.pathname+"?p="+slug);}).catch(function(e){alert("Error: "+e.message);});}
+function dlPriceList(cards){var listed=cards.filter(function(c){return c.status==="listed"&&c.mode==="inventory";});if(!listed.length){alert("No tienes cartas en venta");return;}var sym=getCurrencySymbol();var minRoi=parseFloat(localStorage.getItem("cv10_minroi")||"40");var rows=listed.map(function(c){var precio=parseFloat(c.targetPrice)||parseFloat(c.sellPrice)||parseFloat(c.buyPrice)||0;var compra=(parseFloat(c.buyPrice)||0)*(parseFloat(c.quantity)||1);var minVenta=compra>0?(compra*(1+minRoi/100)).toFixed(2):"-";return "<tr><td>"+c.name+"</td><td>"+(c.series||"-")+"</td><td>"+(c.rarity||"-")+"</td><td>"+(c.condition||"-")+"</td><td align=right>"+sym+precio.toFixed(2)+"</td><td align=right style=color:#16a34a>"+(minVenta!=="-"?sym+minVenta:"-")+"</td></tr>";}).join("");var html="<!DOCTYPE html><html><head><meta charset=utf-8><title>Lista precios</title><style>body{font-family:Inter,sans-serif;padding:30px}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#f1f5f9;padding:10px;text-align:left;border-bottom:2px solid #e2e8f0}td{padding:9px;border-bottom:1px solid #f1f5f9}</style></head><body><h1>Lista de precios</h1><p>"+listed.length+" cartas - "+new Date().toLocaleDateString("es-ES")+"</p><table><thead><tr><th>Carta</th><th>Set</th><th>Rareza</th><th>Condicion</th><th>Precio</th><th>Min "+minRoi+"%</th></tr></thead><tbody>"+rows+"</tbody></table></body></html>";var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));a.download="lista-precios.html";document.body.appendChild(a);a.click();document.body.removeChild(a);}
+function PublicProfile(props){
+var data=props.data,slug=props.slug;
+var cards=data.cards||[];
+var ratings=data.ratings||[];
+var inv=cards.filter(function(c){return c.mode==="inventory";});
+var col=cards.filter(function(c){return c.mode==="collection";});
+var listed=inv.filter(function(c){return c.status==="listed";});
+var avg=ratings.length>0?(ratings.reduce(function(a,r){return a+(r.stars||0);},0)/ratings.length).toFixed(1):null;
+var ts=useState("venta"),at=ts[0],sat=ts[1];
+var fs=useState(""),sr=fs[0],ssr=fs[1];
+var fl=listed.filter(function(c){
+  if(!sr)return true;
+  var s=sr.toLowerCase();
+  return(c.name||"").toLowerCase().indexOf(s)>=0;
+});
+var ce=React.createElement;
+var sty={background:"#fff",borderRadius:12,padding:14,border:"1px solid #e8eaed"};
+var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",padding:"24px",display:"flex",gap:16,flexWrap:"wrap"}},
+  data.avatar?ce("img",{src:data.avatar,style:{width:80,height:80,borderRadius:"50%",objectFit:"cover"}}):ce("div",{style:{width:80,height:80,borderRadius:"50%",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,color:"#fff",fontWeight:700}},slug.substring(0,2).toUpperCase()),
+  ce("div",{style:{flex:1}},
+    ce("div",{style:{fontWeight:700,fontSize:22,marginBottom:4}},slug),
+    avg?ce("div",{style:{color:"#f59e0b",fontSize:13,marginBottom:6}},"*".repeat(Math.round(parseFloat(avg)))+" "+avg+" ("+ratings.length+")"):ce("div",{style:{color:"#9ca3af",fontSize:13,marginBottom:6}},"Sin valoraciones"),
+    ce("div",{style:{display:"flex",gap:12,fontSize:13,color:"#6b7280"}},
+      data.shipping?ce("span",null,"Envios: "+data.shipping):null,
+      data.payment?ce("span",null,"Pago: "+data.payment):null
+    ),
+    data.contact?ce("a",{href:data.contact.indexOf("@")>=0?"mailto:"+data.contact:"https://wa.me/"+data.contact,target:"_blank",style:{display:"inline-block",marginTop:8,padding:"8px 18px",background:"#3b82f6",color:"#fff",borderRadius:20,textDecoration:"none",fontSize:13,fontWeight:600}},"Contactar"):null
+  )
+);
+var tabs=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",display:"flex"}},
+  ["venta","coleccion","valoraciones"].map(function(t){
+    return ce("button",{key:t,onClick:function(){sat(t);},style:{padding:"14px 24px",border:"none",background:"none",fontSize:14,fontWeight:at===t?700:400,color:at===t?"#3b82f6":"#6b7280",borderBottom:at===t?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},
+      t==="venta"?"En venta ("+listed.length+")":t==="coleccion"?"Coleccion ("+col.length+")":"Valoraciones ("+ratings.length+")"
+    );
+  })
+);
+var ventaTab=ce("div",null,
+  ce("input",{value:sr,onChange:function(e){ssr(e.target.value);},placeholder:"Buscar...",style:{width:"100%",padding:"10px 14px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,marginBottom:16,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
+  fl.length===0?ce("div",{style:{color:"#6b7280",textAlign:"center",padding:40}},"No hay resultados"):
+  ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12}},
+    fl.map(function(c,i){
+      return ce("div",{key:i,style:sty},
+        c.imageUrl?ce("img",{src:c.imageUrl,style:{width:"100%",height:140,objectFit:"cover",borderRadius:8}}):ce("div",{style:{width:"100%",height:80,background:"#eff6ff",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:12,fontWeight:600}},c.name.substring(0,2).toUpperCase()),
+        ce("div",{style:{fontWeight:600,fontSize:13,marginTop:4}},c.name),
+        ce("div",{style:{color:"#6b7280",fontSize:11}},[c.series,c.rarity].filter(Boolean).join(" - ")),
+        c.targetPrice?ce("div",{style:{fontWeight:700,color:"#3b82f6",marginTop:4}},"EUR "+parseFloat(c.targetPrice).toFixed(2)):null
+      );
+    })
+  )
+);
+var colTab=col.length===0?ce("div",{style:{color:"#6b7280",textAlign:"center",padding:40}},"Coleccion vacia"):
+  ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12}},
+    col.map(function(c,i){
+      return ce("div",{key:i,style:sty},
+        c.imageUrl?ce("img",{src:c.imageUrl,style:{width:"100%",height:140,objectFit:"cover",borderRadius:8}}):ce("div",{style:{width:"100%",height:80,background:"#fef3c7",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:12,fontWeight:600}},c.name.substring(0,2).toUpperCase()),
+        ce("div",{style:{fontWeight:600,fontSize:13,marginTop:4}},c.name),
+        ce("div",{style:{color:"#6b7280",fontSize:11}},[c.series,c.rarity].filter(Boolean).join(" - "))
+      );
+    })
+  );
+var valTab=ce("div",null,
+  ratings.length===0?ce("div",{style:{color:"#6b7280",textAlign:"center",padding:40}},"Sin valoraciones"):
+  ce("div",{style:{display:"flex",flexDirection:"column",gap:12,marginBottom:24}},
+    ratings.map(function(r,i){
+      return ce("div",{key:i,style:{background:"#fff",borderRadius:12,padding:16,border:"1px solid #e8eaed"}},
+        ce("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:6}},
+          ce("span",{style:{fontWeight:600}},r.name||"Comprador"),
+          ce("span",{style:{color:"#f59e0b"}},"*".repeat(r.stars||5))
+        ),
+        r.comment?ce("div",{style:{color:"#374151",fontSize:13}},r.comment):null
+      );
+    })
+  ),
+  ce("div",{style:{background:"#fff",borderRadius:12,padding:20,border:"1px solid #e8eaed",marginTop:16}},
+    ce("div",{style:{fontWeight:700,fontSize:15,marginBottom:4}},"Dejar valoracion"),
+    ce("div",{style:{fontSize:12,color:"#6b7280",marginBottom:8}},"Necesitas el codigo CV-XXXX del vendedor."),
+    ce("input",{id:"rc",placeholder:"Codigo (CV-XXXX)",style:{width:"100%",padding:"10px",border:"1px solid #e8eaed",borderRadius:8,fontSize:13,marginBottom:8,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
+    ce("input",{id:"rn",placeholder:"Tu nombre",style:{width:"100%",padding:"10px",border:"1px solid #e8eaed",borderRadius:8,fontSize:13,marginBottom:8,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
+    ce("select",{id:"rs",style:{width:"100%",padding:"10px",border:"1px solid #e8eaed",borderRadius:8,fontSize:13,marginBottom:8,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}},
+      ce("option",{value:"5"},"***** 5 estrellas"),
+      ce("option",{value:"4"},"**** 4 estrellas"),
+      ce("option",{value:"3"},"*** 3 estrellas"),
+      ce("option",{value:"2"},"** 2 estrellas"),
+      ce("option",{value:"1"},"* 1 estrella")
+    ),
+    ce("input",{id:"rco",placeholder:"Comentario (opcional)",style:{width:"100%",padding:"10px",border:"1px solid #e8eaed",borderRadius:8,fontSize:13,marginBottom:12,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
+    ce("button",{onClick:function(){
+      var code=document.getElementById("rc").value.trim().toUpperCase();
+      var name=document.getElementById("rn").value.trim();
+      var stars=parseInt(document.getElementById("rs").value);
+      var comment=document.getElementById("rco").value.trim();
+      if(!code||!name){alert("Rellena el codigo y tu nombre");return;}
+      var vc=data.validCodes||[];
+      if(vc.indexOf(code)<0){alert("Codigo no valido");return;}
+      if(!window._db)return;
+      var cur=data.ratings||[];
+      cur.push({name:name,stars:stars,comment:comment,date:Date.now()});
+      var rem=vc.filter(function(c){return c!==code;});
+      window._db.ref("public/"+slug+"/ratings").set(cur).then(function(){
+        return window._db.ref("public/"+slug+"/validCodes").set(rem);
+      }).then(function(){
+        alert("Gracias!");
+        document.getElementById("rc").value="";
+        document.getElementById("rn").value="";
+        document.getElementById("rco").value="";
+      }).catch(function(e){alert("Error: "+e.message);});
+    },style:{width:"100%",padding:"12px",background:"#3b82f6",border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Enviar valoracion")
+  )
+);
+var body=at==="venta"?ventaTab:at==="coleccion"?colTab:valTab;
+return ce("div",{style:{minHeight:"100vh",background:"#f7f8fa",fontFamily:"Inter,sans-serif",fontSize:14,color:"#111"}},
+  data.banner?ce("div",{style:{width:"100%",height:180,backgroundImage:"url("+data.banner+")",backgroundSize:"cover",backgroundPosition:"center"}}):null,
+  hdr,tabs,
+  ce("div",{style:{maxWidth:1000,margin:"0 auto",padding:24}},body)
+);
+}
+
+function PublicProfile(props){
+var data=props.data,slug=props.slug;
+var cards=data.cards||[];
+var ratings=data.ratings||[];
+var inv=cards.filter(function(c){return c.mode==="inventory";});
+var col=cards.filter(function(c){return c.mode==="collection";});
+var listed=inv.filter(function(c){return c.status==="listed";});
+var avg=ratings.length>0?(ratings.reduce(function(a,r){return a+(r.stars||0);},0)/ratings.length).toFixed(1):null;
+var ts=useState("venta"),at=ts[0],sat=ts[1];
+var fs=useState(""),sr=fs[0],ssr=fs[1];
+var fl=listed.filter(function(c){
+  if(!sr)return true;
+  var s=sr.toLowerCase();
+  return(c.name||"").toLowerCase().indexOf(s)>=0;
+});
+var ce=React.createElement;
+var sty={background:"#fff",borderRadius:12,padding:14,border:"1px solid #e8eaed"};
+var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",padding:"24px",display:"flex",gap:16,flexWrap:"wrap"}},
+  data.avatar?ce("img",{src:data.avatar,style:{width:80,height:80,borderRadius:"50%",objectFit:"cover"}}):ce("div",{style:{width:80,height:80,borderRadius:"50%",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,color:"#fff",fontWeight:700}},slug.substring(0,2).toUpperCase()),
+  ce("div",{style:{flex:1}},
+    ce("div",{style:{fontWeight:700,fontSize:22,marginBottom:4}},slug),
+    avg?ce("div",{style:{color:"#f59e0b",fontSize:13,marginBottom:6}},"*".repeat(Math.round(parseFloat(avg)))+" "+avg+" ("+ratings.length+")"):ce("div",{style:{color:"#9ca3af",fontSize:13,marginBottom:6}},"Sin valoraciones"),
+    ce("div",{style:{display:"flex",gap:12,fontSize:13,color:"#6b7280"}},
+      data.shipping?ce("span",null,"Envios: "+data.shipping):null,
+      data.payment?ce("span",null,"Pago: "+data.payment):null
+    ),
+    data.contact?ce("a",{href:data.contact.indexOf("@")>=0?"mailto:"+data.contact:"https://wa.me/"+data.contact,target:"_blank",style:{display:"inline-block",marginTop:8,padding:"8px 18px",background:"#3b82f6",color:"#fff",borderRadius:20,textDecoration:"none",fontSize:13,fontWeight:600}},"Contactar"):null
+  )
+);
+var tabs=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",display:"flex"}},
+  ["venta","coleccion","valoraciones"].map(function(t){
+    return ce("button",{key:t,onClick:function(){sat(t);},style:{padding:"14px 24px",border:"none",background:"none",fontSize:14,fontWeight:at===t?700:400,color:at===t?"#3b82f6":"#6b7280",borderBottom:at===t?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},
+      t==="venta"?"En venta ("+listed.length+")":t==="coleccion"?"Coleccion ("+col.length+")":"Valoraciones ("+ratings.length+")"
+    );
+  })
+);
+var ventaTab=ce("div",null,
+  ce("input",{value:sr,onChange:function(e){ssr(e.target.value);},placeholder:"Buscar...",style:{width:"100%",padding:"10px 14px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,marginBottom:16,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
+  fl.length===0?ce("div",{style:{color:"#6b7280",textAlign:"center",padding:40}},"No hay resultados"):
+  ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12}},
+    fl.map(function(c,i){
+      return ce("div",{key:i,style:sty},
+        c.imageUrl?ce("img",{src:c.imageUrl,style:{width:"100%",height:140,objectFit:"cover",borderRadius:8}}):ce("div",{style:{width:"100%",height:80,background:"#eff6ff",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:12,fontWeight:600}},c.name.substring(0,2).toUpperCase()),
+        ce("div",{style:{fontWeight:600,fontSize:13,marginTop:4}},c.name),
+        ce("div",{style:{color:"#6b7280",fontSize:11}},[c.series,c.rarity].filter(Boolean).join(" - ")),
+        c.targetPrice?ce("div",{style:{fontWeight:700,color:"#3b82f6",marginTop:4}},"EUR "+parseFloat(c.targetPrice).toFixed(2)):null
+      );
+    })
+  )
+);
+var colTab=col.length===0?ce("div",{style:{color:"#6b7280",textAlign:"center",padding:40}},"Coleccion vacia"):
+  ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12}},
+    col.map(function(c,i){
+      return ce("div",{key:i,style:sty},
+        c.imageUrl?ce("img",{src:c.imageUrl,style:{width:"100%",height:140,objectFit:"cover",borderRadius:8}}):ce("div",{style:{width:"100%",height:80,background:"#fef3c7",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:12,fontWeight:600}},c.name.substring(0,2).toUpperCase()),
+        ce("div",{style:{fontWeight:600,fontSize:13,marginTop:4}},c.name),
+        ce("div",{style:{color:"#6b7280",fontSize:11}},[c.series,c.rarity].filter(Boolean).join(" - "))
+      );
+    })
+  );
+var valTab=ce("div",null,
+  ratings.length===0?ce("div",{style:{color:"#6b7280",textAlign:"center",padding:40}},"Sin valoraciones"):
+  ce("div",{style:{display:"flex",flexDirection:"column",gap:12,marginBottom:24}},
+    ratings.map(function(r,i){
+      return ce("div",{key:i,style:{background:"#fff",borderRadius:12,padding:16,border:"1px solid #e8eaed"}},
+        ce("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:6}},
+          ce("span",{style:{fontWeight:600}},r.name||"Comprador"),
+          ce("span",{style:{color:"#f59e0b"}},"*".repeat(r.stars||5))
+        ),
+        r.comment?ce("div",{style:{color:"#374151",fontSize:13}},r.comment):null
+      );
+    })
+  ),
+  ce("div",{style:{background:"#fff",borderRadius:12,padding:20,border:"1px solid #e8eaed",marginTop:16}},
+    ce("div",{style:{fontWeight:700,fontSize:15,marginBottom:4}},"Dejar valoracion"),
+    ce("div",{style:{fontSize:12,color:"#6b7280",marginBottom:8}},"Necesitas el codigo CV-XXXX del vendedor."),
+    ce("input",{id:"rc",placeholder:"Codigo (CV-XXXX)",style:{width:"100%",padding:"10px",border:"1px solid #e8eaed",borderRadius:8,fontSize:13,marginBottom:8,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
+    ce("input",{id:"rn",placeholder:"Tu nombre",style:{width:"100%",padding:"10px",border:"1px solid #e8eaed",borderRadius:8,fontSize:13,marginBottom:8,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
+    ce("select",{id:"rs",style:{width:"100%",padding:"10px",border:"1px solid #e8eaed",borderRadius:8,fontSize:13,marginBottom:8,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}},
+      ce("option",{value:"5"},"***** 5 estrellas"),
+      ce("option",{value:"4"},"**** 4 estrellas"),
+      ce("option",{value:"3"},"*** 3 estrellas"),
+      ce("option",{value:"2"},"** 2 estrellas"),
+      ce("option",{value:"1"},"* 1 estrella")
+    ),
+    ce("input",{id:"rco",placeholder:"Comentario (opcional)",style:{width:"100%",padding:"10px",border:"1px solid #e8eaed",borderRadius:8,fontSize:13,marginBottom:12,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
+    ce("button",{onClick:function(){
+      var code=document.getElementById("rc").value.trim().toUpperCase();
+      var name=document.getElementById("rn").value.trim();
+      var stars=parseInt(document.getElementById("rs").value);
+      var comment=document.getElementById("rco").value.trim();
+      if(!code||!name){alert("Rellena el codigo y tu nombre");return;}
+      var vc=data.validCodes||[];
+      if(vc.indexOf(code)<0){alert("Codigo no valido");return;}
+      if(!window._db)return;
+      var cur=data.ratings||[];
+      cur.push({name:name,stars:stars,comment:comment,date:Date.now()});
+      var rem=vc.filter(function(c){return c!==code;});
+      window._db.ref("public/"+slug+"/ratings").set(cur).then(function(){
+        return window._db.ref("public/"+slug+"/validCodes").set(rem);
+      }).then(function(){
+        alert("Gracias!");
+        document.getElementById("rc").value="";
+        document.getElementById("rn").value="";
+        document.getElementById("rco").value="";
+      }).catch(function(e){alert("Error: "+e.message);});
+    },style:{width:"100%",padding:"12px",background:"#3b82f6",border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Enviar valoracion")
+  )
+);
+var body=at==="venta"?ventaTab:at==="coleccion"?colTab:valTab;
+return ce("div",{style:{minHeight:"100vh",background:"#f7f8fa",fontFamily:"Inter,sans-serif",fontSize:14,color:"#111"}},
+  data.banner?ce("div",{style:{width:"100%",height:180,backgroundImage:"url("+data.banner+")",backgroundSize:"cover",backgroundPosition:"center"}}):null,
+  hdr,tabs,
+  ce("div",{style:{maxWidth:1000,margin:"0 auto",padding:24}},body)
+);
+}
+
 function isPremium(){return window._isAdmin===true;}
 function App() {
     const [cards, setCards] = useState(() => { try {
@@ -19019,6 +19255,12 @@ function App() {
     const [showSettings, setShowSettings] = useState(false);
     const [darkMode, setDarkMode] = useState(() => localStorage.getItem("cv10_dark") === "1");
     const [currency, setCurrency] = useState(() => localStorage.getItem("cv10_currency") || "EUR");
+    const [publicSlug, setPublicSlug] = useState(() => localStorage.getItem("cv10_slug")||"");
+    const [publicContact, setPublicContact] = useState(() => localStorage.getItem("cv10_contact")||"");
+    const [publicShipping, setPublicShipping] = useState(() => localStorage.getItem("cv10_shipping")||"");
+    const [publicPayment, setPublicPayment] = useState(() => localStorage.getItem("cv10_payment")||"");
+    const [publicAvatar, setPublicAvatar] = useState(() => localStorage.getItem("cv10_avatar")||"");
+    const [publicBanner, setPublicBanner] = useState(() => localStorage.getItem("cv10_banner")||"");
     const [showLot, setShowLot] = useState(false);
     useEffect(() => { localStorage.setItem("cv10_dark", darkMode ? "1" : "0"); if(darkMode){document.body.classList.add("dark");}else{document.body.classList.remove("dark");} }, [darkMode]);
     useEffect(() => { localStorage.setItem("cv10_currency", currency); }, [currency]);
@@ -19066,7 +19308,16 @@ function App() {
                     React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => setShowLot(true) }, "Venta m\u00FAltiple"),
                     React.createElement("button", { onClick: () => setShowSettings(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\u2699\uFE0F")))),
-        showSettings && React.createElement("div", { onClick: function() { setShowSettings(false); }, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" } }, React.createElement("div", { onClick: function(e) { e.stopPropagation(); }, style: { background: BG, borderRadius: 16, padding: 28, minWidth: 300, maxWidth: 400, width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" } }, React.createElement("div", { style: { fontSize: 16, fontWeight: 700, marginBottom: 20 } }, "\u2699\uFE0F Ajustes"), React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "CUENTA"), React.createElement("button", { onClick: function() { setShowSettings(false); window._signOut && window._signOut(); }, style: { width: "100%", padding: "10px 14px", background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#ef4444", textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 16 } }, "\uD83D\uDEAA Cerrar sesi\u00F3n"), React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "APARIENCIA"), React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, marginBottom: 8 } }, React.createElement("span", { style: { fontSize: 13 } }, darkMode ? "\uD83C\uDF19 Modo oscuro" : "\u2600\uFE0F Modo claro"), React.createElement("button", { onClick: function() { setDarkMode(function(d) { return !d; }); }, style: { padding: "8px 20px", background: darkMode ? BLUE : BGS, border: "1px solid " + BDR, borderRadius: 20, cursor: "pointer", fontSize: 13, color: darkMode ? "#fff" : TXT, fontFamily: "Inter,sans-serif" } }, darkMode ? "ON" : "OFF")), React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10 } }, React.createElement("span", { style: { fontSize: 13 } }, "\uD83D\uDCB0 Divisa"), React.createElement("select", { value: currency, onChange: function(e) { setCurrency(e.target.value); }, style: { border: "1px solid " + BDR, borderRadius: 6, padding: "4px 8px", fontSize: 13, background: BG, color: TXT } }, React.createElement("option", { value: "EUR" }, "\u20AC Euro"), React.createElement("option", { value: "GBP" }, "\u00A3 Libra"), React.createElement("option", { value: "USD" }, "$ D\u00F3lar"), React.createElement("option", { value: "AUD" }, "A$ D\u00F3lar AU"))))),
+        showSettings && React.createElement("div", { onClick: function() { setShowSettings(false); }, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" } }, React.createElement("div", { onClick: function(e) { e.stopPropagation(); }, style: { background: BG, borderRadius: 16, padding: 28, minWidth: 300, maxWidth: 400, width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" } }, React.createElement("div", { style: { fontSize: 16, fontWeight: 700, marginBottom: 20 } }, "\u2699\uFE0F Ajustes"), React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "CUENTA"), React.createElement("button", { onClick: function() { setShowSettings(false); window._signOut && window._signOut(); }, style: { width: "100%", padding: "10px 14px", background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#ef4444", textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 16 } }, "\uD83D\uDEAA Cerrar sesi\u00F3n"), React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "HERRAMIENTAS"), React.createElement("button", { onClick: function() { setShowSettings(false); dlPriceList(JSON.parse(localStorage.getItem("cv10")||"[]")); }, style: { width: "100%", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 13, color: TXT, textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 16 } }, "Exportar lista de precios"), React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "APARIENCIA"), React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, marginBottom: 8 } }, React.createElement("span", { style: { fontSize: 13 } }, darkMode ? "\uD83C\uDF19 Modo oscuro" : "\u2600\uFE0F Modo claro"), React.createElement("button", { onClick: function() { setDarkMode(function(d) { return !d; }); }, style: { padding: "8px 20px", background: darkMode ? BLUE : BGS, border: "1px solid " + BDR, borderRadius: 20, cursor: "pointer", fontSize: 13, color: darkMode ? "#fff" : TXT, fontFamily: "Inter,sans-serif" } }, darkMode ? "ON" : "OFF")), React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10 } }, React.createElement("span", { style: { fontSize: 13 } }, "\uD83D\uDCB0 Divisa"), React.createElement("select", { value: currency, onChange: function(e) { setCurrency(e.target.value); }, style: { border: "1px solid " + BDR, borderRadius: 6, padding: "4px 8px", fontSize: 13, background: BG, color: TXT } }, React.createElement("option", { value: "EUR" }, "\u20AC Euro"), React.createElement("option", { value: "GBP" }, "\u00A3 Libra"), React.createElement("option", { value: "USD" }, "$ D\u00F3lar"), React.createElement("option", { value: "AUD" }, "A$ D\u00F3lar AU"))),
+                React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8, marginTop: 12 } }, "PERFIL P\u00DABLICO"),
+                React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 6 } },
+                    React.createElement("input", { value: publicSlug, onChange: function(e) { setPublicSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]/g,"")); }, placeholder: "tu-nombre", style: { flex: 1, padding: "8px 10px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif" } }),
+                    React.createElement("button", { onClick: function() { if(!publicSlug){alert("Escribe un nombre");return;} localStorage.setItem("cv10_slug",publicSlug); localStorage.setItem("cv10_contact",publicContact); localStorage.setItem("cv10_shipping",publicShipping); localStorage.setItem("cv10_payment",publicPayment); localStorage.setItem("cv10_avatar",publicAvatar); localStorage.setItem("cv10_banner",publicBanner); savePublicProfile(JSON.parse(localStorage.getItem("cv10")||"[]"),publicSlug,publicContact,publicPayment,publicShipping,publicAvatar,publicBanner); }, style: { padding: "8px 12px", background: BLUE, border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#fff", fontFamily: "Inter,sans-serif" } }, "Guardar")),
+                React.createElement("input", { value: publicContact, onChange: function(e){ setPublicContact(e.target.value); }, placeholder: "Email o WhatsApp", style: { width: "100%", padding: "8px 10px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif", marginBottom: 6, boxSizing: "border-box" } }),
+                React.createElement("input", { value: publicPayment, onChange: function(e){ setPublicPayment(e.target.value); }, placeholder: "Pagos: PayPal, Bizum...", style: { width: "100%", padding: "8px 10px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif", marginBottom: 6, boxSizing: "border-box" } }),
+                React.createElement("input", { value: publicShipping, onChange: function(e){ setPublicShipping(e.target.value); }, placeholder: "Envios: Espana, Europa...", style: { width: "100%", padding: "8px 10px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif", marginBottom: 6, boxSizing: "border-box" } }),
+                React.createElement("input", { value: publicAvatar, onChange: function(e){ setPublicAvatar(e.target.value); }, placeholder: "URL foto de perfil", style: { width: "100%", padding: "8px 10px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif", marginBottom: 6, boxSizing: "border-box" } }),
+                React.createElement("input", { value: publicBanner, onChange: function(e){ setPublicBanner(e.target.value); }, placeholder: "URL banner", style: { width: "100%", padding: "8px 10px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif", boxSizing: "border-box" } }))),
         React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "24px" } },
             tab === "dashboard" && React.createElement(DashTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
             tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
@@ -19139,6 +19390,7 @@ window._mountApp = function() {
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>
 (function() {
   function initFirebase() {
@@ -19153,6 +19405,7 @@ window._mountApp = function() {
     firebase.initializeApp({
       apiKey: "AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA",
       authDomain: "cromovault.firebaseapp.com",
+      databaseURL: "https://cromovault-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "cromovault",
       storageBucket: "cromovault.firebasestorage.app",
       messagingSenderId: "702300818534",
@@ -19161,6 +19414,9 @@ window._mountApp = function() {
 
     var auth = firebase.auth();
     var db = firebase.firestore();
+    try{db.settings({experimentalForceLongPolling:true,merge:true});}catch(e){}
+    var rtdb = firebase.database();
+    window._db = rtdb;
     window._currentUser = null;
     window._appMounted = false;
 
