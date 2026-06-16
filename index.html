@@ -19016,6 +19016,7 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>
 (function() {
   function initFirebase() {
@@ -19030,6 +19031,7 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
     firebase.initializeApp({
       apiKey: "AIzaSyAJbk7ifRQd4P_CBG6zKFXIYXhQRiQTZBA",
       authDomain: "cromovault.firebaseapp.com",
+      databaseURL: "https://cromovault-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "cromovault",
       storageBucket: "cromovault.firebasestorage.app",
       messagingSenderId: "702300818534",
@@ -19038,6 +19040,9 @@ window._mountApp = function() { ReactDOM.createRoot(document.getElementById('roo
 
     var auth = firebase.auth();
     var db = firebase.firestore();
+    try{db.settings({experimentalForceLongPolling:true,merge:true});}catch(e){}
+    var rtdb = firebase.database();
+    window._db = rtdb;
     window._currentUser = null;
     window._appMounted = false;
 
