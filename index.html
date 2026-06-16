@@ -17343,7 +17343,7 @@ function SellModal({ card, onSave, onClose }) {
         }
         else {
             // All units sold
-            onSave(Object.assign(Object.assign({}, card), { status: "sold", sellPrice: parseFloat(pr) || 0, sellDate: dt, platformFee: parseFloat(fe) || 0, shippingCost: parseFloat(sh) || 0, platform: pl }));
+            var reviewCode="CV-"+Math.random().toString(36).substr(2,4).toUpperCase();onSave(Object.assign(Object.assign({},card),{status:"sold",sellPrice:parseFloat(pr)||0,sellDate:dt,platformFee:parseFloat(fe)||0,shippingCost:parseFloat(sh)||0,platform:pl,reviewCode:reviewCode}));setTimeout(function(){alert("Venta registrada!\n\nCodigo para el comprador: "+reviewCode+"\n\nCompartelo para que pueda dejar una valoracion.");},100);
         }
         onClose();
     }
@@ -18918,7 +18918,7 @@ function savePublicProfile(cards,slug,contact,payment,shipping,avatar,banner){
     if(!window._db){alert("DB no disponible");return;}
     var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";});
     var sold=cards.filter(function(c){return c.status==="sold";});
-    var pub={slug:slug,uid:user.uid,cards:listed,sold:sold,updatedAt:Date.now(),contact:contact||"",payment:payment||"",shipping:shipping||"",avatar:avatar||"",banner:banner||""};
+    var validCodes=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;});var pub={slug:slug,uid:user.uid,cards:listed,sold:sold,validCodes:validCodes,updatedAt:Date.now(),contact:contact||"",payment:payment||"",shipping:shipping||"",avatar:avatar||"",banner:banner||""};
     console.log("Saving pub:", pub.contact, pub.payment, pub.shipping, "cards:", listed.length);
     window._db.ref("public/"+slug).set(pub).then(function(){
         alert("Perfil guardado! Comparte: "+window.location.origin+window.location.pathname+"?p="+slug);
@@ -18986,7 +18986,7 @@ function PublicProfile(props){
                         r.comment&&React.createElement("div",{style:{color:"#374151",fontSize:13}},r.comment),
                         React.createElement("div",{style:{color:"#9ca3af",fontSize:11,marginTop:4}},r.date?new Date(r.date).toLocaleDateString("es-ES"):""));})),
                 React.createElement("div",{style:{background:"#fff",borderRadius:12,padding:20,border:"1px solid #e8eaed"}},
-                    React.createElement("div",{style:{fontWeight:700,fontSize:15,marginBottom:12}},"Dejar valoracion"),
+                    React.createElement("div",{style:{fontWeight:700,fontSize:15,marginBottom:12}},"Dejar valoracion"),React.createElement("div",{style:{fontSize:12,color:"#6b7280",marginBottom:8}},"Necesitas el codigo CV-XXXX que recibes del vendedor al comprar."),React.createElement("input",{id:"rating-code",placeholder:"Codigo de valoracion (ej: CV-A3X9)",style:{width:"100%",padding:"10px",border:"1px solid #e8eaed",borderRadius:8,fontSize:13,marginBottom:8,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
                     React.createElement("input",{id:"rating-name",placeholder:"Tu nombre",style:{width:"100%",padding:"10px",border:"1px solid #e8eaed",borderRadius:8,fontSize:13,marginBottom:8,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
                     React.createElement("select",{id:"rating-stars",style:{width:"100%",padding:"10px",border:"1px solid #e8eaed",borderRadius:8,fontSize:13,marginBottom:8,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}},React.createElement("option",{value:"5"},"***** 5 estrellas"),React.createElement("option",{value:"4"},"**** 4 estrellas"),React.createElement("option",{value:"3"},"*** 3 estrellas"),React.createElement("option",{value:"2"},"** 2 estrellas"),React.createElement("option",{value:"1"},"* 1 estrella")),
                     React.createElement("input",{id:"rating-comment",placeholder:"Comentario (opcional)",style:{width:"100%",padding:"10px",border:"1px solid #e8eaed",borderRadius:8,fontSize:13,marginBottom:12,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
