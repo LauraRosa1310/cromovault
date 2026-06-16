@@ -17406,7 +17406,7 @@ function SellModal({ card, onSave, onClose }) {
                 React.createElement(Btn, { v: "success", full: true, onClick: confirm, disabled: !pr }, "Confirmar venta")))));
 }
 function CardForm({ onSave, onClose, editCard, defMode }) {
-    const blank = { name: "", category: "trading", series: "", rarity: "Común", condition: "Raw", quantity: 1, buyPrice: "", buyDate: new Date().toISOString().slice(0, 10), notes: "", images: [], status: "holding", sellPrice: "", sellDate: "", platformFee: "", shippingCost: "", platform: "eBay", isFavorite: false, mode: defMode || "inventory", targetPrice: "", listingDate: "", location: "", imageUrl: "" };
+    const blank = { name: "", category: "trading", series: "", rarity: "Común", condition: "Raw", quantity: 1, buyPrice: "", buyDate: new Date().toISOString().slice(0, 10), notes: "", images: [], status: "holding", sellPrice: "", sellDate: "", platformFee: "", shippingCost: "", platform: "eBay", isFavorite: false, mode: defMode || "inventory", targetPrice: "", listingDate: "", location: "", imageUrl: "", league: "", team: "" };
     const init = editCard ? Object.assign(Object.assign({}, editCard), { buyPrice: String(editCard.buyPrice || ""), sellPrice: String(editCard.sellPrice || ""), platformFee: String(editCard.platformFee || ""), shippingCost: String(editCard.shippingCost || ""), targetPrice: String(editCard.targetPrice || "") }) : blank;
     const [f, setF] = useState(init), [imgs, setImgs] = useState((editCard === null || editCard === void 0 ? void 0 : editCard.images) || []), [tab, setTab] = useState("info");
     const fr = { current: null };
@@ -17452,6 +17452,13 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                             React.createElement("label", { style: LS }, "Rareza"),
                             React.createElement("select", { value: f.rarity, onChange: e => sf("rarity", e.target.value), style: IS }, RARS.map(r => React.createElement("option", { key: r, value: r }, r))))),
                     React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } },
+                    (f.category === "futbol" || f.category === "futbol_m" || f.category === "futbol_f" || f.category === "nba" || f.category === "baseball" || f.category === "f1") && React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 } },
+                        React.createElement("div", null,
+                            React.createElement("label", { style: LS }, "Liga / Competici\u00f3n"),
+                            React.createElement("input", { value: f.league || "", onChange: e => sf("league", e.target.value), placeholder: "LaLiga, NBA, Premier...", style: IS })),
+                        React.createElement("div", null,
+                            React.createElement("label", { style: LS }, "Equipo"),
+                            React.createElement("input", { value: f.team || "", onChange: e => sf("team", e.target.value), placeholder: "Real Madrid, Lakers...", style: IS }))),
                         React.createElement("div", null,
                             React.createElement("label", { style: LS }, "Serie / Set"),
                             React.createElement("input", { value: f.series, onChange: e => sf("series", e.target.value), placeholder: "Base Set, LaLiga...", style: IS })),
@@ -18914,50 +18921,7 @@ function savePublicProfile(cards,slug){
         alert("Perfil guardado! Comparte: "+window.location.origin+window.location.pathname+"?p="+slug);
     }).catch(function(e){console.error("Error:",e);alert("Error al guardar: "+e.message);});
 }
-function PublicProfile(props) {
-    var data = props.data;
-    var slug = props.slug;
-    var cards = data.cards || [];
-    var inv = cards.filter(function(c){ return c.mode === "inventory"; });
-    var col = cards.filter(function(c){ return c.mode === "collection"; });
-    var listed = inv.filter(function(c){ return c.status === "listed"; });
-    var BG2 = "#fff", SUB2 = "#6b7280", BLUE2 = "#3b82f6";
-    return React.createElement("div", { style: { minHeight: "100vh", background: "#f7f8fa", fontFamily: "Inter,sans-serif", fontSize: 14 } },
-        React.createElement("div", { style: { background: BG2, borderBottom: "1px solid #e8eaed", padding: "16px 24px", display: "flex", alignItems: "center", gap: 12 } },
-            React.createElement("div", { style: { fontSize: 24 } }, "\uD83C\uDCCF"),
-            React.createElement("div", null,
-                React.createElement("div", { style: { fontWeight: 700, fontSize: 18 } }, slug),
-                React.createElement("div", { style: { color: SUB2, fontSize: 12 } }, "CromoVault - Perfil p\u00FAblico"))),
-        React.createElement("div", { style: { maxWidth: 1000, margin: "0 auto", padding: 24 } },
-            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 24 } },
-                React.createElement("div", { style: { background: BG2, borderRadius: 12, padding: 16, textAlign: "center", border: "1px solid #e8eaed" } },
-                    React.createElement("div", { style: { fontSize: 24, fontWeight: 700, color: BLUE2 } }, inv.length),
-                    React.createElement("div", { style: { color: SUB2, fontSize: 12 } }, "Inventario")),
-                React.createElement("div", { style: { background: BG2, borderRadius: 12, padding: 16, textAlign: "center", border: "1px solid #e8eaed" } },
-                    React.createElement("div", { style: { fontSize: 24, fontWeight: 700, color: "#f59e0b" } }, listed.length),
-                    React.createElement("div", { style: { color: SUB2, fontSize: 12 } }, "En venta")),
-                React.createElement("div", { style: { background: BG2, borderRadius: 12, padding: 16, textAlign: "center", border: "1px solid #e8eaed" } },
-                    React.createElement("div", { style: { fontSize: 24, fontWeight: 700, color: "#8b5cf6" } }, col.length),
-                    React.createElement("div", { style: { color: SUB2, fontSize: 12 } }, "Colecci\u00F3n"))),
-            listed.length > 0 && React.createElement("div", { style: { marginBottom: 24 } },
-                React.createElement("div", { style: { fontWeight: 700, fontSize: 15, marginBottom: 12 } }, "\uD83D\uDCB0 En venta"),
-                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 10 } },
-                    listed.map(function(c, i) {
-                        return React.createElement("div", { key: i, style: { background: BG2, borderRadius: 10, padding: 14, border: "1px solid #e8eaed" } },
-                            React.createElement("div", { style: { fontWeight: 600, marginBottom: 4 } }, c.name),
-                            React.createElement("div", { style: { color: SUB2, fontSize: 12, marginBottom: 8 } }, [c.series, c.rarity, c.condition].filter(Boolean).join(" - ")),
-                            c.targetPrice ? React.createElement("div", { style: { fontWeight: 700, color: BLUE2 } }, "\u20AC" + parseFloat(c.targetPrice).toFixed(2)) : null);
-                    }))),
-            col.length > 0 && React.createElement("div", null,
-                React.createElement("div", { style: { fontWeight: 700, fontSize: 15, marginBottom: 12 } }, "\u2B50 Colecci\u00F3n"),
-                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 10 } },
-                    col.map(function(c, i) {
-                        return React.createElement("div", { key: i, style: { background: BG2, borderRadius: 10, padding: 14, border: "1px solid #e8eaed" } },
-                            c.imageUrl ? React.createElement("img", { src: c.imageUrl, style: { width: "100%", height: 120, objectFit: "cover", borderRadius: 8, marginBottom: 8 } }) : null,
-                            React.createElement("div", { style: { fontWeight: 600, marginBottom: 4 } }, c.name),
-                            React.createElement("div", { style: { color: SUB2, fontSize: 12 } }, [c.series, c.rarity, c.condition].filter(Boolean).join(" - ")));
-                    })))));
-}
+function PublicProfile(props){var data=props.data,slug=props.slug,cards=data.cards||[],inv=cards.filter(function(c){return c.mode==="inventory";}),col=cards.filter(function(c){return c.mode==="collection";}),listed=inv.filter(function(c){return c.status==="listed";});var ss=useState(""),search=ss[0],setSearch=ss[1];var fl=listed.filter(function(c){if(!search)return true;var s=search.toLowerCase();return(c.name||"").toLowerCase().indexOf(s)>=0||(c.team||"").toLowerCase().indexOf(s)>=0||(c.league||"").toLowerCase().indexOf(s)>=0;});return React.createElement("div",{style:{minHeight:"100vh",background:"#f7f8fa",fontFamily:"Inter,sans-serif",fontSize:14}},React.createElement("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",padding:"16px 24px",display:"flex",alignItems:"center",gap:12}},React.createElement("div",{style:{fontSize:24}},"\uD83C\uDCCF"),React.createElement("div",null,React.createElement("div",{style:{fontWeight:700,fontSize:18}},slug),React.createElement("div",{style:{color:"#6b7280",fontSize:12}},"CromoVault - Perfil p\u00FAblico"))),React.createElement("div",{style:{maxWidth:1000,margin:"0 auto",padding:24}},React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:24}},React.createElement("div",{style:{background:"#fff",borderRadius:12,padding:16,textAlign:"center",border:"1px solid #e8eaed"}},React.createElement("div",{style:{fontSize:24,fontWeight:700,color:"#3b82f6"}},inv.length),React.createElement("div",{style:{color:"#6b7280",fontSize:12}},"Inventario")),React.createElement("div",{style:{background:"#fff",borderRadius:12,padding:16,textAlign:"center",border:"1px solid #e8eaed"}},React.createElement("div",{style:{fontSize:24,fontWeight:700,color:"#f59e0b"}},listed.length),React.createElement("div",{style:{color:"#6b7280",fontSize:12}},"En venta")),React.createElement("div",{style:{background:"#fff",borderRadius:12,padding:16,textAlign:"center",border:"1px solid #e8eaed"}},React.createElement("div",{style:{fontSize:24,fontWeight:700,color:"#8b5cf6"}},col.length),React.createElement("div",{style:{color:"#6b7280",fontSize:12}},"Colecci\u00F3n"))),col.length>0&&React.createElement("div",{style:{marginBottom:24}},React.createElement("div",{style:{fontWeight:700,fontSize:15,marginBottom:12}},"\u2B50 Colecci\u00F3n"),React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}},col.map(function(c,i){return React.createElement("div",{key:i,style:{background:"#fff",borderRadius:10,padding:14,border:"1px solid #e8eaed"}},c.imageUrl?React.createElement("img",{src:c.imageUrl,style:{width:"100%",height:120,objectFit:"cover",borderRadius:8,marginBottom:8}}):null,React.createElement("div",{style:{fontWeight:600,marginBottom:4}},c.name),React.createElement("div",{style:{color:"#6b7280",fontSize:12}},[c.series,c.rarity,c.condition].filter(Boolean).join(" - ")));}))),(listed.length>0)&&React.createElement("div",null,React.createElement("div",{style:{fontWeight:700,fontSize:15,marginBottom:12}},"\uD83D\uDCB0 En venta"),React.createElement("input",{value:search,onChange:function(e){setSearch(e.target.value);},placeholder:"Buscar por nombre, equipo, liga...",style:{width:"100%",padding:"10px 14px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,marginBottom:12,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),(fl.length===0)?React.createElement("div",{style:{color:"#6b7280",textAlign:"center",padding:20}},"No hay resultados"):React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}},fl.map(function(c,i){return React.createElement("div",{key:i,style:{background:"#fff",borderRadius:10,padding:14,border:"1px solid #e8eaed"}},React.createElement("div",{style:{fontWeight:600,marginBottom:4}},c.name),React.createElement("div",{style:{color:"#6b7280",fontSize:12,marginBottom:4}},[c.series,c.rarity,c.condition].filter(Boolean).join(" - ")),(c.team||c.league)?React.createElement("div",{style:{color:"#7c3aed",fontSize:11,marginBottom:6}},[c.league,c.team].filter(Boolean).join(" - ")):null,c.targetPrice?React.createElement("div",{style:{fontWeight:700,color:"#3b82f6"}},"\u20AC"+parseFloat(c.targetPrice).toFixed(2)):null);})))));}
 
 function isPremium(){return window._isAdmin===true;}
 function App() {
