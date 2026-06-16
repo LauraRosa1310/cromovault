@@ -18953,7 +18953,7 @@ var ventaTab=ce("div",null,
   ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12}},
     fl.map(function(c,i){
       return ce("div",{key:i,style:sty},
-        c.imageUrl?ce("img",{src:c.imageUrl,style:{width:"100%",height:140,objectFit:"cover",borderRadius:8}}):ce("div",{style:{width:"100%",height:80,background:"#eff6ff",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:12,fontWeight:600}},c.name.substring(0,2).toUpperCase()),
+        ce("div",{style:{position:"relative"}},c.imageUrl?ce("img",{src:c.imageUrl,style:{width:"100%",height:140,objectFit:"cover",borderRadius:8}}):ce("div",{style:{width:"100%",height:80,background:"#eff6ff",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:12,fontWeight:600}},c.name.substring(0,2).toUpperCase()),ce("div",{style:{position:"absolute",top:4,right:4}},ce(FavButton,{slug:slug,cardId:c.id||c.name,price:parseFloat(c.targetPrice)||0,cardName:c.name}))),
         ce("div",{style:{fontWeight:600,fontSize:13,marginTop:4}},c.name),
         ce("div",{style:{color:"#6b7280",fontSize:11}},[c.series,c.rarity].filter(Boolean).join(" - ")),
         ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:4}},c.targetPrice?ce("div",{style:{fontWeight:700,color:"#3b82f6"}},"EUR "+parseFloat(c.targetPrice).toFixed(2)):ce("div",null),ce(FavButton,{slug:slug,cardId:c.id||c.name,price:parseFloat(c.targetPrice)||0,cardName:c.name}))
