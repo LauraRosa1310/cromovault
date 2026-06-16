@@ -17490,7 +17490,7 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                             React.createElement("input", { type: "date", value: f.buyDate, onChange: e => sf("buyDate", e.target.value), style: IS }))),
                     React.createElement("div", { style: { marginBottom: 12 } },
                         React.createElement("label", { style: LS }, "\uD83C\uDFAF Precio objetivo (\u20AC)"),
-                        React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.targetPrice, onChange: e => sf("targetPrice", e.target.value), placeholder: "\u20AC objetivo de venta", style: IS })),
+                        React.createElement("div", { style: { display: "flex", gap: 6 } }, React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.targetPrice, onChange: function(e){ sf("targetPrice", e.target.value); }, placeholder: "Precio objetivo", style: Object.assign({}, IS, { flex: 1 }) }), React.createElement("button", { type: "button", onClick: function(){ var cost=(parseFloat(f.buyPrice)||0)*(parseFloat(f.quantity)||1); var roi=parseFloat(localStorage.getItem("cv10_minroi")||"40"); if(cost>0){sf("targetPrice",(cost*(1+roi/100)).toFixed(2));} }, style: { padding: "6px 10px", background: BLUE, border: "none", borderRadius: 8, cursor: "pointer", fontSize: 11, color: "#fff", fontWeight: 600, fontFamily: "Inter,sans-serif", whiteSpace: "nowrap" } }, "ROI auto"))),
                     tB > 0 && React.createElement("div", { style: { background: BGS, borderRadius: 8, padding: "9px 12px", fontSize: 13 } },
                         "Total: ",
                         React.createElement("b", null, eu(tB)),
