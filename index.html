@@ -18906,10 +18906,11 @@ function getPublicSlug(){return localStorage.getItem("cv10_slug")||"";}
 function savePublicProfile(cards,slug){
     if(!slug||!window._currentUser)return;
     var pub={slug:slug,uid:window._currentUser.uid,cards:cards,updatedAt:Date.now()};
-    var xhr=new XMLHttpRequest();
-    xhr.open("PUT","https://cromovault-default-rtdb.europe-west1.firebasedatabase.app/public/"+slug+".json");
-    xhr.setRequestHeader("Content-Type","application/json");
-    xhr.send(JSON.stringify(pub));
+    if(typeof firebase!=="undefined"&&firebase.apps.length>0){
+        firebase.database().ref("public/"+slug).set(pub).then(function(){
+            alert("Perfil guardado! Comparte: "+window.location.origin+window.location.pathname+"?p="+slug);
+        }).catch(function(e){console.error("Error guardando perfil:",e);alert("Error al guardar perfil");});
+    }
 }
 function PublicProfile(props) {
     var data = props.data;
@@ -19032,7 +19033,6 @@ function App() {
                         if(!publicSlug){alert("Escribe un nombre para tu perfil");return;}
                         localStorage.setItem("cv10_slug", publicSlug);
                         savePublicProfile(JSON.parse(localStorage.getItem("cv10")||"[]"), publicSlug);
-                        alert("Perfil guardado! Comparte: " + window.location.origin + window.location.pathname + "?p=" + publicSlug);
                     }, style: { padding: "8px 12px", background: BLUE, border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#fff", fontFamily: "Inter,sans-serif" } }, "Guardar")), React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "APARIENCIA"), React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, marginBottom: 8 } }, React.createElement("span", { style: { fontSize: 13 } }, darkMode ? "\uD83C\uDF19 Modo oscuro" : "\u2600\uFE0F Modo claro"), React.createElement("button", { onClick: function() { setDarkMode(function(d) { return !d; }); }, style: { padding: "8px 20px", background: darkMode ? BLUE : BGS, border: "1px solid " + BDR, borderRadius: 20, cursor: "pointer", fontSize: 13, color: darkMode ? "#fff" : TXT, fontFamily: "Inter,sans-serif" } }, darkMode ? "ON" : "OFF")), React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10 } }, React.createElement("span", { style: { fontSize: 13 } }, "\uD83D\uDCB0 Divisa"), React.createElement("select", { value: currency, onChange: function(e) { setCurrency(e.target.value); }, style: { border: "1px solid " + BDR, borderRadius: 6, padding: "4px 8px", fontSize: 13, background: BG, color: TXT } }, React.createElement("option", { value: "EUR" }, "\u20AC Euro"), React.createElement("option", { value: "GBP" }, "\u00A3 Libra"), React.createElement("option", { value: "USD" }, "$ D\u00F3lar"), React.createElement("option", { value: "AUD" }, "A$ D\u00F3lar AU"))))),
         React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "24px" } },
             tab === "dashboard" && React.createElement(DashTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
