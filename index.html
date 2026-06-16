@@ -17601,7 +17601,7 @@ function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl }) {
                     React.createElement(Btn, { sm: true, v: "outline", style: { color: BLUE, borderColor: "#eff4ff" }, onClick: () => setLst(true) }, "\uD83D\uDCCB"),
                     React.createElement("a", { href: "https://www.ebay.es/sch/i.html?_nkw=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", style: { padding: "5px 7px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 11, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "eBay"),
                     !isSold && card.mode === "inventory" && React.createElement(Btn, { sm: true, v: "outline", style: { color: GREEN, borderColor: "#d1fae5" }, onClick: () => onSell(card) }, "Vender"),
-                    React.createElement(Btn, { sm: true, v: "outline", onClick: () => onEdit(card) }, "\u270F"),
+                    React.createElement(Btn, { sm: true, v: "outline", onClick: () => onEdit(card) }, "\u270F"), window._favCounts && window._favCounts[card.id||card.name] ? React.createElement("span", { style: { fontSize: 11, color: "#ef4444", marginLeft: 2 } }, "\u2764\uFE0F " + window._favCounts[card.id||card.name]) : null,
                     React.createElement(Btn, { sm: true, v: "outline", style: { color: PURPLE, borderColor: "#e9d5ff" }, onClick: () => onDuplicate && onDuplicate(card) }, "\u29C9"),
                     React.createElement(Btn, { sm: true, v: "outline", style: { color: RED, borderColor: "#fecaca" }, onClick: () => onDelete(card.id) }, "\u2715")))),
         open && (React.createElement("tr", { style: { background: BGS } },
@@ -18887,6 +18887,30 @@ function LotModal({ cards, onSell, onClose }) {
                         sel.length,
                         " cartas"))))));
 }
+function FavButton(props){
+var slug=props.slug;
+var cardId=props.cardId;
+var price=props.price;
+var cardName=props.cardName;
+var key="favs_"+slug+"_"+cardId;
+var fs=useState(function(){try{return JSON.parse(localStorage.getItem(key)||"false");}catch(e){return false;}}),isFav=fs[0],setIsFav=fs[1];
+var ce=React.createElement;
+function toggle(){
+  var newVal=!isFav;
+  setIsFav(newVal);
+  localStorage.setItem(key,JSON.stringify(newVal));
+  if(window._db){
+    var favRef=window._db.ref("favorites/"+slug+"/"+cardId);
+    if(newVal){
+      favRef.set({cardId:cardId,cardName:cardName,price:price,savedAt:Date.now(),priceAtSave:price});
+    } else {
+      favRef.remove();
+    }
+  }
+}
+return ce("button",{onClick:function(e){e.stopPropagation();toggle();},style:{background:"none",border:"none",cursor:"pointer",fontSize:20,padding:"4px",lineHeight:1}},isFav?"❤️":"🤍");
+}
+
 function PublicProfile(props){
 var data=props.data,slug=props.slug;
 var cards=data.cards||[];
@@ -18932,7 +18956,7 @@ var ventaTab=ce("div",null,
         c.imageUrl?ce("img",{src:c.imageUrl,style:{width:"100%",height:140,objectFit:"cover",borderRadius:8}}):ce("div",{style:{width:"100%",height:80,background:"#eff6ff",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:12,fontWeight:600}},c.name.substring(0,2).toUpperCase()),
         ce("div",{style:{fontWeight:600,fontSize:13,marginTop:4}},c.name),
         ce("div",{style:{color:"#6b7280",fontSize:11}},[c.series,c.rarity].filter(Boolean).join(" - ")),
-        c.targetPrice?ce("div",{style:{fontWeight:700,color:"#3b82f6",marginTop:4}},"EUR "+parseFloat(c.targetPrice).toFixed(2)):null
+        ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:4}},c.targetPrice?ce("div",{style:{fontWeight:700,color:"#3b82f6"}},"EUR "+parseFloat(c.targetPrice).toFixed(2)):ce("div",null),ce(FavButton,{slug:slug,cardId:c.id||c.name,price:parseFloat(c.targetPrice)||0,cardName:c.name}))
       );
     })
   )
@@ -19460,7 +19484,10 @@ window._mountApp = function() {
       console.error('Firebase failed to load');
       document.getElementById('root').style.display = 'block';
       document.getElementById('cv-login').style.display = 'none';
-      if (window._mountApp) { window._mountApp(); window._appMounted = true; }
+      if (window._mountApp) { window._mountApp(); window._appMounted = true; setTimeout(function(){
+function loadFavCounts(){var slug=localStorage.getItem("cv10_slug");if(!slug||!window._db)return;window._db.ref("favorites/"+slug).once("value").then(function(snap){var favs=snap.val();if(!favs)return;var counts={};Object.keys(favs).forEach(function(k){counts[k]=1;});window._favCounts=counts;});}
+function checkPriceDrops(){var slug=localStorage.getItem("cv10_slug");if(!slug||!window._db)return;window._db.ref("favorites/"+slug).once("value").then(function(snap){var favs=snap.val();if(!favs)return;var cards=JSON.parse(localStorage.getItem("cv10")||"[]");var drops=[];Object.keys(favs).forEach(function(cardId){var fav=favs[cardId];var card=cards.find(function(c){return (c.id||c.name)===cardId;});if(card&&fav.priceAtSave&&parseFloat(card.targetPrice||0)<parseFloat(fav.priceAtSave)){drops.push(card.name+" bajo a EUR"+parseFloat(card.targetPrice||0).toFixed(2));}});if(drops.length>0){alert("Bajadas de precio:\n"+drops.join("\n"));}});}
+loadFavCounts();checkPriceDrops();},2000); }
       return;
     }
 
