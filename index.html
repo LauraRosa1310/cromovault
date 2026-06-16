@@ -19136,6 +19136,7 @@ window._mountApp = function() {
 
     var auth = firebase.auth();
     var db = firebase.firestore();
+    try { db.settings({ experimentalForceLongPolling: true, merge: true }); } catch(e) {}
     var rtdb = firebase.database();
     window._db = rtdb;
     window._currentUser = null;
