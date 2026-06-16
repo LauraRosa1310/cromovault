@@ -17596,7 +17596,7 @@ function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl }) {
             React.createElement("td", { style: { padding: "12px 12px", verticalAlign: "middle" }, onClick: e => e.stopPropagation() },
                 React.createElement("div", { style: { display: "flex", gap: 4, justifyContent: "flex-end", flexWrap: "wrap" } },
                     React.createElement(Btn, { sm: true, v: "outline", style: { color: BLUE, borderColor: "#eff4ff" }, onClick: () => setLst(true) }, "\uD83D\uDCCB"),
-                    React.createElement("div", { style: { display: "inline-flex", gap: 4 } }, React.createElement("a", { href: "https://www.ebay.es/sch/i.html?_nkw=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", title: "Buscar en eBay", style: { padding: "5px 7px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 10, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "eBay"), React.createElement("a", { href: "https://www.cardmarket.com/es/YuGiOh/Products/Search?searchString=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", title: "Buscar en Cardmarket", style: { padding: "5px 7px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 10, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "CM")),
+                    React.createElement("a", { href: "https://www.ebay.es/sch/i.html?_nkw=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", title: "Buscar en eBay", style: { padding: "5px 7px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 11, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "\uD83D\uDD0D eBay"),
                     !isSold && card.mode === "inventory" && React.createElement(Btn, { sm: true, v: "outline", style: { color: GREEN, borderColor: "#d1fae5" }, onClick: () => onSell(card) }, "Vender"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => onEdit(card) }, "\u270F"),
                     React.createElement(Btn, { sm: true, v: "outline", style: { color: PURPLE, borderColor: "#e9d5ff" }, onClick: () => onDuplicate && onDuplicate(card) }, "\u29C9"),
@@ -18885,6 +18885,77 @@ function LotModal({ cards, onSell, onClose }) {
                         " cartas"))))));
 }
 function generateDescription(card){var L=[];L.push("[CARTA] "+card.name);if(card.series)L.push("[SET] "+card.series);if(card.rarity)L.push("[RAREZA] "+card.rarity);if(card.condition)L.push("[CONDICION] "+card.condition);if(card.quantity&&card.quantity>1)L.push("[CANTIDAD] "+card.quantity+" unidades");L.push("");L.push("- Envio disponible");L.push("- Carta en perfecto estado segun descripcion");L.push("- Pago seguro");if(card.notes)L.push("[NOTAS] "+card.notes);return L.join("\n");}
+function dlPriceList(cards){
+    var listed=cards.filter(function(c){return c.status==="listed"&&c.mode==="inventory";});
+    if(!listed.length){alert("No tienes cartas en venta");return;}
+    var sym=getCurrencySymbol();
+    var minRoi=parseFloat(localStorage.getItem("cv10_minroi")||"40");
+    var rows=listed.map(function(c){
+        var precio=parseFloat(c.targetPrice)||parseFloat(c.sellPrice)||parseFloat(c.buyPrice)||0;
+        var compra=(parseFloat(c.buyPrice)||0)*(parseFloat(c.quantity)||1);
+        var minVenta=compra>0?(compra*(1+minRoi/100)).toFixed(2):"-";
+        return "<tr><td>"+c.name+"</td><td>"+(c.series||"-")+"</td><td>"+(c.rarity||"-")+"</td><td>"+(c.condition||"-")+"</td><td align=right><b>"+sym+precio.toFixed(2)+"</b></td><td align=right style=color:#16a34a>"+(minVenta!=="-"?sym+minVenta:"-")+"</td></tr>";
+    }).join("");
+    var html="<!DOCTYPE html><html><head><meta charset=utf-8><title>Lista de precios</title><style>body{font-family:Inter,sans-serif;padding:30px;color:#111}h1{color:#3b82f6;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:20px}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#f1f5f9;padding:10px;text-align:left;border-bottom:2px solid #e2e8f0;font-size:11px;text-transform:uppercase;color:#64748b}td{padding:9px;border-bottom:1px solid #f1f5f9}</style></head><body><h1>Lista de precios</h1><p>"+listed.length+" cartas en venta - "+new Date().toLocaleDateString("es-ES")+"</p><table><thead><tr><th>Carta</th><th>Set</th><th>Rareza</th><th>Condicion</th><th>Precio objetivo</th><th style=color:#16a34a>Min. "+minRoi+"% ROI</th></tr></thead><tbody>"+rows+"</tbody></table></body></html>";
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));
+    a.download="lista-precios.html";
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+function getPublicSlug(){return localStorage.getItem("cv10_slug")||"";}
+function savePublicProfile(cards,slug){
+    if(!slug||!window._currentUser)return;
+    var pub={slug:slug,uid:window._currentUser.uid,cards:cards,updatedAt:Date.now()};
+    var xhr=new XMLHttpRequest();
+    xhr.open("PUT","https://cromovault-default-rtdb.europe-west1.firebasedatabase.app/public/"+slug+".json");
+    xhr.setRequestHeader("Content-Type","application/json");
+    xhr.send(JSON.stringify(pub));
+}
+function PublicProfile(props) {
+    var data = props.data;
+    var slug = props.slug;
+    var cards = data.cards || [];
+    var inv = cards.filter(function(c){ return c.mode === "inventory"; });
+    var col = cards.filter(function(c){ return c.mode === "collection"; });
+    var listed = inv.filter(function(c){ return c.status === "listed"; });
+    var BG2 = "#fff", SUB2 = "#6b7280", BLUE2 = "#3b82f6";
+    return React.createElement("div", { style: { minHeight: "100vh", background: "#f7f8fa", fontFamily: "Inter,sans-serif", fontSize: 14 } },
+        React.createElement("div", { style: { background: BG2, borderBottom: "1px solid #e8eaed", padding: "16px 24px", display: "flex", alignItems: "center", gap: 12 } },
+            React.createElement("div", { style: { fontSize: 24 } }, "\uD83C\uDCCF"),
+            React.createElement("div", null,
+                React.createElement("div", { style: { fontWeight: 700, fontSize: 18 } }, slug),
+                React.createElement("div", { style: { color: SUB2, fontSize: 12 } }, "CromoVault - Perfil p\u00FAblico"))),
+        React.createElement("div", { style: { maxWidth: 1000, margin: "0 auto", padding: 24 } },
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 24 } },
+                React.createElement("div", { style: { background: BG2, borderRadius: 12, padding: 16, textAlign: "center", border: "1px solid #e8eaed" } },
+                    React.createElement("div", { style: { fontSize: 24, fontWeight: 700, color: BLUE2 } }, inv.length),
+                    React.createElement("div", { style: { color: SUB2, fontSize: 12 } }, "Inventario")),
+                React.createElement("div", { style: { background: BG2, borderRadius: 12, padding: 16, textAlign: "center", border: "1px solid #e8eaed" } },
+                    React.createElement("div", { style: { fontSize: 24, fontWeight: 700, color: "#f59e0b" } }, listed.length),
+                    React.createElement("div", { style: { color: SUB2, fontSize: 12 } }, "En venta")),
+                React.createElement("div", { style: { background: BG2, borderRadius: 12, padding: 16, textAlign: "center", border: "1px solid #e8eaed" } },
+                    React.createElement("div", { style: { fontSize: 24, fontWeight: 700, color: "#8b5cf6" } }, col.length),
+                    React.createElement("div", { style: { color: SUB2, fontSize: 12 } }, "Colecci\u00F3n"))),
+            listed.length > 0 && React.createElement("div", { style: { marginBottom: 24 } },
+                React.createElement("div", { style: { fontWeight: 700, fontSize: 15, marginBottom: 12 } }, "\uD83D\uDCB0 En venta"),
+                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 10 } },
+                    listed.map(function(c, i) {
+                        return React.createElement("div", { key: i, style: { background: BG2, borderRadius: 10, padding: 14, border: "1px solid #e8eaed" } },
+                            React.createElement("div", { style: { fontWeight: 600, marginBottom: 4 } }, c.name),
+                            React.createElement("div", { style: { color: SUB2, fontSize: 12, marginBottom: 8 } }, [c.series, c.rarity, c.condition].filter(Boolean).join(" - ")),
+                            c.targetPrice ? React.createElement("div", { style: { fontWeight: 700, color: BLUE2 } }, "\u20AC" + parseFloat(c.targetPrice).toFixed(2)) : null);
+                    }))),
+            col.length > 0 && React.createElement("div", null,
+                React.createElement("div", { style: { fontWeight: 700, fontSize: 15, marginBottom: 12 } }, "\u2B50 Colecci\u00F3n"),
+                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 10 } },
+                    col.map(function(c, i) {
+                        return React.createElement("div", { key: i, style: { background: BG2, borderRadius: 10, padding: 14, border: "1px solid #e8eaed" } },
+                            c.imageUrl ? React.createElement("img", { src: c.imageUrl, style: { width: "100%", height: 120, objectFit: "cover", borderRadius: 8, marginBottom: 8 } }) : null,
+                            React.createElement("div", { style: { fontWeight: 600, marginBottom: 4 } }, c.name),
+                            React.createElement("div", { style: { color: SUB2, fontSize: 12 } }, [c.series, c.rarity, c.condition].filter(Boolean).join(" - ")));
+                    })))));
+}
+
 function isPremium(){return window._isAdmin===true;}
 function App() {
     const [cards, setCards] = useState(() => { try {
@@ -18901,6 +18972,7 @@ function App() {
     } });
     function saveLots(l) { setLots(l); localStorage.setItem("cv10_lots", JSON.stringify(l)); }
     const [showSettings, setShowSettings] = useState(false);
+    const [publicSlug, setPublicSlug] = useState(() => localStorage.getItem("cv10_slug")||"");
     const [darkMode, setDarkMode] = useState(() => localStorage.getItem("cv10_dark") === "1");
     const [currency, setCurrency] = useState(() => localStorage.getItem("cv10_currency") || "EUR");
     const [showLot, setShowLot] = useState(false);
@@ -18950,7 +19022,18 @@ function App() {
                     React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => setShowLot(true) }, "Venta m\u00FAltiple"),
                     React.createElement("button", { onClick: () => setShowSettings(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\u2699\uFE0F")))),
-        showSettings && React.createElement("div", { onClick: function() { setShowSettings(false); }, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" } }, React.createElement("div", { onClick: function(e) { e.stopPropagation(); }, style: { background: BG, borderRadius: 16, padding: 28, minWidth: 300, maxWidth: 400, width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" } }, React.createElement("div", { style: { fontSize: 16, fontWeight: 700, marginBottom: 20 } }, "\u2699\uFE0F Ajustes"), React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "CUENTA"), React.createElement("button", { onClick: function() { setShowSettings(false); window._signOut && window._signOut(); }, style: { width: "100%", padding: "10px 14px", background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#ef4444", textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 16 } }, "\uD83D\uDEAA Cerrar sesi\u00F3n"), React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "APARIENCIA"), React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, marginBottom: 8 } }, React.createElement("span", { style: { fontSize: 13 } }, darkMode ? "\uD83C\uDF19 Modo oscuro" : "\u2600\uFE0F Modo claro"), React.createElement("button", { onClick: function() { setDarkMode(function(d) { return !d; }); }, style: { padding: "8px 20px", background: darkMode ? BLUE : BGS, border: "1px solid " + BDR, borderRadius: 20, cursor: "pointer", fontSize: 13, color: darkMode ? "#fff" : TXT, fontFamily: "Inter,sans-serif" } }, darkMode ? "ON" : "OFF")), React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10 } }, React.createElement("span", { style: { fontSize: 13 } }, "\uD83D\uDCB0 Divisa"), React.createElement("select", { value: currency, onChange: function(e) { setCurrency(e.target.value); }, style: { border: "1px solid " + BDR, borderRadius: 6, padding: "4px 8px", fontSize: 13, background: BG, color: TXT } }, React.createElement("option", { value: "EUR" }, "\u20AC Euro"), React.createElement("option", { value: "GBP" }, "\u00A3 Libra"), React.createElement("option", { value: "USD" }, "$ D\u00F3lar"), React.createElement("option", { value: "AUD" }, "A$ D\u00F3lar AU"))))),
+        showSettings && React.createElement("div", { onClick: function() { setShowSettings(false); }, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" } }, React.createElement("div", { onClick: function(e) { e.stopPropagation(); }, style: { background: BG, borderRadius: 16, padding: 28, minWidth: 300, maxWidth: 400, width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" } }, React.createElement("div", { style: { fontSize: 16, fontWeight: 700, marginBottom: 20 } }, "\u2699\uFE0F Ajustes"), React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "CUENTA"), React.createElement("button", { onClick: function() { setShowSettings(false); window._signOut && window._signOut(); }, style: { width: "100%", padding: "10px 14px", background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#ef4444", textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 16 } }, "\uD83D\uDEAA Cerrar sesi\u00F3n"),
+                React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8, marginTop: 4 } }, "HERRAMIENTAS"),
+                React.createElement("button", { onClick: function() { setShowSettings(false); dlPriceList(JSON.parse(localStorage.getItem("cv10")||"[]")); }, style: { width: "100%", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 13, color: TXT, textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 8 } }, "\uD83D\uDCB0 Exportar lista de precios"),
+                React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8, marginTop: 12 } }, "PERFIL P\u00DABLICO"),
+                React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 4 } },
+                    React.createElement("input", { value: publicSlug, onChange: function(e) { setPublicSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]/g,"")); }, placeholder: "tu-nombre", style: { flex: 1, padding: "8px 10px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif" } }),
+                    React.createElement("button", { onClick: function() {
+                        if(!publicSlug){alert("Escribe un nombre para tu perfil");return;}
+                        localStorage.setItem("cv10_slug", publicSlug);
+                        savePublicProfile(JSON.parse(localStorage.getItem("cv10")||"[]"), publicSlug);
+                        alert("Perfil guardado! Comparte: " + window.location.origin + window.location.pathname + "?p=" + publicSlug);
+                    }, style: { padding: "8px 12px", background: BLUE, border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#fff", fontFamily: "Inter,sans-serif" } }, "Guardar")), React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "APARIENCIA"), React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, marginBottom: 8 } }, React.createElement("span", { style: { fontSize: 13 } }, darkMode ? "\uD83C\uDF19 Modo oscuro" : "\u2600\uFE0F Modo claro"), React.createElement("button", { onClick: function() { setDarkMode(function(d) { return !d; }); }, style: { padding: "8px 20px", background: darkMode ? BLUE : BGS, border: "1px solid " + BDR, borderRadius: 20, cursor: "pointer", fontSize: 13, color: darkMode ? "#fff" : TXT, fontFamily: "Inter,sans-serif" } }, darkMode ? "ON" : "OFF")), React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10 } }, React.createElement("span", { style: { fontSize: 13 } }, "\uD83D\uDCB0 Divisa"), React.createElement("select", { value: currency, onChange: function(e) { setCurrency(e.target.value); }, style: { border: "1px solid " + BDR, borderRadius: 6, padding: "4px 8px", fontSize: 13, background: BG, color: TXT } }, React.createElement("option", { value: "EUR" }, "\u20AC Euro"), React.createElement("option", { value: "GBP" }, "\u00A3 Libra"), React.createElement("option", { value: "USD" }, "$ D\u00F3lar"), React.createElement("option", { value: "AUD" }, "A$ D\u00F3lar AU"))))),
         React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "24px" } },
             tab === "dashboard" && React.createElement(DashTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
             tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
@@ -18973,7 +19056,30 @@ function App() {
                 })))));
 }
 
-window._mountApp = function() { ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App)); };
+window._mountApp = function() {
+  var params = new URLSearchParams(window.location.search);
+  var slug = params.get('p');
+  if(slug) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://cromovault-default-rtdb.europe-west1.firebasedatabase.app/public/' + slug + '.json');
+    xhr.onload = function() {
+      var data = JSON.parse(xhr.responseText);
+      if(data && data.cards) {
+        document.getElementById('cv-login').style.display = 'none';
+        document.getElementById('root').style.display = 'block';
+        ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(PublicProfile, { data: data, slug: slug }));
+      } else {
+        document.getElementById('root').style.display = 'block';
+        document.getElementById('cv-login').style.display = 'none';
+        ReactDOM.createRoot(document.getElementById('root')).render(React.createElement('div', { style: { padding: 40, textAlign: 'center', fontFamily: 'Inter,sans-serif' } }, React.createElement('div', { style: { fontSize: 48 } }, '\uD83D\uDD75\uFE0F'), React.createElement('div', { style: { fontSize: 20, fontWeight: 700, marginTop: 16 } }, 'Perfil no encontrado'), React.createElement('div', { style: { color: '#6b7280', marginTop: 8 } }, 'El perfil "' + slug + '" no existe.')));
+      }
+    };
+    xhr.onerror = function() { ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App)); };
+    xhr.send();
+  } else {
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+  }
+};
   </script>
 
 
