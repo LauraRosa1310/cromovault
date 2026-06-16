@@ -18904,13 +18904,11 @@ function dlPriceList(cards){
 }
 function getPublicSlug(){return localStorage.getItem("cv10_slug")||"";}
 function savePublicProfile(cards,slug){
-    if(!slug||!window._currentUser)return;
+    if(!slug||!window._currentUser||!window._db)return;
     var pub={slug:slug,uid:window._currentUser.uid,cards:cards,updatedAt:Date.now()};
-    if(typeof firebase!=="undefined"&&firebase.apps.length>0){
-        firebase.database().ref("public/"+slug).set(pub).then(function(){
-            alert("Perfil guardado! Comparte: "+window.location.origin+window.location.pathname+"?p="+slug);
-        }).catch(function(e){console.error("Error guardando perfil:",e);alert("Error al guardar perfil");});
-    }
+    window._db.ref("public/"+slug).set(pub).then(function(){
+        alert("Perfil guardado! Comparte: "+window.location.origin+window.location.pathname+"?p="+slug);
+    }).catch(function(e){console.error("Error:",e);alert("Error al guardar: "+e.message);});
 }
 function PublicProfile(props) {
     var data = props.data;
@@ -19062,7 +19060,7 @@ window._mountApp = function() {
   if(slug) {
     document.getElementById('cv-login').style.display = 'none';
     document.getElementById('root').style.display = 'block';
-    firebase.database().ref('public/' + slug).once('value').then(function(snap) {
+    window._db.ref('public/' + slug).once('value').then(function(snap) {
       var data = snap.val();
       if(data && data.cards) {
         ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(PublicProfile, { data: data, slug: slug }));
@@ -19114,7 +19112,7 @@ window._mountApp = function() {
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>
 (function() {
   function initFirebase() {
@@ -19136,16 +19134,14 @@ window._mountApp = function() {
     });
 
     var auth = firebase.auth();
-    var db = firebase.firestore();
+    var db = firebase.database();
+    window._db = db;
     window._currentUser = null;
     window._appMounted = false;
 
     window._saveToFirestore = function(data) {
       if (!window._currentUser) return;
-      db.collection('users').doc(window._currentUser.uid)
-        .collection('data').doc('main')
-        .set(data, {merge: true})
-        .catch(function(e) { console.error('Save error:', e); });
+      db.ref('users/' + window._currentUser.uid).update(data).catch(function(e) { console.error('Save error:', e); });
     };
 
     window._signIn = function() {
@@ -19172,10 +19168,9 @@ window._mountApp = function() {
       window._currentUser = user;
       if (user) {
         window._isAdmin = (user.uid === 'fUCSfpRb7qdA8zHJssUsaxFRtgD3');
-        db.collection('users').doc(user.uid).collection('data').doc('main').get()
-          .then(function(snap) {
-            if (snap.exists) {
-              var d = snap.data();
+        db.ref('users/' + user.uid).once('value').then(function(snap) {
+            var d = snap.val();
+            if (d) {
               if (d.cards) localStorage.setItem('cv10', JSON.stringify(d.cards));
               if (d.invoices) localStorage.setItem('cv10i', JSON.stringify(d.invoices));
               if (d.psaItems) localStorage.setItem('cv10p', JSON.stringify(d.psaItems));
@@ -19184,14 +19179,16 @@ window._mountApp = function() {
               if (d.locs) localStorage.setItem('cv10_locs', d.locs);
               if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
             }
-          })
-          .finally(function() {
             document.getElementById('cv-login').style.display = 'none';
             document.getElementById('root').style.display = 'block';
             if (!window._appMounted && window._mountApp) {
               window._mountApp();
               window._appMounted = true;
             }
+          }).catch(function() {
+            document.getElementById('cv-login').style.display = 'none';
+            document.getElementById('root').style.display = 'block';
+            if (!window._appMounted && window._mountApp) { window._mountApp(); window._appMounted = true; }
           });
       } else {
         document.getElementById('root').style.display = 'none';
