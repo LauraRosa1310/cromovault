@@ -17441,6 +17441,7 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                     f.mode === "inventory" && f.status === "listed" && (React.createElement("div", { style: { marginBottom: 12 } },
                         React.createElement("label", { style: LS }, "\uD83D\uDCC5 Fecha en que la pusiste en venta"),
                         React.createElement("input", { type: "date", value: f.listingDate || "", onChange: e => sf("listingDate", e.target.value), style: IS }))),
+                    f.mode === "inventory" && f.status === "listed" && React.createElement("div", { style: { marginBottom: 12, padding: "10px 14px", background: BGS, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "space-between" } }, React.createElement("label", { style: { fontSize: 12, fontWeight: 500, color: SUB } }, "Mostrar en perfil publico"), React.createElement("button", { onClick: function() { sf("publicVisible", !f.publicVisible); }, style: { padding: "4px 12px", background: f.publicVisible ? "#16a34a" : BGS, border: "1px solid " + (f.publicVisible ? "#d1fae5" : BDR), borderRadius: 20, cursor: "pointer", fontSize: 12, color: f.publicVisible ? "#fff" : SUB, fontFamily: "Inter,sans-serif" } }, f.publicVisible ? "SI" : "NO")),
                     React.createElement("div", { style: { marginBottom: 12 } },
                         React.createElement("label", { style: LS }, "Nombre *"),
                         React.createElement("input", { value: f.name, onChange: e => sf("name", e.target.value), placeholder: "Charizard Holo / Messi Rookie...", style: IS, autoFocus: true })),
@@ -18915,7 +18916,7 @@ function savePublicProfile(cards,slug,contact,payment,shipping,avatar,banner){
     var user=window._currentUser||(typeof firebase!=="undefined"&&firebase.apps.length>0?firebase.auth().currentUser:null);
     if(!user){alert("Necesitas estar logueado");return;}
     if(!window._db){alert("DB no disponible");return;}
-    var listed=cards.filter(function(c){return c.status==="listed"||c.mode==="collection";});
+    var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";});
     var sold=cards.filter(function(c){return c.status==="sold";});
     var pub={slug:slug,uid:user.uid,cards:listed,sold:sold,updatedAt:Date.now(),contact:contact||"",payment:payment||"",shipping:shipping||"",avatar:avatar||"",banner:banner||""};
     console.log("Saving pub:", pub.contact, pub.payment, pub.shipping, "cards:", listed.length);
