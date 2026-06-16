@@ -19342,7 +19342,7 @@ function App() {
         } catch(e) {}
     }, []);
     const [tab, setTab] = useState("dashboard"), [sf, setSF] = useState(false), [dm, setDm] = useState("inventory"), [ec, setEc] = useState(null), [sc, setSc] = useState(null);
-    useEffect(() => { localStorage.setItem("cv10", JSON.stringify(cards)); if (window._currentUser && cards.length > 0) window._saveToFirestore && window._saveToFirestore({ cards: cards }); }, [cards]);
+    useEffect(() => { localStorage.setItem("cv10", JSON.stringify(cards)); if (window._currentUser && cards.length > 0) window._saveToFirestore && window._saveToFirestore({ cards: cards }); var slug=localStorage.getItem("cv10_slug"); if(slug&&window._db&&window._currentUser&&cards.length>0){ var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";}); var sold=cards.filter(function(c){return c.status==="sold";}); var vc=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;}); window._db.ref("public/"+slug+"/cards").set(listed); window._db.ref("public/"+slug+"/validCodes").set(vc); } }, [cards]);
     useEffect(() => { localStorage.setItem("cv10i", JSON.stringify(invoices)); if (window._currentUser) window._saveToFirestore && window._saveToFirestore({ invoices: invoices }); }, [invoices]);
     function ups(c) { setCards(p => p.find(x => x.id === c.id) ? p.map(x => x.id === c.id ? c : x) : [c, ...p]); }
     function del(id) { setCards(p => p.filter(c => c.id !== id)); }
