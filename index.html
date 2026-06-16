@@ -19079,7 +19079,7 @@ window._mountApp = function() {
     document.getElementById('root').style.display = 'block';
     window._db.ref('public/' + slug).once('value').then(function(snap) {
       var data = snap.val();
-      console.log('Profile data:', JSON.stringify({contact:data&&data.contact,payment:data&&data.payment,shipping:data&&data.shipping}));
+      console.log('Profile data full:', data&&data.sold&&data.sold.length, 'sold', data&&data.ratings&&data.ratings.length, 'ratings', data&&data.contact);
       if(data && data.cards) {
         ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(PublicProfile, { data: data, slug: slug }));
       } else {
