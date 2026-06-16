@@ -19004,7 +19004,7 @@ function App() {
                         localStorage.setItem("cv10_contact", publicContact);
                         localStorage.setItem("cv10_shipping", publicShipping);
                         localStorage.setItem("cv10_payment", publicPayment);
-                        savePublicProfile(JSON.parse(localStorage.getItem("cv10")||"[]"), publicSlug);
+                        savePublicProfile(JSON.parse(localStorage.getItem("cv10")||"[]"), publicSlug, publicContact, publicPayment, publicShipping);
                     }, style: { padding: "8px 12px", background: BLUE, border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#fff", fontFamily: "Inter,sans-serif" } }, "Guardar")),
                 React.createElement("input", { value: publicContact, onChange: function(e){ setPublicContact(e.target.value); }, placeholder: "Email o WhatsApp (ej: 612345678)", style: { width: "100%", padding: "8px 10px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif", marginTop: 8, boxSizing: "border-box" } }),
                 React.createElement("input", { value: publicPayment, onChange: function(e){ setPublicPayment(e.target.value); }, placeholder: "Pagos: PayPal, Bizum, Transferencia...", style: { width: "100%", padding: "8px 10px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif", marginTop: 6, boxSizing: "border-box" } }),
