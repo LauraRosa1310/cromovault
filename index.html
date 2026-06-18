@@ -19036,7 +19036,19 @@ window._mountApp = function() {
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-<script>
+<script>function requireLogin(cb){
+  if(window._currentUser){cb();return;}
+  var modal=document.createElement("div");
+  modal.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif";
+  modal.innerHTML='<div style="background:#fff;border-radius:16px;padding:32px;max-width:340px;width:90%;text-align:center"><div style="font-size:32px;margin-bottom:12px">\uD83D\uDD12</div><div style="font-size:18px;font-weight:700;margin-bottom:8px">Inicia sesi\u00F3n</div><div style="color:#6b7280;font-size:14px;margin-bottom:24px">Necesitas una cuenta para realizar esta acci\u00F3n</div><button id="cv-modal-login" style="width:100%;padding:12px;background:#3b82f6;border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Continuar con Google</button><button id="cv-modal-close" style="width:100%;padding:10px;background:none;border:none;color:#6b7280;font-size:13px;cursor:pointer;margin-top:8px;font-family:Inter,sans-serif">Cancelar</button></div>';
+  document.body.appendChild(modal);
+  document.getElementById("cv-modal-login").onclick=function(){
+    if(window._signIn){window._signIn();}
+    document.body.removeChild(modal);
+  };
+  document.getElementById("cv-modal-close").onclick=function(){document.body.removeChild(modal);};
+}
+
 function FavButton(props){var slug=props.slug,cardId=props.cardId,price=props.price,cardName=props.cardName;var safeId=cardId.split("").filter(function(c){return (c>="a"&&c<="z")||(c>="A"&&c<="Z")||(c>="0"&&c<="9");}).join("");var key="favs_"+slug+"_"+safeId;var fs=useState(function(){try{return JSON.parse(localStorage.getItem(key)||"false");}catch(e){return false;}}),isFav=fs[0],setIsFav=fs[1];function toggle(){var newVal=!isFav;setIsFav(newVal);localStorage.setItem(key,JSON.stringify(newVal));if(window._db){var ref=window._db.ref("favorites/"+slug+"/"+safeId);if(newVal){ref.set({cardId:cardId,cardName:cardName,price:price,priceAtSave:price,savedAt:Date.now()});}else{ref.remove();}}}return React.createElement("button",{onClick:function(e){e.stopPropagation();toggle();},title:isFav?"Quitar":"Favorito",style:{background:"rgba(255,255,255,0.9)",border:"none",cursor:"pointer",fontSize:18,padding:"4px",lineHeight:1,borderRadius:"50%",color:isFav?"#ef4444":"#9ca3af"}},isFav?"♥":"♡");}
 
 function PublicProfile(props){
@@ -19160,11 +19172,15 @@ var chatTab=ce("div",{style:{display:"flex",flexDirection:"column",height:500}},
 );
 function sendMsg(){
   if(!newMsg.trim())return;
-  if(!window._db){alert("No disponible");return;}
-  var name=localStorage.getItem("cv10_chatname");
-  if(!name){name=prompt("Tu nombre:");if(!name)return;localStorage.setItem("cv10_chatname",name);}
-  window._db.ref("chats/"+slug).push({name:name,text:newMsg.trim(),ts:Date.now(),isOwner:false});
-  setNewMsg("");
+  requireLogin(function(){
+    if(!window._db){alert("No disponible");return;}
+    var user=window._currentUser;
+    var name=user.displayName||user.email||"Usuario";
+    var uid=user.uid;
+    var isOwner=window._isAdmin===true;
+    window._db.ref("chats/"+slug).push({name:name,uid:uid,text:newMsg.trim(),ts:Date.now(),isOwner:isOwner});
+    setNewMsg("");
+  });
 }
 var body=at==="venta"?ventaTab:at==="coleccion"?colTab:at==="valoraciones"?valTab:chatTab;
 return ce("div",{style:{minHeight:"100vh",background:"#f7f8fa",fontFamily:"Inter,sans-serif",fontSize:14,color:"#111"}},
