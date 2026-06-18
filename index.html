@@ -18891,6 +18891,77 @@ function LotModal({ cards, onSell, onClose }) {
 }
 function dlPriceList(cards){var listed=cards.filter(function(c){return c.status==="listed"&&c.mode==="inventory";});if(!listed.length){alert("No tienes cartas en venta");return;}var sym=getCurrencySymbol();var minRoi=parseFloat(localStorage.getItem("cv10_minroi")||"40");var rows=listed.map(function(c){var precio=parseFloat(c.targetPrice)||parseFloat(c.sellPrice)||parseFloat(c.buyPrice)||0;var compra=(parseFloat(c.buyPrice)||0)*(parseFloat(c.quantity)||1);var minVenta=compra>0?(compra*(1+minRoi/100)).toFixed(2):"-";return "<tr><td>"+c.name+"</td><td>"+(c.series||"-")+"</td><td>"+(c.rarity||"-")+"</td><td>"+(c.condition||"-")+"</td><td align=right>"+sym+precio.toFixed(2)+"</td><td align=right style=color:#16a34a>"+(minVenta!=="-"?sym+minVenta:"-")+"</td></tr>";}).join("");var html="<!DOCTYPE html><html><head><meta charset=utf-8><title>Lista precios</title></head><body><h1>Lista de precios</h1><p>"+listed.length+" cartas</p><table><thead><tr><th>Carta</th><th>Set</th><th>Rareza</th><th>Condicion</th><th>Precio</th><th>Min "+minRoi+"%</th></tr></thead><tbody>"+rows+"</tbody></table></body></html>";var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));a.download="lista-precios.html";document.body.appendChild(a);a.click();document.body.removeChild(a);}
 function savePublicProfile(cards,slug,contact,payment,shipping,avatar,banner){if(!slug)return;var user=window._currentUser||(typeof firebase!=="undefined"&&firebase.apps.length>0?firebase.auth().currentUser:null);if(!user){alert("Necesitas estar logueado");return;}if(!window._db){alert("DB no disponible");return;}var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";});var sold=cards.filter(function(c){return c.status==="sold";});var validCodes=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;});var pub={slug:slug,uid:user.uid,cards:listed,sold:sold,validCodes:validCodes,updatedAt:Date.now(),contact:contact||"",payment:payment||"",shipping:shipping||"",avatar:avatar||"",banner:banner||""};window._db.ref("public/"+slug).set(pub).then(function(){alert("Perfil guardado!");}).catch(function(e){alert("Error: "+e.message);});}
+function MessagesTab(){
+  var state=useState([]),convs=state[0],setConvs=state[1];
+  var sel=useState(null),selected=sel[0],setSelected=sel[1];
+  var ms=useState([]),msgs=ms[0],setMsgs=ms[1];
+  var ni=useState(""),newMsg=ni[0],setNewMsg=ni[1];
+  var slug=localStorage.getItem("cv10_slug");
+  React.useEffect(function(){
+    if(!window._db||!slug)return;
+    window._db.ref("chats/"+slug).on("value",function(snap){
+      var d=snap.val();
+      if(!d){setConvs([]);return;}
+      var list=Object.keys(d).map(function(uid){
+        var msgs=d[uid];
+        var keys=Object.keys(msgs||{});
+        var last=keys.length>0?msgs[keys[keys.length-1]]:{};
+        return {uid:uid,name:last.name||"Usuario",lastMsg:last.text||"",lastTs:last.ts||0,msgs:msgs};
+      }).sort(function(a,b){return b.lastTs-a.lastTs;});
+      setConvs(list);
+    });
+    return function(){if(window._db&&slug)window._db.ref("chats/"+slug).off();};
+  },[]);
+  React.useEffect(function(){
+    if(!selected)return;
+    var conv=convs.find(function(c){return c.uid===selected;});
+    if(conv&&conv.msgs){
+      var list=Object.keys(conv.msgs).map(function(k){return conv.msgs[k];}).sort(function(a,b){return a.ts-b.ts;});
+      setMsgs(list);
+    }
+  },[selected,convs]);
+  var ce=React.createElement;
+  function sendReply(){
+    if(!newMsg.trim()||!window._db||!slug||!selected||!window._currentUser)return;
+    var user=window._currentUser;
+    window._db.ref("chats/"+slug+"/"+selected).push({name:user.displayName||"Vendedor",uid:user.uid,text:newMsg.trim(),ts:Date.now()});
+    setNewMsg("");
+  }
+  return ce("div",{style:{display:"flex",height:"calc(100vh - 120px)",fontFamily:"Inter,sans-serif"}},
+    ce("div",{style:{width:280,borderRight:"1px solid #e8eaed",overflowY:"auto",background:"#fff"}},
+      ce("div",{style:{padding:"16px",fontWeight:700,fontSize:15,borderBottom:"1px solid #e8eaed"}},"Conversaciones"),
+      convs.length===0?ce("div",{style:{padding:20,color:"#6b7280",fontSize:13}},"Sin mensajes aun"):
+      convs.map(function(c,i){
+        return ce("div",{key:i,onClick:function(){setSelected(c.uid);},style:{padding:"12px 16px",cursor:"pointer",background:selected===c.uid?"#eff6ff":"#fff",borderBottom:"1px solid #f1f5f9"}},
+          ce("div",{style:{fontWeight:600,fontSize:14,marginBottom:2}},c.name),
+          ce("div",{style:{fontSize:12,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},c.lastMsg),
+          ce("div",{style:{fontSize:10,color:"#9ca3af",marginTop:2}},c.lastTs?new Date(c.lastTs).toLocaleDateString("es-ES"):"")
+        );
+      })
+    ),
+    selected?ce("div",{style:{flex:1,display:"flex",flexDirection:"column"}},
+      ce("div",{style:{padding:"12px 16px",borderBottom:"1px solid #e8eaed",fontWeight:600,fontSize:14,background:"#fff"}},
+        (convs.find(function(c){return c.uid===selected;})||{}).name||"Usuario"
+      ),
+      ce("div",{style:{flex:1,overflowY:"auto",padding:16,display:"flex",flexDirection:"column",gap:8,background:"#f7f8fa"}},
+        msgs.map(function(m,i){
+          var mine=window._currentUser&&m.uid===window._currentUser.uid;
+          return ce("div",{key:i,style:{display:"flex",flexDirection:"column",alignItems:mine?"flex-end":"flex-start"}},
+            ce("div",{style:{background:mine?"#3b82f6":"#fff",color:mine?"#fff":"#111",borderRadius:12,padding:"10px 14px",border:"1px solid #e8eaed",maxWidth:"75%"}},
+              ce("div",{style:{fontWeight:600,fontSize:11,marginBottom:2,opacity:0.7}},mine?"Tu":m.name),
+              ce("div",{style:{fontSize:14}},m.text)
+            ),
+            ce("div",{style:{fontSize:10,color:"#9ca3af",marginTop:2}},new Date(m.ts).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}))
+          );
+        })
+      ),
+      ce("div",{style:{padding:12,borderTop:"1px solid #e8eaed",display:"flex",gap:8,background:"#fff"}},
+        ce("input",{value:newMsg,onChange:function(e){setNewMsg(e.target.value);},onKeyDown:function(e){if(e.key==="Enter"){sendReply();}},placeholder:"Responder...",style:{flex:1,padding:"10px 14px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,fontFamily:"Inter,sans-serif"}}),
+        ce("button",{onClick:sendReply,style:{padding:"10px 20px",background:"#3b82f6",border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Enviar")
+      )
+    ):ce("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:14}},"Selecciona una conversacion")
+  );
+}
 function isPremium(){return window._isAdmin===true;}
 function App() {
     const [cards, setCards] = useState(() => { try {
@@ -18978,6 +19049,8 @@ function App() {
             tab === "invoices" && React.createElement(InvoicesTab, { invoices: invoices, setInvoices: setInvoices }),
             tab === "analytics" && React.createElement(AnalyticsTab, { cards: cards }),
             tab === "lots" && (isPremium() ? React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards }) : React.createElement("div",{style:{maxWidth:500,margin:"80px auto",textAlign:"center",padding:40}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"\uD83D\uDD12"),React.createElement("div",{style:{fontSize:20,fontWeight:700,marginBottom:8}},"Función Premium"),React.createElement("div",{style:{color:SUB,marginBottom:24}},"Los lotes son una función Premium"),React.createElement("button",{onClick:function(){setShowSettings(true);},style:{padding:"12px 24px",background:BLUE,border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B50 Hazte Premium"))),
+            tab === "messages" && React.createElement(MessagesTab, null),
+            tab === "messages" && React.createElement(MessagesTab, null),
             tab === "psa" && (isPremium() ? React.createElement(PSATab, null) : React.createElement("div",{style:{maxWidth:500,margin:"80px auto",textAlign:"center",padding:40}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"\uD83D\uDD12"),React.createElement("div",{style:{fontSize:20,fontWeight:700,marginBottom:8}},"Función Premium"),React.createElement("div",{style:{color:SUB,marginBottom:24}},"PSA/BGS es una función Premium"),React.createElement("button",{onClick:function(){setShowSettings(true);},style:{padding:"12px 24px",background:BLUE,border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B50 Hazte Premium")))),
         sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); }, editCard: ec, defMode: dm }),
         showLot && React.createElement(LotModal, { cards: cards, onSell: ups, onClose: () => setShowLot(false) }),
@@ -18985,7 +19058,7 @@ function App() {
         dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onClose: () => setDupCard(null) }),
         React.createElement("div", { id: "cv-bottom-nav" },
             React.createElement("div", { id: "cv-bottom-nav-inner" },
-                [["dashboard","\uD83D\uDCCA","Dashboard"],["inventory","\uD83D\uDCE6","Inv."],["collection","\u2B50","Colec."],["fiscal","\uD83E\uDDFE","Fiscal"],["invoices","\uD83D\uDDC2","Fact."],["analytics","\uD83D\uDCC8","An\u00E1lisis"],["lots","\uD83D\uDCE6","Lotes"],["psa","\uD83C\uDFC6","PSA"]].map(function(item) {
+                [["dashboard","\uD83D\uDCCA","Dashboard"],["inventory","\uD83D\uDCE6","Inv."],["collection","\u2B50","Colec."],["fiscal","\uD83E\uDDFE","Fiscal"],["invoices","\uD83D\uDDC2","Fact."],["analytics","\uD83D\uDCC8","An\u00E1lisis"],["lots","\uD83D\uDCE6","Lotes"],["psa","\uD83C\uDFC6","PSA"],["messages","\uD83D\uDCAC","Chats"]].map(function(item) {
                     return React.createElement("button", { key: item[0], className: tab === item[0] ? "active" : "", onClick: function() { setTab(item[0]); } },
                         React.createElement("span", { className: "icon" }, item[1]),
                         React.createElement("span", { className: "label" }, item[2]));
