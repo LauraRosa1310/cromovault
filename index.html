@@ -19072,7 +19072,7 @@ var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",padd
   )
 );
 var tabs=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",display:"flex"}},
-  ["venta","coleccion","valoraciones"].map(function(t){
+  ["venta","coleccion","valoraciones","chat"].map(function(t){
     return ce("button",{key:t,onClick:function(){sat(t);},style:{padding:"14px 24px",border:"none",background:"none",fontSize:14,fontWeight:at===t?700:400,color:at===t?"#3b82f6":"#6b7280",borderBottom:at===t?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},
       t==="venta"?"En venta ("+listed.length+")":t==="coleccion"?"Coleccion ("+col.length+")":t==="valoraciones"?"Valoraciones ("+ratings.length+")":"Chat"
     );
