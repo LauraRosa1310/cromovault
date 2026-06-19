@@ -17499,6 +17499,7 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                     React.createElement("div", { style: { marginBottom: 12 } },
                         React.createElement("label", { style: LS }, "\uD83C\uDFAF Precio objetivo (\u20AC)"),
                         React.createElement("div", { style: { display: "flex", gap: 6 } }, React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.targetPrice, onChange: function(e){ sf("targetPrice", e.target.value); }, placeholder: "Precio objetivo", style: Object.assign({}, IS, { flex: 1 }) }), React.createElement("button", { type: "button", onClick: function(){ var cost=(parseFloat(f.buyPrice)||0)*(parseFloat(f.quantity)||1); var roi=parseFloat(localStorage.getItem("cv10_minroi")||"40"); if(cost>0){sf("targetPrice",(cost*(1+roi/100)).toFixed(2));} }, style: { padding: "6px 10px", background: BLUE, border: "none", borderRadius: 8, cursor: "pointer", fontSize: 11, color: "#fff", fontWeight: 600, fontFamily: "Inter,sans-serif", whiteSpace: "nowrap" } }, "ROI auto"))),
+                    f.mode === "inventory" && f.status === "listed" && React.createElement("div", { style: { marginBottom: 12 } }, React.createElement("label", { style: LS }, "Precio oferta (deja vacio para quitar oferta)"), React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.salePrice || "", onChange: function(e){ sf("salePrice", e.target.value); }, placeholder: "Precio con descuento", style: IS })),
                     tB > 0 && React.createElement("div", { style: { background: BGS, borderRadius: 8, padding: "9px 12px", fontSize: 13 } },
                         "Total: ",
                         React.createElement("b", null, eu(tB)),
@@ -18901,6 +18902,10 @@ function MessagesTab(){
   var state=useState([]),convs=state[0],setConvs=state[1];
   var sel=useState(null),selected=sel[0],setSelected=sel[1];
   var ms=useState([]),msgs=ms[0],setMsgs=ms[1];
+  var at=useState("chats"),activeTab=at[0],setActiveTab=at[1];
+  var ns=useState([]),notifs=ns[0],setNotifs=ns[1];
+  var slug=localStorage.getItem("cv10_slug");
+  React.useEffect(function(){if(!window._db||!slug)return;var lastCheck=parseInt(localStorage.getItem("cv10_lastcheck")||"0");window._db.ref("favorites/"+slug).once("value").then(function(snap){var favs=snap.val();if(!favs)return;var list=[];Object.keys(favs).forEach(function(k){var f=favs[k];if(f.savedAt>lastCheck){list.push({text:"♥ Favorito: "+(f.cardName||k),ts:f.savedAt});}});setNotifs(list);});},[]); 
   var ni=useState(""),newMsg=ni[0],setNewMsg=ni[1];
   var slug=localStorage.getItem("cv10_slug");
   React.useEffect(function(){
@@ -18933,7 +18938,14 @@ function MessagesTab(){
     window._db.ref("chats/"+slug+"/"+selected).push({name:user.displayName||"Vendedor",uid:user.uid,text:newMsg.trim(),ts:Date.now()});
     setNewMsg("");
   }
-  return ce("div",{style:{display:"flex",height:"calc(100vh - 120px)",fontFamily:"Inter,sans-serif"}},
+  return ce("div",{style:{display:"flex",flexDirection:"column",height:"100vh",fontFamily:"Inter,sans-serif"}},
+    ce("div",{style:{display:"flex",borderBottom:"1px solid #e8eaed",background:"#fff",flexShrink:0}},
+      ce("button",{onClick:function(){setActiveTab("chats");},style:{flex:1,padding:"14px 8px",border:"none",background:"none",fontSize:13,fontWeight:activeTab==="chats"?700:400,color:activeTab==="chats"?"#3b82f6":"#6b7280",borderBottom:activeTab==="chats"?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Chats"),
+      ce("button",{onClick:function(){setActiveTab("notifs");localStorage.setItem("cv10_lastcheck",String(Date.now()));},style:{flex:1,padding:"14px 8px",border:"none",background:"none",fontSize:13,fontWeight:activeTab==="notifs"?700:400,color:activeTab==="notifs"?"#3b82f6":"#ef4444",borderBottom:activeTab==="notifs"?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},notifs.length>0?"Notif. ("+notifs.length+")":"Notif.")
+    ),
+    activeTab==="notifs"?
+      ce("div",{style:{flex:1,overflowY:"auto",padding:16}},notifs.length===0?ce("div",{style:{textAlign:"center",color:"#6b7280",padding:40}},"Sin notificaciones"):notifs.map(function(n,i){return ce("div",{key:i,style:{padding:"12px 16px",borderBottom:"1px solid #f1f5f9",fontSize:13}},ce("div",null,n.text),ce("div",{style:{fontSize:10,color:"#9ca3af",marginTop:4}},new Date(n.ts).toLocaleString("es-ES")));}))
+    :ce("div",{style:{display:"flex",flex:1,overflow:"hidden"}},
     ce("div",{style:{width:280,borderRight:"1px solid #e8eaed",overflowY:"auto",background:"#fff"}},
       ce("div",{style:{padding:"16px",fontWeight:700,fontSize:15,borderBottom:"1px solid #e8eaed"}},"Conversaciones"),
       convs.length===0?ce("div",{style:{padding:20,color:"#6b7280",fontSize:13}},"Sin mensajes aun"):
@@ -18966,7 +18978,7 @@ function MessagesTab(){
         ce("button",{onClick:sendReply,style:{padding:"10px 20px",background:"#3b82f6",border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Enviar")
       )
     ):ce("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:14}},"Selecciona una conversacion")
-  );
+  ));
 }
 function isPremium(){return window._isAdmin===true;}
 function App() {
@@ -19169,7 +19181,7 @@ var ventaTab=ce("div",null,
         c.imageUrl?ce("img",{src:c.imageUrl,style:{width:"100%",height:140,objectFit:"cover",borderRadius:8}}):ce("div",{style:{width:"100%",height:80,background:"#eff6ff",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:12,fontWeight:600}},c.name.substring(0,2).toUpperCase()),
         ce("div",{style:{fontWeight:600,fontSize:13,marginTop:4}},c.name),
         ce("div",{style:{color:"#6b7280",fontSize:11}},[c.series,c.rarity].filter(Boolean).join(" - ")),
-        ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:4}},c.targetPrice?ce("div",{style:{fontWeight:700,color:"#3b82f6"}},"EUR "+parseFloat(c.targetPrice).toFixed(2)):ce("div",null),ce(FavButton,{slug:slug,cardId:c.id||c.name,price:parseFloat(c.targetPrice)||0,cardName:c.name}))
+        ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:4}},c.salePrice?ce("div",null,ce("span",{style:{textDecoration:"line-through",color:"#9ca3af",fontSize:12,marginRight:4}},"EUR "+parseFloat(c.targetPrice||0).toFixed(2)),ce("span",{style:{fontWeight:700,color:"#ef4444"}},"EUR "+parseFloat(c.salePrice).toFixed(2))):c.targetPrice?ce("div",{style:{fontWeight:700,color:"#3b82f6"}},"EUR "+parseFloat(c.targetPrice).toFixed(2)):ce("div",null),ce(FavButton,{slug:slug,cardId:c.id||c.name,price:parseFloat(c.salePrice||c.targetPrice)||0,cardName:c.name}))
       );
     })
   )
