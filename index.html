@@ -19136,6 +19136,7 @@ function FavButton(props){var slug=props.slug,cardId=props.cardId,price=props.pr
 function PublicProfile(props){
 var data=props.data,slug=props.slug;
 var cards=data.cards||[];
+var sold=data.sold||[];
 var ratings=data.ratings||[];
 var inv=cards.filter(function(c){return c.mode==="inventory";});
 var col=cards.filter(function(c){return c.mode==="collection";});
