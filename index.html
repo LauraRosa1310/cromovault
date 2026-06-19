@@ -19393,7 +19393,7 @@ function initFirebase() {
       window._currentUser = user;
       if (user) {
         window._isAdmin = (user.uid === 'fUCSfpRb7qdA8zHJssUsaxFRtgD3');
-        if(window._db&&!localStorage.getItem('cv10_slug')){window._db.ref('public').orderByChild('uid').equalTo(user.uid).once('value').then(function(snap){var d=snap.val();if(d){var key=Object.keys(d)[0];var p=d[key];if(p&&p.slug){localStorage.setItem('cv10_slug',p.slug);if(p.contact)localStorage.setItem('cv10_contact',p.contact);if(p.payment)localStorage.setItem('cv10_payment',p.payment);if(p.shipping)localStorage.setItem('cv10_shipping',p.shipping);if(p.avatar)localStorage.setItem('cv10_avatar',p.avatar);if(p.banner)localStorage.setItem('cv10_banner',p.banner);}}});}
+        var wasSlug=localStorage.getItem('cv10_slug'); if(window._db&&!wasSlug){window._db.ref('public').orderByChild('uid').equalTo(user.uid).once('value').then(function(snap){var d=snap.val();if(d){var key=Object.keys(d)[0];var p=d[key];if(p&&p.slug){localStorage.setItem('cv10_slug',p.slug);if(p.contact)localStorage.setItem('cv10_contact',p.contact);if(p.payment)localStorage.setItem('cv10_payment',p.payment);if(p.shipping)localStorage.setItem('cv10_shipping',p.shipping);if(p.avatar)localStorage.setItem('cv10_avatar',p.avatar);if(p.banner)localStorage.setItem('cv10_banner',p.banner);}}});}
         db.collection('users').doc(user.uid).collection('data').doc('main').get()
           .then(function(snap) {
             if (snap.exists) {
@@ -19411,6 +19411,7 @@ function initFirebase() {
               if (d.publicShipping) localStorage.setItem('cv10_shipping', d.publicShipping);
               if (d.publicAvatar) localStorage.setItem('cv10_avatar', d.publicAvatar);
               if (d.publicBanner) localStorage.setItem('cv10_banner', d.publicBanner);
+              if (d.publicSlug && !wasSlug) window._needsReload = true;
             }
           })
           .finally(function() {
