@@ -17352,7 +17352,7 @@ function SellModal({ card, onSave, onClose }) {
         }
         else {
             // All units sold
-            var reviewCode="CV-"+Math.random().toString(36).substr(2,4).toUpperCase();onSave(Object.assign(Object.assign({},card),{status:"sold",sellPrice:parseFloat(pr)||0,sellDate:dt,platformFee:parseFloat(fe)||0,shippingCost:parseFloat(sh)||0,platform:pl,reviewCode:reviewCode}));setTimeout(function(){alert("Codigo: "+reviewCode);},100);
+            var reviewCode="CV-"+Math.random().toString(36).substr(2,4).toUpperCase();onSave(Object.assign(Object.assign({},card),{status:"sold",sellPrice:parseFloat(pr)||0,sellDate:dt,platformFee:parseFloat(fe)||0,shippingCost:parseFloat(sh)||0,platform:pl,reviewCode:reviewCode}));setTimeout(function(){alert("Codigo CV: "+reviewCode+"\n\nEste codigo es de un solo uso. Compartelo con el comprador tras enviar la carta. Al introducirlo en tu perfil publico podra dejarte una valoracion.");},100);
         }
         onClose();
     }
@@ -19142,6 +19142,7 @@ var col=cards.filter(function(c){return c.mode==="collection";});
 var listed=inv.filter(function(c){return c.status==="listed";});
 var avg=ratings.length>0?(ratings.reduce(function(a,r){return a+(r.stars||0);},0)/ratings.length).toFixed(1):null;
 var ts=useState("venta"),at=ts[0],sat=ts[1];
+  var sc=useState(null),selCard=sc[0],setSelCard=sc[1];
   var ms=useState([]),msgs=ms[0],setMsgs=ms[1];
   var ni=useState(""),newMsg=ni[0],setNewMsg=ni[1];
   React.useEffect(function(){if(!window._db||!window._currentUser)return;var uid=window._currentUser.uid;var ref=window._db.ref("chats/"+slug+"/"+uid);ref.on("value",function(snap){var d=snap.val();if(d){setMsgs(Object.keys(d).map(function(k){return d[k];}).sort(function(a,b){return a.ts-b.ts;}));}else{setMsgs([]);}});return function(){ref.off();};});
@@ -19156,7 +19157,7 @@ var sty={background:"#fff",borderRadius:12,padding:14,border:"1px solid #e8eaed"
 var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",padding:"24px",display:"flex",gap:16,flexWrap:"wrap"}},
   data.avatar?ce("img",{src:data.avatar,style:{width:80,height:80,borderRadius:"50%",objectFit:"cover"}}):ce("div",{style:{width:80,height:80,borderRadius:"50%",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,color:"#fff",fontWeight:700}},slug.substring(0,2).toUpperCase()),
   ce("div",{style:{flex:1}},
-    ce("div",{style:{fontWeight:700,fontSize:22,marginBottom:4}},slug),
+    ce("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:4}},ce("div",{style:{fontWeight:700,fontSize:22}},slug),ratings.length>=5?ce("div",{title:"Vendedor verificado",style:{background:"#3b82f6",color:"#fff",borderRadius:"50%",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,flexShrink:0}},"✓"):null),
     avg?ce("div",{style:{color:"#f59e0b",fontSize:13,marginBottom:6}},"*".repeat(Math.round(parseFloat(avg)))+" "+avg+" ("+ratings.length+")"):ce("div",{style:{color:"#9ca3af",fontSize:13,marginBottom:6}},"Sin valoraciones"),
     ce("div",{style:{display:"flex",gap:12,fontSize:13,color:"#6b7280"}},
       data.shipping?ce("span",null,"Envios: "+data.shipping):null,
@@ -19166,9 +19167,9 @@ var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",padd
   )
 );
 var tabs=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",display:"flex"}},
-  ["venta","coleccion","valoraciones","chat"].map(function(t){
+  ["venta","coleccion","valoraciones","vendidas","chat"].map(function(t){
     return ce("button",{key:t,onClick:function(){sat(t);},style:{padding:"14px 24px",border:"none",background:"none",fontSize:14,fontWeight:at===t?700:400,color:at===t?"#3b82f6":"#6b7280",borderBottom:at===t?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},
-      t==="venta"?"En venta ("+listed.length+")":t==="coleccion"?"Coleccion ("+col.length+")":t==="valoraciones"?"Valoraciones ("+ratings.length+")":"Chat"
+      t==="venta"?"En venta ("+listed.length+")":t==="coleccion"?"Coleccion ("+col.length+")":t==="valoraciones"?"Valoraciones ("+ratings.length+")":t==="vendidas"?"Vendidas ("+sold.length+")":"Chat"
     );
   })
 );
@@ -19177,7 +19178,7 @@ var ventaTab=ce("div",null,
   fl.length===0?ce("div",{style:{color:"#6b7280",textAlign:"center",padding:40}},"No hay resultados"):
   ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12}},
     fl.map(function(c,i){
-      return ce("div",{key:i,style:sty},
+      return ce("div",{key:i,onClick:function(){setSelCard(c);},style:Object.assign({},sty,{cursor:"pointer"})},
         c.imageUrl?ce("img",{src:c.imageUrl,style:{width:"100%",height:140,objectFit:"cover",borderRadius:8}}):ce("div",{style:{width:"100%",height:80,background:"#eff6ff",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:12,fontWeight:600}},c.name.substring(0,2).toUpperCase()),
         ce("div",{style:{fontWeight:600,fontSize:13,marginTop:4}},c.name),
         ce("div",{style:{color:"#6b7280",fontSize:11}},[c.series,c.rarity].filter(Boolean).join(" - ")),
@@ -19247,8 +19248,9 @@ var valTab=ce("div",null,
 );
 var chatTab=!window._currentUser?ce("div",{style:{textAlign:"center",padding:60}},ce("div",{style:{fontSize:16,fontWeight:600,marginBottom:8}},"Chat privado"),ce("div",{style:{color:"#6b7280",fontSize:14,marginBottom:24}},"Inicia sesion para chatear"),ce("button",{onClick:function(){requireLogin(function(){});},style:{padding:"12px 24px",background:"#3b82f6",border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Continuar con Google")):ce("div",{style:{display:"flex",flexDirection:"column",height:480}},ce("div",{style:{background:"#f0f9ff",padding:"10px 16px",fontSize:12,color:"#0369a1",borderBottom:"1px solid #e8eaed"}},"Conversacion privada con "+slug),ce("div",{style:{flex:1,overflowY:"auto",padding:16,display:"flex",flexDirection:"column",gap:8}},msgs.length===0?ce("div",{style:{textAlign:"center",color:"#6b7280",padding:40}},"Sin mensajes. Escribe el primero!"):msgs.map(function(m,i){var mine=window._currentUser&&m.uid===window._currentUser.uid;return ce("div",{key:i,style:{display:"flex",flexDirection:"column",alignItems:mine?"flex-end":"flex-start"}},ce("div",{style:{background:mine?"#3b82f6":"#fff",color:mine?"#fff":"#111",borderRadius:12,padding:"10px 14px",border:"1px solid #e8eaed",maxWidth:"75%"}},ce("div",{style:{fontWeight:600,fontSize:11,marginBottom:2,opacity:0.7}},mine?"Tu":m.name),ce("div",{style:{fontSize:14}},m.text)),ce("div",{style:{fontSize:10,color:"#9ca3af",marginTop:2}},new Date(m.ts).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})));  })),ce("div",{style:{padding:16,borderTop:"1px solid #e8eaed",display:"flex",gap:8}},ce("input",{value:newMsg,onChange:function(e){setNewMsg(e.target.value);},onKeyDown:function(e){if(e.key==="Enter"&&newMsg.trim()){sendMsg();}},placeholder:"Escribe un mensaje...",style:{flex:1,padding:"10px 14px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,fontFamily:"Inter,sans-serif"}}),ce("button",{onClick:function(){sendMsg();},style:{padding:"10px 20px",background:"#3b82f6",border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Enviar")));
 function sendMsg(){if(!newMsg.trim()||!window._db)return;requireLogin(function(){var user=window._currentUser;window._db.ref("chats/"+slug+"/"+user.uid).push({name:user.displayName||user.email||"Usuario",uid:user.uid,text:newMsg.trim(),ts:Date.now()});setNewMsg("");});}
-var body=at==="venta"?ventaTab:at==="coleccion"?colTab:at==="valoraciones"?valTab:chatTab;
-return ce("div",{style:{minHeight:"100vh",background:"#f7f8fa",fontFamily:"Inter,sans-serif",fontSize:14,color:"#111"}},
+var vendidasTab=ce("div",null,sold.length===0?ce("div",{style:{textAlign:"center",color:"#6b7280",padding:40}},"Sin ventas aun"):ce("div",{style:{display:"flex",flexDirection:"column",gap:10}},sold.map(function(c,i){return ce("div",{key:i,style:{background:"#fff",borderRadius:10,padding:"12px 16px",border:"1px solid #e8eaed",display:"flex",justifyContent:"space-between",alignItems:"center"}},ce("div",null,ce("div",{style:{fontWeight:600,fontSize:14}},c.name),ce("div",{style:{fontSize:12,color:"#6b7280"}},[c.series,c.rarity].filter(Boolean).join(" - ")),c.sellDate?ce("div",{style:{fontSize:11,color:"#9ca3af",marginTop:2}},new Date(c.sellDate).toLocaleDateString("es-ES")):null),c.sellPrice?ce("div",{style:{fontWeight:700,color:"#16a34a",fontSize:15}},"EUR "+parseFloat(c.sellPrice).toFixed(2)):null);})));
+var body=at==="venta"?ventaTab:at==="coleccion"?colTab:at==="valoraciones"?valTab:at==="vendidas"?vendidasTab:chatTab;
+return ce("div",{style:{minHeight:"100vh",background:"#f7f8fa",fontFamily:"Inter,sans-serif",fontSize:14,color:"#111"}},selCard&&ce("div",{onClick:function(){setSelCard(null);},style:{position:"fixed",inset:0,background:"#00000066",zIndex:2000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}},ce("div",{onClick:function(e){e.stopPropagation();},style:{background:"#fff",borderRadius:16,padding:24,maxWidth:380,width:"100%"}},ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}},ce("div",{style:{fontWeight:700,fontSize:18}},selCard.name),ce("button",{onClick:function(){setSelCard(null);},style:{background:"none",border:"none",fontSize:22,cursor:"pointer",color:"#6b7280",lineHeight:1}},"×")),selCard.imageUrl?ce("img",{src:selCard.imageUrl,style:{width:"100%",height:200,objectFit:"cover",borderRadius:10,marginBottom:16}}):null,ce("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginBottom:12}},selCard.series?ce("span",{style:{background:"#eff6ff",color:"#3b82f6",padding:"4px 10px",borderRadius:20,fontSize:12,fontWeight:600}},selCard.series):null,selCard.rarity?ce("span",{style:{background:"#f5f3ff",color:"#8b5cf6",padding:"4px 10px",borderRadius:20,fontSize:12,fontWeight:600}},selCard.rarity):null,selCard.condition?ce("span",{style:{background:"#f0fdf4",color:"#16a34a",padding:"4px 10px",borderRadius:20,fontSize:12,fontWeight:600}},selCard.condition):null),selCard.league||selCard.team?ce("div",{style:{fontSize:13,color:"#6b7280",marginBottom:12}},[selCard.league,selCard.team].filter(Boolean).join(" - ")):null,ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}},selCard.salePrice?ce("div",null,ce("span",{style:{textDecoration:"line-through",color:"#9ca3af",fontSize:13,marginRight:6}},"EUR "+parseFloat(selCard.targetPrice||0).toFixed(2)),ce("span",{style:{fontWeight:700,fontSize:22,color:"#ef4444"}},"EUR "+parseFloat(selCard.salePrice).toFixed(2))):selCard.targetPrice?ce("div",{style:{fontWeight:700,fontSize:22,color:"#3b82f6"}},"EUR "+parseFloat(selCard.targetPrice).toFixed(2)):ce("div",null),ce(FavButton,{slug:slug,cardId:selCard.id||selCard.name,price:parseFloat(selCard.salePrice||selCard.targetPrice)||0,cardName:selCard.name})),ce("button",{onClick:function(){setSelCard(null);sat("chat");},style:{width:"100%",padding:"12px",background:"#3b82f6",border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Contactar al vendedor"))),
   data.banner?ce("div",{style:{width:"100%",height:180,backgroundImage:"url("+data.banner+")",backgroundSize:"cover",backgroundPosition:"center"}}):null,
   hdr,tabs,
   ce("div",{style:{maxWidth:1000,margin:"0 auto",padding:24}},body)
