@@ -17653,7 +17653,7 @@ function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl }) {
                 e.currentTarget.style.background = BGS; }, onMouseLeave: e => { e.currentTarget.style.background = alert30 ? "#fff5f5" : alert14 ? "#fffbeb" : "transparent"; } },
             React.createElement("td", { style: { padding: "12px 16px", verticalAlign: "middle" } },
                 React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
-                    ((_a = card.images) === null || _a === void 0 ? void 0 : _a[0]) ? React.createElement("img", { src: card.images[0], style: { width: 36, height: 36, objectFit: "cover", borderRadius: 8, border: "1px solid " + BDR, flexShrink: 0 } }) : React.createElement("div", { style: { width: 36, height: 36, borderRadius: 8, background: BGS, border: "1px solid " + BDR, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 } }, ((_b = CATS[card.category]) === null || _b === void 0 ? void 0 : _b.slice(0, 2)) || "🃏"),
+                    ((_a = card.images) === null || _a === void 0 ? void 0 : _a[0]) || card.imageUrl ? React.createElement("img", { src: ((_a = card.images) === null || _a === void 0 ? void 0 : _a[0]) || card.imageUrl, style: { width: 36, height: 36, objectFit: "contain", borderRadius: 8, border: "1px solid " + BDR, flexShrink: 0, background: "#fff" } }) : React.createElement("div", { style: { width: 36, height: 36, borderRadius: 8, background: BGS, border: "1px solid " + BDR, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 } }, ((_b = CATS[card.category]) === null || _b === void 0 ? void 0 : _b.slice(0, 2)) || "🃏"),
                     React.createElement("div", null,
                         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" } },
                             card.isFavorite && React.createElement("span", { style: { fontSize: 11 } }, "\u2B50"),
@@ -19253,7 +19253,7 @@ window._mountApp = function() {
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>window.compressImage=function(file,cb){var reader=new FileReader();reader.onload=function(e){var img=new Image();img.onload=function(){var canvas=document.createElement("canvas");var MAX=800;var w=img.width,h=img.height;if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}canvas.width=w;canvas.height=h;canvas.getContext("2d").drawImage(img,0,0,w,h);canvas.toBlob(function(blob){cb(blob,canvas.toDataURL("image/jpeg",0.75));},"image/jpeg",0.75);};img.src=e.target.result;};reader.readAsDataURL(file);}
-window.uploadToCloudinary=function(blob,cb){var fd=new FormData();fd.append("file",blob,"card.jpg");fd.append("upload_preset","cromovault");fetch("https://api.cloudinary.com/v1_1/dznkhldnx/image/upload",{method:"POST",body:fd}).then(function(r){return r.json();}).then(function(d){if(d.secure_url){cb(null,d.secure_url);}else{cb(new Error("Sin URL"));}}).catch(function(e){cb(e);}); }
+window.uploadToCloudinary=function(blob,cb){var fd=new FormData();fd.append("file",blob,"card.jpg");fd.append("upload_preset","cromovault");fetch("https://api.cloudinary.com/v1_1/dznkhldnx/image/upload",{method:"POST",body:fd}).then(function(r){return r.json();}).then(function(d){if(d.secure_url){var url=d.secure_url.replace("/upload/","/upload/q_auto,f_auto,w_600/");cb(null,url);}else{cb(new Error("Sin URL"));}}).catch(function(e){cb(e);}); }
 function ImageUploader(props){
 var onUrl=props.onUrl;var currentUrl=props.currentUrl;var ce=React.createElement;
 var us=useState(false),uploading=us[0],setUploading=us[1];
@@ -19342,7 +19342,7 @@ var ventaTab=ce("div",null,
   ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12}},
     fl.map(function(c,i){
       return ce("div",{key:i,onClick:function(){setSelCard(c);},style:Object.assign({},sty,{cursor:"pointer"})},
-        c.imageUrl?ce("img",{src:c.imageUrl,style:{width:"100%",height:140,objectFit:"cover",borderRadius:8}}):ce("div",{style:{width:"100%",height:80,background:"#eff6ff",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:12,fontWeight:600}},c.name.substring(0,2).toUpperCase()),
+        c.imageUrl?ce("img",{src:c.imageUrl,loading:"lazy",style:{width:"100%",height:140,objectFit:"contain",borderRadius:8,background:"#f8fafc"}}):ce("div",{style:{width:"100%",height:80,background:"#eff6ff",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:12,fontWeight:600}},c.name.substring(0,2).toUpperCase()),
         ce("div",{style:{fontWeight:600,fontSize:13,marginTop:4}},c.name),
         ce("div",{style:{color:"#6b7280",fontSize:11}},[c.series,c.rarity].filter(Boolean).join(" - ")),
         ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:4}},c.salePrice?ce("div",null,ce("span",{style:{textDecoration:"line-through",color:"#9ca3af",fontSize:12,marginRight:4}},"EUR "+parseFloat(c.targetPrice||0).toFixed(2)),ce("span",{style:{fontWeight:700,color:"#ef4444"}},"EUR "+parseFloat(c.salePrice).toFixed(2))):c.targetPrice?ce("div",{style:{fontWeight:700,color:"#3b82f6"}},"EUR "+parseFloat(c.targetPrice).toFixed(2)):ce("div",null),ce(FavButton,{slug:slug,cardId:c.id||c.name,price:parseFloat(c.salePrice||c.targetPrice)||0,cardName:c.name}))
@@ -19354,7 +19354,7 @@ var colTab=col.length===0?ce("div",{style:{color:"#6b7280",textAlign:"center",pa
   ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12}},
     col.map(function(c,i){
       return ce("div",{key:i,style:sty},
-        c.imageUrl?ce("img",{src:c.imageUrl,style:{width:"100%",height:140,objectFit:"cover",borderRadius:8}}):ce("div",{style:{width:"100%",height:80,background:"#fef3c7",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:12,fontWeight:600}},c.name.substring(0,2).toUpperCase()),
+        c.imageUrl?ce("img",{src:c.imageUrl,loading:"lazy",style:{width:"100%",height:140,objectFit:"contain",borderRadius:8,background:"#f8fafc"}}):ce("div",{style:{width:"100%",height:80,background:"#fef3c7",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:12,fontWeight:600}},c.name.substring(0,2).toUpperCase()),
         ce("div",{style:{fontWeight:600,fontSize:13,marginTop:4}},c.name),
         ce("div",{style:{color:"#6b7280",fontSize:11}},[c.series,c.rarity].filter(Boolean).join(" - "))
       );
