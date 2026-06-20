@@ -19253,7 +19253,7 @@ window._mountApp = function() {
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>window.compressImage=function(file,cb){var reader=new FileReader();reader.onload=function(e){var img=new Image();img.onload=function(){var canvas=document.createElement("canvas");var MAX=800;var w=img.width,h=img.height;if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}canvas.width=w;canvas.height=h;canvas.getContext("2d").drawImage(img,0,0,w,h);canvas.toBlob(function(blob){cb(blob,canvas.toDataURL("image/jpeg",0.75));},"image/jpeg",0.75);};img.src=e.target.result;};reader.readAsDataURL(file);}
-window.uploadToCloudinary=function(blob,cb){var fd=new FormData();fd.append("file",blob);fd.append("upload_preset","cromovault");fd.append("folder","cromovault_cards");fetch("https://api.cloudinary.com/v1_1/dznkhldnx/image/upload",{method:"POST",body:fd}).then(function(r){return r.json();}).then(function(d){if(d.secure_url){cb(null,d.secure_url);}else{cb(new Error("Sin URL"));}}).catch(function(e){cb(e);}); }
+window.uploadToCloudinary=function(blob,cb){var fd=new FormData();fd.append("file",blob,"card.jpg");fd.append("upload_preset","cromovault");fetch("https://api.cloudinary.com/v1_1/dznkhldnx/image/upload",{method:"POST",body:fd}).then(function(r){return r.json();}).then(function(d){if(d.secure_url){cb(null,d.secure_url);}else{cb(new Error("Sin URL"));}}).catch(function(e){cb(e);}); }
 function ImageUploader(props){
 var onUrl=props.onUrl;var currentUrl=props.currentUrl;var ce=React.createElement;
 var us=useState(false),uploading=us[0],setUploading=us[1];
