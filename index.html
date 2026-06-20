@@ -17179,7 +17179,7 @@ const { useState, useEffect, useRef } = React;
 
 const BLUE = "#1d6bfc", GREEN = "#00c48c", RED = "#f03e3e", AMBER = "#f59e0b", PURPLE = "#8b5cf6";
 const BG = "var(--bg,#fff)", BGS = "var(--bgs,#f7f8fa)", BDR = "var(--bdr,#e8eaed)", TXT = "var(--txt,#0a0a0a)", SUB = "var(--sub,#6b7280)", MUT = "var(--mut,#9ca3af)";
-const CATS = { futbol: "⚽ Fútbol", futbol_m: "⚽ Fútbol Masc.", futbol_f: "👟 Fútbol Fem.", nba: "🏀 NBA", trading: "🃏 Trading", baseball: "⚾ Baseball", f1: "🏎️ F1", other: "🏅 Otro" };
+const CATS = { futbol_m: "⚽ Fútbol Masc.", futbol_f: "👟 Fútbol Fem.", nba: "🏀 NBA", trading: "🃏 Trading", baseball: "⚾ Baseball", f1: "🏎️ F1", other: "🏅 Otro" };
 const RARS = ["Común", "Poco común", "Rara", "Ultra Rara", "Legendaria"];
 const RCLR = { "Común": "#9ca3af", "Poco común": "#10b981", "Rara": "#3b82f6", "Ultra Rara": "#8b5cf6", "Legendaria": "#f59e0b" };
 const CONDS = ["Raw", "PSA 1", "PSA 2", "PSA 3", "PSA 4", "PSA 5", "PSA 6", "PSA 7", "PSA 8", "PSA 9", "PSA 10", "BGS 9", "BGS 9.5", "BGS 10"];
@@ -17437,7 +17437,7 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                 tab === "info" && (React.createElement("div", null,
                     f.mode === "inventory" && (React.createElement("div", { style: { marginBottom: 14 } },
                         React.createElement("label", { style: LS }, "Estado"),
-                        React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 8 } }, [["holding", "En cartera", BLUE], ["listed", "En venta", AMBER], ["sold", "Vendida", GREEN]].map(([k, l, ac]) => (React.createElement("button", { key: k, onClick: () => sf("status", k), style: { flex: 1, padding: "8px 0", borderRadius: 8, cursor: "pointer", border: "1.5px solid " + (f.status === k ? ac : BDR), background: f.status === k ? ac + "18" : "transparent", color: f.status === k ? ac : SUB, fontFamily: "Inter,sans-serif", fontWeight: 500, fontSize: 11 } }, l)))),
+                        React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 8 } }, [["listed", "En venta", AMBER], ["sold", "Vendida", GREEN]].map(([k, l, ac]) => (React.createElement("button", { key: k, onClick: () => sf("status", k), style: { flex: 1, padding: "8px 0", borderRadius: 8, cursor: "pointer", border: "1.5px solid " + (f.status === k ? ac : BDR), background: f.status === k ? ac + "18" : "transparent", color: f.status === k ? ac : SUB, fontFamily: "Inter,sans-serif", fontWeight: 500, fontSize: 11 } }, l)))),
                         f.status === "sold" && (f.quantity || 1) > 1 && (React.createElement("div", { style: { background: "#f0fdf8", border: "1px solid #d1fae5", borderRadius: 8, padding: "10px 12px" } },
                             React.createElement("label", { style: Object.assign(Object.assign({}, LS), { marginBottom: 6 }) }, "\u00BFCu\u00E1ntas unidades vendes?"),
                             React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
@@ -17607,8 +17607,7 @@ function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl }) {
             React.createElement("td", { style: { padding: "12px 12px", verticalAlign: "middle", textAlign: "center" } }, isSold ? React.createElement(Bdg, { color: GREEN, bg: "#f0fdf8", dot: true }, "Vendida") : isListed ? React.createElement(Bdg, { color: AMBER, bg: "#fffbeb", dot: true }, "En venta") : card.mode === "collection" ? React.createElement(Bdg, { color: PURPLE, bg: "#f5f3ff", dot: true }, "Colecci\u00F3n") : React.createElement(Bdg, { color: BLUE, bg: "#eff4ff", dot: true }, "Cartera")),
             React.createElement("td", { style: { padding: "12px 12px", verticalAlign: "middle" }, onClick: e => e.stopPropagation() },
                 React.createElement("div", { style: { display: "flex", gap: 4, justifyContent: "flex-end", flexWrap: "wrap" } },
-                    React.createElement(Btn, { sm: true, v: "outline", style: { color: BLUE, borderColor: "#eff4ff" }, onClick: () => setLst(true) }, "\uD83D\uDCCB"),
-                    React.createElement("a", { href: "https://www.ebay.es/sch/i.html?_nkw=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", style: { padding: "5px 7px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 11, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "eBay"),
+                                        React.createElement("a", { href: "https://www.ebay.es/sch/i.html?_nkw=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", style: { padding: "5px 7px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 11, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "eBay"),
                     !isSold && card.mode === "inventory" && React.createElement(Btn, { sm: true, v: "outline", style: { color: GREEN, borderColor: "#d1fae5" }, onClick: () => onSell(card) }, "Vender"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => onEdit(card) }, "\u270F"),
                     React.createElement(Btn, { sm: true, v: "outline", style: { color: PURPLE, borderColor: "#e9d5ff" }, onClick: () => onDuplicate && onDuplicate(card) }, "\u29C9"),
@@ -17804,13 +17803,11 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
             React.createElement("div", { style: { padding: "11px 14px", borderBottom: "1px solid " + BDR, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" } },
                 React.createElement("input", { value: sr, onChange: e => setSr(e.target.value), placeholder: "\uD83D\uDD0D Buscar...", style: Object.assign(Object.assign({}, IS), { maxWidth: 150, background: BGS, padding: "7px 10px" }) }),
                 React.createElement("div", { style: { display: "flex", gap: 5, flexWrap: "wrap", alignItems: "center" } },
-                    [["holding", "Cartera", BLUE], ["listed", "En venta", AMBER], ["sold", "Vendidas", GREEN], ["fav", "⭐", PURPLE], ["psa", "PSA", "#6366f1"]].map(([k, l, ac]) => (React.createElement("button", { key: k, onClick: () => toggleSet(setStatusFl, k), style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid " + (statusFl.has(k) ? ac : BDR), background: statusFl.has(k) ? ac + "22" : "transparent", color: statusFl.has(k) ? ac : SUB, fontSize: 11, fontWeight: 500, cursor: "pointer" } }, l))),
+                    [["listed", "En venta", AMBER], ["sold", "Vendidas", GREEN], ["fav", "⭐", PURPLE], ["psa", "PSA", "#6366f1"]].map(([k, l, ac]) => (React.createElement("button", { key: k, onClick: () => toggleSet(setStatusFl, k), style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid " + (statusFl.has(k) ? ac : BDR), background: statusFl.has(k) ? ac + "22" : "transparent", color: statusFl.has(k) ? ac : SUB, fontSize: 11, fontWeight: 500, cursor: "pointer" } }, l))),
                     React.createElement("span", { style: { width: 1, height: 18, background: BDR, display: "inline-block", margin: "0 2px" } }),
                     [["nba", "🏀"], ["futbol", "⚽"], ["futbol_m", "⚽M"], ["futbol_f", "⚽F"], ["trading", "🃏"], ["baseball", "⚾"], ["f1", "🏎️"]].map(([k, l]) => (React.createElement("button", { key: k, onClick: () => toggleSet(setCatFl, k), style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid " + (catFl.has(k) ? BLUE : BDR), background: catFl.has(k) ? "#eff4ff" : "transparent", color: catFl.has(k) ? BLUE : SUB, fontSize: 11, fontWeight: 500, cursor: "pointer" } }, l))),
                     React.createElement("span", { style: { width: 1, height: 18, background: BDR, display: "inline-block", margin: "0 2px" } }),
-                    (JSON.parse(localStorage.getItem("cv10_locs") || "null") || DEFAULT_LOCATIONS).map(loc => (React.createElement("button", { key: loc, onClick: () => toggleSet(setLocFl, loc), style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid " + (locFl.has(loc) ? PURPLE : BDR), background: locFl.has(loc) ? "#f5f3ff" : "transparent", color: locFl.has(loc) ? PURPLE : SUB, fontSize: 11, fontWeight: 500, cursor: "pointer" } },
-                        "\uD83D\uDCE6 ",
-                        loc))),
+                    (JSON.parse(localStorage.getItem("cv10_locs") || "null") || DEFAULT_LOCATIONS), React.createElement("select", { value: [...locFl][0]||"", onChange: function(e){var v=e.target.value;setLocFl(v?new Set([v]):new Set());}, style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid "+(locFl.size>0?PURPLE:BDR), background: locFl.size>0?"#f5f3ff":"transparent", color: locFl.size>0?PURPLE:SUB, fontSize: 11, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, React.createElement("option",{value:""},"?? Caja..."), (JSON.parse(localStorage.getItem("cv10_locs")||"null")||DEFAULT_LOCATIONS).map(function(loc){return React.createElement("option",{key:loc,value:loc},"?? "+loc);})),
                     (statusFl.size > 0 || catFl.size > 0 || locFl.size > 0) && React.createElement("button", { onClick: () => { setStatusFl(new Set()); setCatFl(new Set()); setLocFl(new Set()); }, style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid #fecaca", background: "#fff5f5", color: RED, fontSize: 11, fontWeight: 500, cursor: "pointer" } }, "\u2715 Limpiar")),
                 React.createElement("div", { style: { marginLeft: "auto", display: "flex", gap: 6 } },
                     React.createElement("select", { value: filterY, onChange: e => { setFilterY(e.target.value); setFilterM("all"); }, style: Object.assign(Object.assign({}, IS), { width: "auto", padding: "5px 10px", fontSize: 11, background: BGS }) }, invYears.map(y => React.createElement("option", { key: y, value: y }, y === "all" ? "Año" : y))),
@@ -19524,24 +19521,12 @@ function initFirebase() {
 
 <script>
 (function(){
-var H={"inventory":"INVENTARIO\n\nAnade las cartas que tienes para vender.\n\nPrecio de compra, condicion, foto, liga y equipo. El ROI se calcula automaticamente con el precio objetivo.","collection":"COLECCION\n\nCartas que conservas y NO vendes.\n\nRookies, cartas especiales o de tu equipo. No aparecen en tu tienda publica. Puedes ver el valor total estimado.","fiscal":"FINANZAS\n\nAnalisis (FREE): ROI global y graficos de rentabilidad mensual.\nFiscal (PREMIUM): registro de ventas por trimestre.\nFacturas (PREMIUM): crea facturas para tus ventas.","lots":"LOTES (FREE)\n\nAgrupa cartas compradas juntas en un lote y controla su rentabilidad total.\n\nVe el ROI por lote, las cartas vendidas vs pendientes y el beneficio total.","psa":"PSA/BGS (PREMIUM)\n\nRegistro de cartas enviadas a gradear.\n\nFecha de envio, coste del servicio, estado (en proceso / recibida) y nota obtenida."};
+var H={"inventory":"INVENTARIO\n\nAnade las cartas que tienes para vender.\n\nPrecio de compra, condicion, foto, liga y equipo. El ROI se calcula automaticamente con el precio objetivo.","collection":"COLECCION\n\nCartas que conservas y NO vendes.\n\nRookies, cartas especiales o de tu equipo. No aparecen en tu tienda publica.","fiscal":"FINANZAS\n\nAnalisis (FREE): ROI global y graficos.\nFiscal (PREMIUM): registro de ventas por trimestre.\nFacturas (PREMIUM): crea facturas para tus ventas.","lots":"LOTES (FREE)\n\nAgrupa cartas compradas juntas y controla su rentabilidad total. Ve el ROI por lote y el beneficio.","psa":"PSA/BGS (PREMIUM)\n\nRegistro de cartas enviadas a gradear. Estado del envio, coste y nota obtenida.","rainbow":"RAINBOWS\n\nRegistro de tus cartas Rainbow Foil. Las mas raras y valiosas. Guarda el valor estimado y condicion."};
 function showH(t){var ov=document.createElement("div");ov.style.cssText="position:fixed;inset:0;z-index:99998;";var el=document.createElement("div");el.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1e293b;color:#fff;padding:20px 24px;border-radius:14px;max-width:300px;width:90%;font-size:13px;line-height:1.7;z-index:99999;font-family:Inter,sans-serif;white-space:pre-line;";el.textContent=t;ov.onclick=function(){el.remove();ov.remove();};document.body.appendChild(ov);document.body.appendChild(el);}
 var secs=Object.keys(H);
-secs.forEach(function(s){
-  var b=document.createElement("button");
-  b.id="shb-"+s;
-  b.innerHTML="&#10067; Ayuda";
-  b.style.cssText="position:fixed;bottom:148px;right:16px;z-index:980;background:#fff;color:#3b82f6;border:1.5px solid #3b82f6;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;display:none;box-shadow:0 2px 8px rgba(0,0,0,0.1);";
-  b.onclick=function(){showH(H[s]);};
-  document.body.appendChild(b);
-});
-var tabMap={"inv":"inventory","inventory":"inventory","inventario":"inventory","col":"collection","colec":"collection","coleccion":"collection","fin":"fiscal","fiscal":"fiscal","finanzas":"fiscal","lot":"lots","lotes":"lots","psa":"psa"};
-setInterval(function(){
-  var ab=document.querySelector("#cv-bottom-nav .active .label");
-  var at=ab?ab.textContent.trim().toLowerCase():"";
-  var sec=tabMap[at]||"";
-  secs.forEach(function(s){var el=document.getElementById("shb-"+s);if(el)el.style.display=s===sec?"block":"none";});
-},300);
+secs.forEach(function(s){var b=document.createElement("button");b.id="shb-"+s;b.textContent="?";b.style.cssText="position:fixed;bottom:148px;right:16px;z-index:980;background:#3b82f6;color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:14px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;display:none;box-shadow:0 2px 8px rgba(0,0,0,0.2);line-height:1;";b.onclick=function(){showH(H[s]);};document.body.appendChild(b);});
+var tabMap={"inv.":"inventory","inv":"inventory","inventario":"inventory","colec.":"collection","col":"collection","coleccion":"collection","fin.":"fiscal","fin":"fiscal","fiscal":"fiscal","finanzas":"fiscal","lot":"lots","lotes":"lots","psa":"psa","psa/bgs":"psa"};
+setInterval(function(){var ab=document.querySelector("#cv-bottom-nav .active .label");var at=ab?ab.textContent.trim().toLowerCase().replace(/[^a-z0-9.]/g,""):"";var sec=tabMap[at]||"";var allBtns=Array.from(document.querySelectorAll("button"));var rainBtn=allBtns.find(function(b){return b.textContent.trim()==="?? Rainbows"&&window.getComputedStyle(b).fontWeight==="700";});if(rainBtn)sec="rainbow";secs.forEach(function(s){var el=document.getElementById("shb-"+s);if(el)el.style.display=s===sec?"block":"none";});},300);
 })();
 </script>
 </body>
