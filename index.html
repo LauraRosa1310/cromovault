@@ -17672,7 +17672,7 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
     const recent = inv.slice().sort((a, b) => (b.buyDate || "").localeCompare(a.buyDate || "")).slice(0, 5);
     const alerts = listed.filter(c => c.listingDate && daysSince(c.listingDate) >= 14).sort((a, b) => daysSince(b.listingDate) - daysSince(a.listingDate));
     return (React.createElement("div", null,
-        uname ? React.createElement("div", { style: { padding: "20px 20px 0", marginBottom: -4 } }, React.createElement("div", { style: { fontSize: 22, fontWeight: 800, color: TXT, fontFamily: "Inter,sans-serif" } }, "Hola, " + uname.charAt(0).toUpperCase() + uname.slice(1) + " \uD83D\uDC4B"), React.createElement("div", { style: { fontSize: 13, color: SUB, marginTop: 2 } }, "Bienvenido a tu portfolio")) : null,
+        uname ? React.createElement("div", { style: { padding: "10px 20px 0" } }, React.createElement("div", { style: { fontSize: 17, fontWeight: 700, color: TXT, fontFamily: "Inter,sans-serif" } }, "Hola, " + uname.charAt(0).toUpperCase() + uname.slice(1) + " \uD83D\uDC4B"), React.createElement("div", { style: { fontSize: 13, color: SUB, marginTop: 2 } }, "Bienvenido a tu portfolio")) : null,
         React.createElement(Card, { style: { marginBottom: 20, padding: "20px 24px" } },
             React.createElement(SL, { style: { marginBottom: 16 } }, "\uD83D\uDCB0 Balance de cartera"),
             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))", gap: 10, marginBottom: 10 } },
@@ -19076,17 +19076,17 @@ function App() {
     const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Finanzas"], ["lots", "Lotes"], ["psa", "PSA/BGS"]];
     return (React.createElement("div", { style: { minHeight: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14 } },
         React.createElement("style", null, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');"),
-        React.createElement("div", { style: { background: BG, borderBottom: "1px solid " + BDR, position: "sticky", top: 0, zIndex: 50 } },
+        React.createElement("div", { style: { background: BG, borderBottom: "3px solid #3b82f6", position: "sticky", top: 0, zIndex: 50, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" } },
             React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "0 24px", display: "flex", justifyContent: "space-between", alignItems: "center", height: 54 } },
                 React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 24 } },
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 26, height: 26, background: BLUE, borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 } }, "\uD83C\uDCCF"),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault")),
-                    React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? "#fff" : "rgba(255,255,255,0.65)", fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 700 : 400, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
+                    React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 700 : 400, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => setShowLot(true) }, "Venta m\u00FAltiple"),
-                    React.createElement("a", { href: "?directorio", target: "_blank", style: { background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.35)", borderRadius: 10, fontSize: 12, padding: "6px 12px", color: "#fff", fontWeight: 600, textDecoration: "none", marginRight: 4, fontFamily: "Inter,sans-serif" } }, "\uD83D\uDED2 Comprar"), React.createElement("button", { onClick: function(){ setShowChats(true); }, style: { background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 10, cursor: "pointer", fontSize: 16, padding: "6px 12px", color: "#fff", marginRight: 4, backdropFilter: "blur(4px)" } }, "\uD83D\uDCAC"), React.createElement("button", { onClick: () => setShowSettings(true), style: { background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 10, cursor: "pointer", fontSize: 16, padding: "6px 12px", color: "#fff", backdropFilter: "blur(4px)" } }, "\u2699\uFE0F")))),
+                    React.createElement("a", { href: "?directorio", target: "_blank", style: { background: "transparent", border: "1.5px solid " + BDR, borderRadius: 8, fontSize: 12, padding: "6px 12px", color: SUB, fontWeight: 600, textDecoration: "none", marginRight: 4, fontFamily: "Inter,sans-serif" } }, "\uD83D\uDED2 Comprar"), React.createElement("button", { onClick: function(){ setShowChats(true); }, style: { background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 16, padding: "6px 12px", color: SUB, marginRight: 4 } }, "\uD83D\uDCAC"), React.createElement("button", { onClick: () => setShowSettings(true), style: { background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 16, padding: "6px 12px", color: SUB } }, "\u2699\uFE0F")))),
                 tooltip && React.createElement("div", { onClick: function(){ setTooltip(null); }, style: { position: "fixed", inset: 0, zIndex: 998 } }),
         tooltip && React.createElement("div", { style: { position: "fixed", background: "#1e293b", color: "#fff", borderRadius: 10, padding: "10px 14px", fontSize: 12, maxWidth: 220, zIndex: 999, top: tooltip.y, left: tooltip.x, lineHeight: 1.5 } }, tooltip.text),
         showChecklist && React.createElement("div", { style: { position: "fixed", bottom: 80, right: 16, zIndex: 999, background: BG, borderRadius: 16, padding: 20, width: 280, boxShadow: "0 8px 32px #00000033", border: "1px solid " + BDR } },
@@ -19498,7 +19498,7 @@ function initFirebase() {
           .then(function(snap) {
             if (snap.exists) {
               var d = snap.data();
-              if (d.cards) localStorage.setItem('cv10', JSON.stringify(d.cards));
+              if (d.cards) { var mc=d.cards.map(function(c){if(c.category==='futbol'){c.category='futbol_m';}return c;}); localStorage.setItem('cv10', JSON.stringify(mc)); }
               if (d.invoices) localStorage.setItem('cv10i', JSON.stringify(d.invoices));
               if (d.psaItems) localStorage.setItem('cv10p', JSON.stringify(d.psaItems));
               if (d.rainbows) localStorage.setItem('cv10_rainbows', JSON.stringify(d.rainbows));
