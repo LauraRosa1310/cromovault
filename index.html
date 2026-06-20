@@ -19603,5 +19603,20 @@ var tabMap={"inv.":"inventory","inv":"inventory","inventario":"inventory","colec
 setInterval(function(){var ab=document.querySelector("#cv-bottom-nav .active .label");var at=ab?ab.textContent.trim().toLowerCase().replace(/[^a-z0-9.]/g,""):"";var sec=tabMap[at]||"";var allBtns=Array.from(document.querySelectorAll("button"));var rainBtn=allBtns.find(function(b){return b.textContent.trim()==="?? Rainbows"&&window.getComputedStyle(b).fontWeight==="700";});if(rainBtn)sec="rainbow";secs.forEach(function(s){var el=document.getElementById("shb-"+s);if(el)el.style.display=s===sec?"block":"none";});},300);
 })();
 </script>
+<style id="cv-overrides">
+@media (max-width: 768px) {
+  .venta-multiple-btn { display: none !important; }
+}
+@media (max-width: 600px) {
+  table td:nth-child(2), table th:nth-child(2) { display: none !important; }
+  table td:first-child { max-width: 130px !important; }
+  table td { padding: 6px 4px !important; font-size: 12px !important; }
+  table th { padding: 6px 4px !important; font-size: 10px !important; }
+}
+#cv-bottom-nav { box-shadow: 0 -2px 12px rgba(0,0,0,0.08) !important; }
+table tbody tr:hover { background: #f8fafc !important; }
+body.dark { background: #0f172a !important; }
+body.dark #cv-bottom-nav { background: #1e293b !important; }
+</style>
 </body>
 </html>
