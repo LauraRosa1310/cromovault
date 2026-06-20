@@ -13,6 +13,17 @@ table thead th { font-size: 11px !important; text-transform: uppercase; letter-s
 [style*="borderRadius: 20"] { box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important; }
 /* P&L colors more vivid */
 /* Responsive navbar */
+@media (max-width: 768px) {
+  /* Compact navbar */
+  #cv-top-bar > div { height: 44px !important; padding: 0 8px !important; gap: 4px !important; }
+  /* Hide venta multiple on mobile */
+  .venta-multiple-btn { display: none !important; }
+  /* Smaller logo */
+  #cv-top-bar span[style*="fontWeight: 900"] { font-size: 15px !important; }
+  /* Smaller nueva carta btn */
+  #cv-top-bar button[style*="borderRadius"] { padding: 5px 10px !important; font-size: 11px !important; }
+}
+
 @media (max-width: 640px) {
   #cv-top-bar .nav-label { display: none !important; }
   #cv-top-bar { flex-wrap: nowrap !important; }
@@ -31,6 +42,41 @@ table tbody tr:hover { background: var(--bgs,#f8fafc) !important; }
 body.dark { background: #0f172a !important; }
 body.dark #cv-bottom-nav { background: #1e293b !important; border-top-color: #334155 !important; }
 .pub-card:active { transform: scale(0.98); }
+
+/* Mobile inventory compact */
+@media (max-width: 768px) {
+  table td { padding: 8px 6px !important; font-size: 12px !important; }
+  table th { padding: 6px !important; font-size: 10px !important; }
+  /* Make action buttons smaller */
+  table td button { padding: 3px 6px !important; font-size: 10px !important; }
+  /* Reduce card image */
+  table td img { width: 36px !important; height: 36px !important; }
+  /* Compact expanded row */
+  table tr[style*="background"] td { padding: 8px !important; }
+}
+
+/* Mobile collection - show view toggle prominently */
+@media (max-width: 768px) {
+  .view-toggle { position: sticky !important; top: 44px !important; background: var(--bg,#fff) !important; z-index: 10 !important; padding: 8px !important; border-bottom: 1px solid var(--bdr,#e8eaed) !important; }
+}
+
+/* Finanzas - wrap buttons on mobile */
+@media (max-width: 768px) {
+  .fin-header { flex-wrap: wrap !important; gap: 8px !important; }
+  .fin-header button { width: 100% !important; }
+}
+
+/* Inventory mobile */
+@media (max-width: 600px) {
+  table td:nth-child(2) { display: none !important; }
+  table th:nth-child(2) { display: none !important; }
+  table td:first-child { max-width: 130px; }
+  table td:first-child > div > div:first-child { font-size: 12px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+}
+/* Invoices filters wrap */
+@media (max-width: 600px) {
+  .inv-filters { flex-wrap: wrap !important; }
+}
 </style>
   <style>
     :root{--bg:#fff;--bgs:#f7f8fa;--bdr:#e8eaed;--txt:#0a0a0a;--sub:#6b7280;--mut:#9ca3af;}
@@ -19239,9 +19285,9 @@ var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",padd
   data.vacaciones?ce("div",{style:{background:"#fef3c7",border:"1px solid #f59e0b",borderRadius:0,padding:"10px 24px",fontSize:13,color:"#92400e"}},"??️ "+data.vacaciones):null
 );
 var tabs=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",display:"flex"}},
-  ["venta","coleccion","valoraciones","vendidas","chat"].map(function(t){
+  ["venta","chat","coleccion","valoraciones","vendidas"].map(function(t){
     return ce("button",{key:t,onClick:function(){sat(t);},style:{padding:"14px 24px",border:"none",background:"none",fontSize:14,fontWeight:at===t?700:400,color:at===t?"#3b82f6":"#6b7280",borderBottom:at===t?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},
-      t==="venta"?"En venta ("+listed.length+")":t==="coleccion"?"Coleccion ("+col.length+")":t==="valoraciones"?"Valoraciones ("+ratings.length+")":t==="vendidas"?"Vendidas ("+sold.length+")":"Chat"
+      t==="venta"?"En venta ("+listed.length+")":t==="chat"?"Chat":t==="coleccion"?"Coleccion ("+col.length+")":t==="valoraciones"?"Valoraciones ("+ratings.length+")":"Vendidas ("+sold.length+")"
     );
   })
 );
