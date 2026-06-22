@@ -19305,7 +19305,7 @@ var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",padd
     ),
     data.contact?ce("a",{href:data.contact.indexOf("@")>=0?"mailto:"+data.contact:"https://wa.me/"+data.contact,target:"_blank",style:{display:"inline-block",marginTop:8,padding:"8px 18px",background:"#3b82f6",color:"#fff",borderRadius:20,textDecoration:"none",fontSize:13,fontWeight:600}},"Contactar"):null
   ),
-  data.vacaciones?ce("div",{style:{background:"#fef3c7",border:"1px solid #f59e0b",borderRadius:0,padding:"10px 24px",fontSize:13,color:"#92400e"}},"??️ "+data.vacaciones):null
+  data.vacaciones?ce("div",{style:{background:"linear-gradient(135deg,#fef9c3,#fde68a)",borderLeft:"4px solid #f59e0b",padding:"14px 20px",fontSize:13,color:"#78350f",display:"flex",alignItems:"center",gap:10,fontWeight:500}},ce("span",{style:{fontSize:18}},"\uD83C\uDFD6\uFE0F"),ce("span",null,data.vacaciones)):null,data.offerBanner?ce("div",{style:{background:"linear-gradient(135deg,#dc2626,#f97316)",padding:"12px 20px",fontSize:13,color:"#fff",display:"flex",alignItems:"center",gap:10,fontWeight:600}},ce("span",{style:{fontSize:18}},"\uD83C\uDFF7\uFE0F"),ce("span",null,data.offerBanner)):null
 );
 var tabs=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",display:"flex"}},
   ["venta","coleccion","valoraciones","vendidas","chat"].map(function(t){
