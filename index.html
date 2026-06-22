@@ -19059,7 +19059,7 @@ function App() {
     useEffect(() => { localStorage.setItem("cv10", JSON.stringify(cards)); if (window._currentUser && cards.length > 0) window._saveToFirestore && window._saveToFirestore({ cards: cards }); var slug=localStorage.getItem("cv10_slug"); if(slug&&window._db&&window._currentUser&&cards.length>0){ var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";}); var sold=cards.filter(function(c){return c.status==="sold";}); var vc=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;}); window._db.ref("public/"+slug+"/cards").set(listed); window._db.ref("public/"+slug+"/validCodes").set(vc); } }, [cards]);
     useEffect(() => { localStorage.setItem("cv10i", JSON.stringify(invoices)); if (window._currentUser) window._saveToFirestore && window._saveToFirestore({ invoices: invoices }); }, [invoices]);
     function ups(c) { setCards(p => p.find(x => x.id === c.id) ? p.map(x => x.id === c.id ? c : x) : [c, ...p]); }
-    function del(id) { setCards(p => p.filter(c => c.id !== id)); }
+    function del(id) {var overlay=document.createElement("div");overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif";var box=document.createElement("div");box.style.cssText="background:#fff;border-radius:16px;padding:28px 24px;max-width:320px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.2)";box.innerHTML="<div style=\"font-size:36px;margin-bottom:12px\">&#128465;</div><div style=\"font-weight:700;font-size:16px;margin-bottom:8px\">Eliminar carta</div><div style=\"color:#6b7280;font-size:14px;margin-bottom:24px\">Esta accion no se puede deshacer.</div><div style=\"display:flex;gap:10px\"><button id=\"cv-del-cancel\" style=\"flex:1;padding:11px;border:1px solid #e5e7eb;border-radius:10px;background:#f9fafb;font-size:14px;cursor:pointer;font-family:Inter,sans-serif\">Cancelar</button><button id=\"cv-del-ok\" style=\"flex:1;padding:11px;border:none;border-radius:10px;background:#ef4444;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif\">Eliminar</button></div>";overlay.appendChild(box);document.body.appendChild(overlay);box.querySelector("#cv-del-cancel").onclick=function(){document.body.removeChild(overlay);};box.querySelector("#cv-del-ok").onclick=function(){document.body.removeChild(overlay);setCards(function(p){return p.filter(function(c){return c.id!==id;});});};overlay.onclick=function(e){if(e.target===overlay)document.body.removeChild(overlay);};}
     function oa(m) { setDm(m); setEc(null); setSF(true); }
     function oe(c) { setEc(c); setDm(c.mode); setSF(true); }
     function dup(c) { setDupCard(c); }
@@ -19286,7 +19286,7 @@ var ts=useState("venta"),at=ts[0],sat=ts[1];
   var ms=useState([]),msgs=ms[0],setMsgs=ms[1];
   var ni=useState(""),newMsg=ni[0],setNewMsg=ni[1];
   React.useEffect(function(){if(!window._db||!window._currentUser)return;var uid=window._currentUser.uid;var ref=window._db.ref("chats/"+slug+"/"+uid);ref.on("value",function(snap){var d=snap.val();if(d){setMsgs(Object.keys(d).map(function(k){return d[k];}).sort(function(a,b){return a.ts-b.ts;}));}else{setMsgs([]);}});return function(){ref.off();};});
-var fs=useState(""),sr=fs[0],ssr=fs[1];
+var fs=useState(""),sr=fs[0],ssr=fs[1];var vc=useState(null),visitCount=vc[0],setVisitCount=vc[1];React.useEffect(function(){if(!window._db)return;var ref=window._db.ref("visits/"+slug);ref.transaction(function(n){return (n||0)+1;});ref.once("value").then(function(s){setVisitCount(s.val());});},[]);
 var fl=listed.filter(function(c){
   if(!sr)return true;
   var s=sr.toLowerCase();
@@ -19301,7 +19301,8 @@ var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",padd
     avg?ce("div",{style:{color:"#f59e0b",fontSize:13,marginBottom:6}},"*".repeat(Math.round(parseFloat(avg)))+" "+avg+" ("+ratings.length+")"):ce("div",{style:{color:"#9ca3af",fontSize:13,marginBottom:6}},"Sin valoraciones"),
     ce("div",{style:{display:"flex",gap:12,fontSize:13,color:"#6b7280"}},
       data.shipping?ce("span",null,"Envios: "+data.shipping):null,
-      data.payment?ce("span",null,"Pago: "+data.payment):null
+      data.payment?ce("span",null,"Pago: "+data.payment):null,
+      visitCount?ce("span",{style:{color:"#9ca3af"}},visitCount+" visitas"):null
     ),
     data.contact?ce("a",{href:data.contact.indexOf("@")>=0?"mailto:"+data.contact:"https://wa.me/"+data.contact,target:"_blank",style:{display:"inline-block",marginTop:8,padding:"8px 18px",background:"#3b82f6",color:"#fff",borderRadius:20,textDecoration:"none",fontSize:13,fontWeight:600}},"Contactar"):null
   ),
@@ -19323,7 +19324,10 @@ var ventaTab=ce("div",null,
         c.imageUrl?ce("img",{src:c.imageUrl,style:{width:"100%",height:140,objectFit:"cover",borderRadius:8}}):ce("div",{style:{width:"100%",height:80,background:"#eff6ff",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:12,fontWeight:600}},c.name.substring(0,2).toUpperCase()),
         ce("div",{style:{fontWeight:600,fontSize:13,marginTop:4}},c.name),
         ce("div",{style:{color:"#6b7280",fontSize:11}},[c.series,c.rarity].filter(Boolean).join(" - ")),
-        ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:4}},c.salePrice?ce("div",null,ce("span",{style:{textDecoration:"line-through",color:"#9ca3af",fontSize:12,marginRight:4}},"EUR "+parseFloat(c.targetPrice||0).toFixed(2)),ce("span",{style:{fontWeight:700,color:"#ef4444"}},"EUR "+parseFloat(c.salePrice).toFixed(2))):c.targetPrice?ce("div",{style:{fontWeight:700,color:"#3b82f6"}},"EUR "+parseFloat(c.targetPrice).toFixed(2)):ce("div",null),ce(FavButton,{slug:slug,cardId:c.id||c.name,price:parseFloat(c.salePrice||c.targetPrice)||0,cardName:c.name}))
+        ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:4}},c.salePrice?ce("div",null,ce("span",{style:{textDecoration:"line-through",color:"#9ca3af",fontSize:12,marginRight:4}},"EUR "+parseFloat(c.targetPrice||0).toFixed(2)),ce("span",{style:{fontWeight:700,color:"#ef4444"}},"EUR "+parseFloat(c.salePrice).toFixed(2))):c.targetPrice?ce("div",{style:{fontWeight:700,color:"#3b82f6"}},"EUR "+parseFloat(c.targetPrice).toFixed(2)):ce("div",null),ce("div",{style:{display:"flex",gap:4}},
+        ce("button",{title:"Compartir",onClick:function(e){e.stopPropagation();var lines=[];lines.push("🎴 "+c.name);if(c.series)lines.push("📦 "+c.series);if(c.rarity)lines.push("✨ "+c.rarity);if(c.condition)lines.push("📋 "+c.condition);var price=parseFloat(c.salePrice||c.targetPrice||0);if(price)lines.push("💰 EUR "+price.toFixed(2));lines.push("🔗 https://laurarosa1310.github.io/cromovault/?p="+slug);var txt=lines.join("\n");if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){alert("Copiado!");}).catch(function(){prompt("Copia:",txt);});}else{prompt("Copia:",txt);}},style:{background:"rgba(255,255,255,0.9)",border:"none",cursor:"pointer",fontSize:15,padding:"3px 5px",borderRadius:"50%",lineHeight:1}},"🔗"),
+        ce(FavButton,{slug:slug,cardId:c.id||c.name,price:parseFloat(c.salePrice||c.targetPrice)||0,cardName:c.name})
+      ))
       );
     })
   )
