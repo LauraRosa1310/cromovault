@@ -17434,11 +17434,21 @@ function SellModal({ card, onSave, onClose }) {
                     " en cartera a \u20AC",
                     (card.buyPrice || 0).toFixed(2),
                     "/ud"),
+                React.createElement("button", { onClick: function() {
+                    var txt = "🎴 " + card.name
+                        + (card.series ? " | " + card.series : "")
+                        + (card.condition ? " | " + card.condition : "") + "\n"
+                        + "💰 Precio: €" + (parseFloat(pr)||0).toFixed(2) + "\n"
+                        + "📦 Preparando el envío. Te aviso con el número de seguimiento en cuanto lo tenga.\n"
+                        + "🙏 Gracias por tu confianza!";
+                    if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){alert("Copiado!");}).catch(function(){prompt("Copia:",txt);});}else{prompt("Copia:",txt);}
+                }, style: { width: "100%", padding: "10px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#15803d", fontFamily: "Inter,sans-serif", fontWeight: 600, marginBottom: 8 } },
+                "📋 Copiar mensaje para el comprador"),
                 React.createElement(Btn, { v: "success", full: true, onClick: confirm, disabled: !pr }, "Confirmar venta")))));
 }
 function CardForm({ onSave, onClose, editCard, defMode }) {
-    const blank = { name: "", category: "trading", series: "", rarity: "Común", condition: "Raw", quantity: 1, buyPrice: "", buyDate: new Date().toISOString().slice(0, 10), notes: "", images: [], status: "holding", sellPrice: "", sellDate: "", platformFee: "", shippingCost: "", platform: "eBay", isFavorite: false, mode: defMode || "inventory", targetPrice: "", listingDate: "", location: "", imageUrl: "" };
-    const init = editCard ? Object.assign(Object.assign({}, editCard), { buyPrice: String(editCard.buyPrice || ""), sellPrice: String(editCard.sellPrice || ""), platformFee: String(editCard.platformFee || ""), shippingCost: String(editCard.shippingCost || ""), targetPrice: String(editCard.targetPrice || "") }) : blank;
+    const blank = { name: "", category: "trading", series: "", rarity: "Común", condition: "Raw", quantity: 1, buyPrice: "", buyDate: new Date().toISOString().slice(0, 10), notes: "", tags: [], marketPrice: "", images: [], status: "holding", sellPrice: "", sellDate: "", platformFee: "", shippingCost: "", platform: "eBay", isFavorite: false, mode: defMode || "inventory", targetPrice: "", listingDate: "", location: "", imageUrl: "" };
+    const init = editCard ? Object.assign(Object.assign({}, editCard), { buyPrice: String(editCard.buyPrice || ""), sellPrice: String(editCard.sellPrice || ""), platformFee: String(editCard.platformFee || ""), shippingCost: String(editCard.shippingCost || ""), targetPrice: String(editCard.targetPrice || ""), marketPrice: String(editCard.marketPrice || ""), tags: editCard.tags || [] }) : blank;
     const [f, setF] = useState(init), [imgs, setImgs] = useState((editCard === null || editCard === void 0 ? void 0 : editCard.images) || []), [tab, setTab] = useState("info");
     const fr = { current: null };
     function sf(k, v) { setF(p => (Object.assign(Object.assign({}, p), { [k]: v }))); }
@@ -17473,9 +17483,13 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                     f.mode === "inventory" && f.status === "listed" && React.createElement("div", { style: { marginBottom: 12, padding: "10px 14px", background: BGS, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "space-between" } }, React.createElement("label", { style: { fontSize: 12, color: SUB } }, "Mostrar en perfil publico"), React.createElement("button", { onClick: function() { var newVal=!f.publicVisible; sf("publicVisible", newVal); setTimeout(function(){ var slug=localStorage.getItem("cv10_slug"); if(slug&&window._db&&window._currentUser){ var cards=JSON.parse(localStorage.getItem("cv10")||"[]"); var updated=cards.map(function(c){return c.id===f.id?Object.assign({},c,{publicVisible:newVal}):c;}); var listed=updated.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";}); window._db.ref("public/"+slug+"/cards").set(listed); } }, 800); }, style: { padding: "4px 12px", background: f.publicVisible ? "#16a34a" : BGS, border: "1px solid " + BDR, borderRadius: 20, cursor: "pointer", fontSize: 12, color: f.publicVisible ? "#fff" : SUB, fontFamily: "Inter,sans-serif" } }, f.publicVisible ? "SI" : "NO")),
                         React.createElement("label", { style: LS }, "\uD83D\uDCC5 Fecha en que la pusiste en venta"),
                         React.createElement("input", { type: "date", value: f.listingDate || "", onChange: e => sf("listingDate", e.target.value), style: IS }))),
+                                        React.createElement("div", { style: { marginBottom: 12 } },
+                        React.createElement("label", { style: LS }, "\uD83D\uDCC5 Fecha de compra"),
+                        React.createElement("input", { type: "date", value: f.buyDate, onChange: e => sf("buyDate", e.target.value), style: IS })),
                     React.createElement("div", { style: { marginBottom: 12 } },
                         React.createElement("label", { style: LS }, "Nombre *"),
                         React.createElement("input", { value: f.name, onChange: e => sf("name", e.target.value), placeholder: "Charizard Holo / Messi Rookie...", style: IS, autoFocus: true })),
+                    
                     React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } },
                         React.createElement("div", null,
                             React.createElement("label", { style: LS }, "Categor\u00EDa"),
@@ -17485,23 +17499,53 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                             React.createElement("select", { value: f.rarity, onChange: e => sf("rarity", e.target.value), style: IS }, RARS.map(r => React.createElement("option", { key: r, value: r }, r))))),
                     React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } },
                         React.createElement("div", null,
-                            React.createElement("label", { style: LS }, "Serie / Set"),
+                            React.createElement("label", { style: LS }, 
+                    "Serie / Set"),
                             React.createElement("input", { value: f.series, onChange: e => sf("series", e.target.value), placeholder: "Base Set, LaLiga...", style: IS })),
                         React.createElement("div", null,
                             React.createElement("label", { style: LS }, "Condici\u00F3n"),
                             React.createElement("select", { value: f.condition, onChange: e => sf("condition", e.target.value), style: IS }, CONDS.map(c => React.createElement("option", { key: c, value: c }, c))))),
+                    
+                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } }, React.createElement("div", null, React.createElement("label", { style: LS }, "Liga"), React.createElement("input", { value: f.league || "", onChange: function(e){ sf("league", e.target.value); }, placeholder: "Premier League", style: IS })), React.createElement("div", null, React.createElement("label", { style: LS }, "Equipo"), React.createElement("input", { value: f.team || "", onChange: function(e){ sf("team", e.target.value); }, placeholder: "FC Barcelona", style: IS }))),
+                    
                     React.createElement("div", null,
                         React.createElement("label", { style: LS }, "Lote"),
                         React.createElement("select", { value: f.lotId || "", onChange: e => sf("lotId", e.target.value), style: IS },
                             React.createElement("option", { value: "" }, "Sin lote"),
                             (JSON.parse(localStorage.getItem("cv10_lots") || "[]")).map((l) => React.createElement("option", { key: l.id, value: l.id }, l.name)))),
-                    React.createElement("div", null,
-                        React.createElement("label", { style: LS }, "Notas"),
-                        React.createElement("textarea", { value: f.notes, onChange: e => sf("notes", e.target.value), rows: 2, placeholder: "Condici\u00F3n extra, n\u00FAmero...", style: Object.assign(Object.assign({}, IS), { resize: "vertical" }) })),
+                    
                     React.createElement("div", { style: { gridColumn: "1/-1" } },
                         React.createElement("label", { style: LS }, "\uD83D\uDCF7 Foto de la carta"),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, f.imageUrl ? React.createElement("img", { src: f.imageUrl, style: { width: "100%", maxHeight: 140, objectFit: "contain", borderRadius: 8, background: "#f8fafc" } }) : null, React.createElement("div", { style: { display: "flex", gap: 8 } }, React.createElement("label", { style: { flex: 1, padding: "10px 8px", background: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#1d4ed8", fontFamily: "Inter,sans-serif", textAlign: "center", display: "block" } }, "\uD83D\uDCF7 Hacer foto", React.createElement("input", { type: "file", accept: "image/*", capture: "environment", style: { display: "none" }, onChange: function(e){ var file=e.target.files[0]; if(!file) return; if(window.compressImage){window.compressImage(file,function(blob,dataUrl){if(window.uploadToCloudinary){window.uploadToCloudinary(blob,function(err,url){sf("imageUrl",err?dataUrl:url);});}else{sf("imageUrl",dataUrl);}});} e.target.value=""; } })), React.createElement("label", { style: { flex: 1, padding: "10px 8px", background: "#f0fdf4", border: "1.5px solid #bbf7d0", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#15803d", fontFamily: "Inter,sans-serif", textAlign: "center", display: "block" } }, "\uD83D\uDDBC\uFE0F Galer\u00EDa", React.createElement("input", { type: "file", accept: "image/*", style: { display: "none" }, onChange: function(e){ var file=e.target.files[0]; if(!file) return; if(window.compressImage){window.compressImage(file,function(blob,dataUrl){if(window.uploadToCloudinary){window.uploadToCloudinary(blob,function(err,url){sf("imageUrl",err?dataUrl:url);});}else{sf("imageUrl",dataUrl);}});} e.target.value=""; } }))), React.createElement("input", { value: f.imageUrl || "", onChange: e => sf("imageUrl", e.target.value), placeholder: "O pega una URL...", style: Object.assign({}, IS, { fontSize: 12, color: "#6b7280" }) }))),
-                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } }, React.createElement("div", null, React.createElement("label", { style: LS }, "Liga"), React.createElement("input", { value: f.league || "", onChange: function(e){ sf("league", e.target.value); }, placeholder: "Premier League", style: IS })), React.createElement("div", null, React.createElement("label", { style: LS }, "Equipo"), React.createElement("input", { value: f.team || "", onChange: function(e){ sf("team", e.target.value); }, placeholder: "FC Barcelona", style: IS }))),
+                    
+                    React.createElement("div", { style: { gridColumn: "1/-1" } },
+                        React.createElement("label", { style: LS }, "🏷️ Etiquetas"),
+                        React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 } },
+                            (f.tags||[]).map(function(tag, ti) {
+                                return React.createElement("div", { key: ti, style: { display: "flex", alignItems: "center", gap: 4, padding: "3px 10px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 20, fontSize: 12, color: "#1d4ed8" } },
+                                    React.createElement("span", null, tag),
+                                    React.createElement("button", { onClick: function() { sf("tags", (f.tags||[]).filter(function(_,i){return i!==ti;})); }, style: { background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#93c5fd", lineHeight: 1, padding: 0 } }, "\u00D7")
+                                );
+                            })
+                        ),
+                        React.createElement("div", { style: { display: "flex", gap: 6 } },
+                            React.createElement("input", { id: "cv-tag-input", type: "text", placeholder: "rookie, grail, regalo...", style: Object.assign({}, IS, { flex: 1 }),
+                                onKeyDown: function(e) {
+                                    if((e.key==="Enter"||e.key===",") && e.target.value.trim()) {
+                                        e.preventDefault();
+                                        var t=e.target.value.trim().replace(/,/g,"");
+                                        if(!(f.tags||[]).includes(t)) sf("tags", (f.tags||[]).concat([t]));
+                                        e.target.value="";
+                                    }
+                                }
+                            }),
+                            React.createElement("button", { onClick: function() {
+                                var inp=document.getElementById("cv-tag-input");
+                                if(inp&&inp.value.trim()){var t=inp.value.trim();if(!(f.tags||[]).includes(t))sf("tags",(f.tags||[]).concat([t]));inp.value="";}
+                            }, style: { padding: "8px 14px", background: BLUE, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, "+")
+                        )
+                    ),
+                    
                     React.createElement("div", { style: { marginTop: 10 } },
                         React.createElement("label", { style: LS }, "\uD83D\uDCE6 Ubicaci\u00F3n f\u00EDsica"),
                         React.createElement("select", { value: f.location || "", onChange: e => sf("location", e.target.value), style: IS },
@@ -17632,6 +17676,7 @@ function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl }) {
                                         React.createElement("a", { href: "https://www.ebay.es/sch/i.html?_nkw=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", style: { padding: "5px 7px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 11, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "eBay"),
                     !isSold && card.mode === "inventory" && React.createElement(Btn, { sm: true, v: "outline", style: { color: GREEN, borderColor: "#d1fae5" }, onClick: () => onSell(card) }, "Vender"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => onEdit(card) }, "\u270F"),
+                                        onDuplicate && React.createElement(Btn, { sm: true, v: "outline", title: "Duplicar carta", onClick: () => onDuplicate(card) }, "\uD83D\uDDC2"),
                                         React.createElement(Btn, { sm: true, v: "outline", style: { color: RED, borderColor: "#fecaca" }, onClick: () => onDelete(card.id) }, "\u2715")))),
         open && (React.createElement("tr", { style: { background: BGS } },
             React.createElement("td", { colSpan: displayPnl ? 6 : 5, style: { padding: "8px 8px 8px 8px", borderBottom: "1px solid " + BDR } },
@@ -17653,6 +17698,13 @@ function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl }) {
                     card.notes && React.createElement("span", null,
                         "\uD83D\uDCDD ",
                         card.notes),
+                    card.marketPrice && React.createElement("span", { style: { color: "#7c3aed", fontWeight: 600 } },
+                        "📈 Mercado: ", eu(card.marketPrice)),
+                    card.tags && card.tags.length > 0 && React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 4, marginTop: 2 } },
+                        card.tags.map(function(tag, ti) {
+                            return React.createElement("span", { key: ti, style: { padding: "2px 8px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 20, fontSize: 11, color: "#1d4ed8" } }, tag);
+                        })
+                    ),
                     card.location && React.createElement("span", null,
                         "\uD83D\uDCE6 ",
                         card.location),
@@ -17792,7 +17844,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
     function toggleSet(setter, val) { setter(prev => { const n = new Set(prev); n.has(val) ? n.delete(val) : n.add(val); return n; }); }
     const inv = cards.filter(c => c.mode === "inventory");
     const invYears = ['all', ...new Set(inv.map(c => (c.buyDate || '').slice(0, 4)).filter(Boolean)).values()].sort((a, b) => b.localeCompare(a));
-    const fi = inv.filter(c => {
+    let fi = inv.filter(c => {
         if (filterY !== 'all' && (c.buyDate || '').slice(0, 4) !== filterY)
             return false;
         if (filterM !== 'all' && (c.buyDate || '').slice(5, 7) !== filterM)
@@ -17818,6 +17870,15 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
         return (b.status === "sold" ? np(b) : 0) - (a.status === "sold" ? np(a) : 0); if (st === "cost")
         return (b.buyPrice || 0) * (b.quantity || 1) - (a.buyPrice || 0) * (a.quantity || 1); if (st === "name")
         return a.name.localeCompare(b.name); return (b.buyDate || "").localeCompare(a.buyDate || ""); });
+    if (invView === "grid" && sortBy) {
+        fi = fi.slice().sort(function(a, b) {
+            var av = a[sortBy] || "", bv = b[sortBy] || "";
+            if (typeof av === "number" || !isNaN(parseFloat(av))) {
+                return (parseFloat(bv) - parseFloat(av)) * sortDir;
+            }
+            return String(av).localeCompare(String(bv)) * sortDir;
+        });
+    }
     const fC = fi.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0), fN = fi.filter(c => c.status === "sold").reduce((a, c) => a + np(c), 0);
     
         const fiSorted=sortBy?[...fi].sort(function(a,b){var roi=function(c){var bp=c.buyPrice||0;var tp=c.targetPrice||0;return bp>0?(tp-bp)/bp*100:0;};var v=sortBy==="roi"?[roi(a),roi(b)]:sortBy==="price"?[a.buyPrice||0,b.buyPrice||0]:[(a.name||"").toLowerCase(),(b.name||"").toLowerCase()];return typeof v[0]==="string"?(v[0]<v[1]?-1:1)*sortDir:(v[0]-v[1])*sortDir;}):fi;
@@ -17849,7 +17910,15 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
                     })
                 )),
             fi.length === 0 ? (React.createElement(Empty, { icon: "\uD83D\uDCE6", title: inv.length === 0 ? "Sin cartas" : "Sin resultados" })) :
-            invView === "grid" ? React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 12, padding: "4px 0" } },
+            invView === "grid" ? React.createElement("div", null,
+            React.createElement("div", { style: { display: "flex", gap: 0, marginBottom: 10, borderBottom: "2px solid " + BDR, paddingBottom: 0 } },
+                [["name","Nombre"],["buyPrice","Coste"],["targetPrice","Precio"],["buyDate","Fecha"],["status","Estado"]].map(function(pair){
+                    return React.createElement("button", { key: pair[0], onClick: function(){ if(sortBy===pair[0]){setSortDir(sortDir*-1);}else{setSortBy(pair[0]);setSortDir(1);} }, style: { padding: "8px 10px", border: "none", borderBottom: "2px solid "+(sortBy===pair[0]?BLUE:"transparent"), marginBottom: -2, background: "transparent", color: sortBy===pair[0]?BLUE:SUB, fontSize: 11, fontWeight: 600, cursor: "pointer", userSelect: "none" } },
+                        pair[1]+(sortBy===pair[0]?(sortDir===1?" ↑":" ↓"):"")
+                    );
+                })
+            ),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 12, padding: "4px 0" } },
                 fi.map(function(card, i) {
                     var isSold = card.status === "sold";
                     var roi = card.buyPrice > 0 ? ((((card.sellPrice || card.targetPrice || 0) - card.buyPrice) / card.buyPrice) * 100).toFixed(0) : null;
@@ -17870,6 +17939,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
                         )
                     );
                 })
+            )
             ) :
             (React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
                 React.createElement("thead",null,React.createElement("tr",null,["Carta","Rareza","Coste","ROI","Estado",""].map(function(h,i){var al=i>=2?"right":i===4?"center":"left";var cl=["Coste","ROI","Carta"].includes(h);var ky=h==="Coste"?"price":h==="ROI"?"roi":h==="Carta"?"name":"";return React.createElement("th",{key:h,onClick:cl?function(){if(sortBy===ky){setSortDir(sortDir*-1);}else{setSortBy(ky);setSortDir(-1);}}:null,style:{padding:"8px 6px",textAlign:al,fontSize:11,fontWeight:600,color:sortBy===ky?BLUE:SUB,cursor:cl?"pointer":"default",userSelect:"none",borderBottom:"2px solid "+BDR}},h+(sortBy===ky?(sortDir===1?" ↑":" ↓"):""));}))),
@@ -18231,11 +18301,9 @@ function AnalyticsTab({ cards }) {
     } });
     const [newLoc, setNewLoc] = useState("");
     function saveLocs(l) { setLocs(l); localStorage.setItem("cv10_locs", JSON.stringify(l)); }
-        var now=new Date();var ys=new Date(now.getFullYear(),0,1);var de=Math.max(1,Math.round((now-ys)/86400000));var sy=sold.filter(function(c){return c.sellDate&&c.sellDate.slice(0,4)===String(now.getFullYear());});var ply=sy.reduce(function(a,c){return a+((c.salePrice||c.targetPrice||0)-(c.buyPrice||0));},0);var dr=ply/de;var pa=dr*365;
-    return (React.createElement("div", null,
+            return (React.createElement("div", null,
         React.createElement("div", { style: { fontSize: 20, fontWeight: 700, marginBottom: 20 } }, "An\u00E1lisis"),
-        React.createElement(Card, { style: { padding: "16px 20px", marginBottom: 20, background: "#eff6ff" } }, React.createElement(SL, null, "\uD83D\uDCC8 Proyecci\u00F3n "+now.getFullYear()), React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 10 } }, React.createElement("div", null, React.createElement("div", {style:{fontSize:11,color:SUB}}, "Ganado este a\u00F1o"), React.createElement("div", {style:{fontSize:18,fontWeight:700,color:ply>=0?GREEN:RED}}, (ply>=0?"+":"")+euk(ply))), React.createElement("div", null, React.createElement("div", {style:{fontSize:11,color:SUB}}, "Ritmo diario"), React.createElement("div", {style:{fontSize:18,fontWeight:700,color:TXT}}, (dr>=0?"+":"")+euk(dr))), React.createElement("div", null, React.createElement("div", {style:{fontSize:11,color:SUB}}, "Total "+now.getFullYear()), React.createElement("div", {style:{fontSize:18,fontWeight:700,color:pa>=0?"#7c3aed":RED}}, (pa>=0?"+":"")+euk(pa)))), React.createElement("div", {style:{fontSize:11,color:SUB,marginTop:8}}, "Basado en "+sy.length+" ventas en "+de+" dias")),
-        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 } },
+                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 } },
             React.createElement(Card, { style: { padding: "18px" } },
                 React.createElement(SL, null, "\u23F1 Tiempo medio de venta"),
                 catStats.length > 0 ? (React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
@@ -18889,7 +18957,16 @@ function DupModal({ card, onSave, onClose }) {
                 React.createElement("div", { style: { display: "flex", gap: 8 } },
                     React.createElement(Btn, { v: "outline", full: true, onClick: onClose }, "Cancelar"),
                     React.createElement(Btn, { full: true, disabled: totalUnits === 0, onClick: () => {
-                            onSave(Object.assign(Object.assign({}, card), { quantity: totalUnits, buyPrice: parseFloat(avgPrice.toFixed(2)) }));
+                            units.forEach(function(u, i) {
+                                var price = parseFloat(String(u.price).replace(",", ".")) || 0;
+                                var isFirst = i === 0;
+                                var newCard = Object.assign({}, card, {
+                                    id: isFirst ? card.id : (Date.now() + i).toString(36) + Math.random().toString(36).slice(2,6),
+                                    quantity: 1,
+                                    buyPrice: price
+                                });
+                                onSave(newCard);
+                            });
                             onClose();
                         } }, "Guardar"))))));
 }
@@ -19063,6 +19140,7 @@ function App() {
     } });
     function saveLots(l) { setLots(l); localStorage.setItem("cv10_lots", JSON.stringify(l)); }
     const [showSettings, setShowSettings] = useState(false);
+    const [unreadChats, setUnreadChats] = useState(0);
     const [showPublicProfile, setShowPublicProfile] = useState(false);
     const [darkMode, setDarkMode] = useState(() => localStorage.getItem("cv10_dark") === "1");
     const [currency, setCurrency] = useState(() => localStorage.getItem("cv10_currency") || "EUR");
@@ -19127,44 +19205,61 @@ function App() {
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta"),
                     React.createElement(Btn, { sm: true, v: "outline", onClick: () => setShowLot(true) }, "Venta m\u00FAltiple"),
-                    React.createElement("a", { href: "?directorio", target: "_blank", style: { background: "transparent", border: "1.5px solid " + BDR, borderRadius: 8, fontSize: 12, padding: "6px 12px", color: SUB, fontWeight: 600, textDecoration: "none", marginRight: 4, fontFamily: "Inter,sans-serif" } }, "\uD83D\uDED2 ", React.createElement("span", { className: "nav-label" }, "Comprar")), React.createElement("button", { onClick: function(){ setShowChats(true); }, style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB, marginRight: 4 } }, "\uD83D\uDCAC"), React.createElement("button", { onClick: () => setShowSettings(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\u2699\uFE0F")))),
+                    React.createElement("a", { href: "?directorio", target: "_blank", style: { background: "transparent", border: "1.5px solid " + BDR, borderRadius: 8, fontSize: 12, padding: "6px 12px", color: SUB, fontWeight: 600, textDecoration: "none", marginRight: 4, fontFamily: "Inter,sans-serif" } }, "\uD83D\uDED2 ", React.createElement("span", { className: "nav-label" }, "Comprar")), React.createElement("button", { onClick: function(){ setShowChats(true); localStorage.setItem("cv10_last_seen_chats",String(Date.now())); setUnreadChats(0); }, style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB, marginRight: 4, position: "relative" } },
+            "\uD83D\uDCAC",
+            unreadChats > 0 ? React.createElement("span", { style: { position: "absolute", top: -4, right: -4, background: "#ef4444", color: "#fff", borderRadius: "50%", fontSize: 9, fontWeight: 700, width: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 } }, unreadChats > 9 ? "9+" : String(unreadChats)) : null
+        ), React.createElement("button", { onClick: () => setShowSettings(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\u2699\uFE0F")))),
                 tooltip && React.createElement("div", { onClick: function(){ setTooltip(null); }, style: { position: "fixed", inset: 0, zIndex: 998 } }),
         tooltip && React.createElement("div", { style: { position: "fixed", background: "#1e293b", color: "#fff", borderRadius: 10, padding: "10px 14px", fontSize: 12, maxWidth: 220, zIndex: 999, top: tooltip.y, left: tooltip.x, lineHeight: 1.5 } }, tooltip.text),
-        showChecklist && React.createElement("div", { style: { position: "fixed", bottom: 80, right: 16, zIndex: 999, background: BG, borderRadius: 18, padding: "18px 18px 14px", width: 290, boxShadow: "0 12px 40px rgba(0,0,0,0.18)", border: "1px solid " + BDR } },
+        showChecklist && React.createElement("div", { style: { position: "fixed", bottom: 80, right: 12, zIndex: 999, background: BG, borderRadius: 20, padding: "20px 20px 16px", width: 320, boxShadow: "0 16px 48px rgba(0,0,0,0.22)", border: "1px solid " + BDR, maxHeight: "80vh", overflowY: "auto" } },
           React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
-            React.createElement("div", { style: { fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", gap: 8 } },
-              React.createElement("span", { style: { fontSize: 20 } }, "🚀"),
+            React.createElement("div", { style: { fontWeight: 700, fontSize: 16, display: "flex", alignItems: "center", gap: 8 } },
+              React.createElement("span", { style: { fontSize: 22 } }, "🚀"),
               "Primeros pasos"
             ),
-            React.createElement("button", { onClick: function(){ localStorage.setItem("cv10_checklist_done","1"); setShowChecklist(false); }, style: { background: "none", border: "none", fontSize: 18, cursor: "pointer", color: SUB, lineHeight: 1 } }, "\u00D7")
+            React.createElement("button", { onClick: function(){ localStorage.setItem("cv10_checklist_done","1"); setShowChecklist(false); }, style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB, lineHeight: 1 } }, "\u00D7")
           ),
           (function(){
             var items = [
-              { key: "cv10", label: "A\xC3\xB1ade tu primera carta", done: JSON.parse(localStorage.getItem("cv10")||"[]").length > 0, tab: "inventory" },
-              { key: "cv10_slug", label: "Configura tu perfil p\xC3\xBAblico", done: !!localStorage.getItem("cv10_slug"), tab: null },
-              { key: "cv10_pub", label: "Activa una carta para vender", done: JSON.parse(localStorage.getItem("cv10")||"[]").some(function(c){return c.publicVisible;}), tab: "inventory" },
-              { key: "cv10_tutorial_done", label: "Completa el tutorial", done: !!localStorage.getItem("cv10_tutorial_done"), tab: null }
+              { label: "Añade tu primera carta", hint: "Pestaña Inventario → botón +", done: JSON.parse(localStorage.getItem("cv10")||"[]").length > 0 },
+              { label: "Sube una foto a una carta", hint: "Edita la carta y sube imagen desde el formulario", done: JSON.parse(localStorage.getItem("cv10")||"[]").some(function(c){return c.imageUrl;}) },
+              { label: "Configura tu perfil público", hint: "Ajustes → Mi perfil público → pon tu slug y guarda", done: !!localStorage.getItem("cv10_slug") },
+              { label: "Activa una carta para vender", hint: "Edita una carta → activa “Perfil público”", done: JSON.parse(localStorage.getItem("cv10")||"[]").some(function(c){return c.publicVisible;}) },
+              { label: "Completa el tutorial", hint: "Ajustes → Ver tutorial", done: !!localStorage.getItem("cv10_tutorial_done") },
+              { label: "Añade una factura", hint: "Pestaña Fiscal → Facturas → Nueva factura", done: JSON.parse(localStorage.getItem("cv10i")||"[]").length > 0 },
+              { label: "Vende tu primera carta", hint: "Inventario → botón Vender en la carta", done: JSON.parse(localStorage.getItem("cv10")||"[]").some(function(c){return c.status==="sold";}) },
+              { label: "Comparte tu enlace de perfil", hint: "Ajustes → Mi perfil → copia el enlace y envíalo", done: !!localStorage.getItem("cv10_shared") }
             ];
             var doneCount = items.filter(function(x){return x.done;}).length;
+            var pct = Math.round(doneCount/items.length*100);
             return React.createElement("div", null,
-              React.createElement("div", { style: { marginBottom: 12 } },
-                React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 11, color: SUB, marginBottom: 4 } },
+              React.createElement("div", { style: { marginBottom: 14 } },
+                React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 12, color: SUB, marginBottom: 5 } },
                   React.createElement("span", null, doneCount + " de " + items.length + " completados"),
-                  React.createElement("span", { style: { fontWeight: 600, color: BLUE } }, Math.round(doneCount/items.length*100) + "%")
+                  React.createElement("span", { style: { fontWeight: 700, color: BLUE } }, pct + "%")
                 ),
-                React.createElement("div", { style: { height: 6, borderRadius: 3, background: BGS, overflow: "hidden" } },
-                  React.createElement("div", { style: { height: "100%", width: Math.round(doneCount/items.length*100) + "%", background: "linear-gradient(90deg,#3b82f6,#8b5cf6)", borderRadius: 3, transition: "width 0.4s" } })
+                React.createElement("div", { style: { height: 7, borderRadius: 4, background: BGS, overflow: "hidden" } },
+                  React.createElement("div", { style: { height: "100%", width: pct + "%", background: pct===100?"linear-gradient(90deg,#10b981,#3b82f6)":"linear-gradient(90deg,#3b82f6,#8b5cf6)", borderRadius: 4, transition: "width 0.4s" } })
                 )
               ),
               items.map(function(item, i){
-                return React.createElement("div", { key: i, style: { display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < items.length-1 ? "1px solid " + BDR : "none" } },
-                  React.createElement("div", { style: { width: 22, height: 22, borderRadius: "50%", background: item.done ? "linear-gradient(135deg,#10b981,#3b82f6)" : BGS, border: "2px solid " + (item.done ? "transparent" : BDR), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.3s" } },
-                    item.done ? React.createElement("span", { style: { color: "#fff", fontSize: 12, fontWeight: 700 } }, "\u2713") : React.createElement("span", { style: { fontSize: 11, color: SUB } }, String(i+1))
+                return React.createElement("div", { key: i, style: { display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: i < items.length-1 ? "1px solid " + BDR : "none" } },
+                  React.createElement("div", { style: { width: 24, height: 24, borderRadius: "50%", background: item.done ? "linear-gradient(135deg,#10b981,#3b82f6)" : BGS, border: "2px solid " + (item.done ? "transparent" : BDR), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 } },
+                    item.done
+                      ? React.createElement("span", { style: { color: "#fff", fontSize: 12, fontWeight: 700 } }, "\u2713")
+                      : React.createElement("span", { style: { fontSize: 11, color: SUB, fontWeight: 600 } }, String(i+1))
                   ),
-                  React.createElement("div", { style: { flex: 1, fontSize: 13, color: item.done ? SUB : TXT, textDecoration: item.done ? "line-through" : "none" } }, item.label)
+                  React.createElement("div", { style: { flex: 1 } },
+                    React.createElement("div", { style: { fontSize: 13, fontWeight: 600, color: item.done ? SUB : TXT, textDecoration: item.done ? "line-through" : "none", marginBottom: 2 } }, item.label),
+                    !item.done ? React.createElement("div", { style: { fontSize: 11, color: SUB, lineHeight: 1.4 } }, item.hint) : null
+                  )
                 );
               }),
-              doneCount === items.length ? React.createElement("div", { style: { marginTop: 12, padding: "10px 14px", background: "linear-gradient(135deg,#ecfdf5,#eff6ff)", borderRadius: 10, textAlign: "center", fontSize: 13, color: "#059669", fontWeight: 600 } }, "🎉 ¡Todo listo! Ya eres un CromoVaulter.") : null
+              doneCount === items.length
+                ? React.createElement("div", { style: { marginTop: 14, padding: "12px 16px", background: "linear-gradient(135deg,#ecfdf5,#eff6ff)", borderRadius: 12, textAlign: "center", fontSize: 13, color: "#059669", fontWeight: 700, lineHeight: 1.5 } },
+                    "🎉 ¡Todo listo! Ya eres un CromoVaulter experto."
+                  )
+                : null
             );
           })()
         ),
@@ -19340,34 +19435,53 @@ var onClose=props.onClose;
 var ts=useState(0),step=ts[0],setStep=ts[1];
 var ce=React.createElement;
 var slides=[
-  {bg:"linear-gradient(135deg,#3b82f6,#8b5cf6)",icon:"🃏",title:"Bienvenido a CromoVault",desc:"Tu app para gestionar y rentabilizar tu colección de cartas. Sigue estos pasos para empezar."},
-  {bg:"linear-gradient(135deg,#f59e0b,#ef4444)",icon:"📦",title:"Inventario y Colección",desc:"En Inventario gestiona las cartas que tienes o vendes. En Colección guarda las que atesoras. Añade precio, condición y foto."},
-  {bg:"linear-gradient(135deg,#10b981,#3b82f6)",icon:"💰",title:"Finanzas y ROI",desc:"La pestaña Fiscal calcula tu rentabilidad automáticamente. El ROI se actualiza con cada compra y venta."},
-  {bg:"linear-gradient(135deg,#8b5cf6,#ec4899)",icon:"🌐",title:"Tu perfil público",desc:"En Ajustes → Mi perfil crea tu tienda. Activa cartas para vender y comparte tu enlace con compradores."},
-  {bg:"linear-gradient(135deg,#f97316,#f59e0b)",icon:"💬",title:"Chats y Ofertas",desc:"Recibe mensajes y ofertas directamente en tu perfil. Al vender, comparte el código CV para que te dejen valoraciones."},
-  {bg:"linear-gradient(135deg,#06b6d4,#3b82f6)",icon:"🚀",title:"¡Listo para empezar!",desc:"1) Añade tu primera carta. 2) Configura tu perfil en Ajustes. 3) Activa cartas para vender. 4) Comparte tu enlace."}
+  {bg:"linear-gradient(135deg,#1e3a5f,#3b82f6)",icon:"🃏",title:"Bienvenido a CromoVault",
+   desc:"CromoVault es tu gestor de colección e inversión en cartas. Te permite controlar precios, calcular rentabilidad y vender cartas con tu propio perfil público."},
+  {bg:"linear-gradient(135deg,#f59e0b,#ef4444)",icon:"📦",title:"Inventario",
+   desc:"Aquí van las cartas que tienes disponibles para vender o guardar. Cada carta tiene nombre, set, rareza, condición, precio de compra y precio objetivo de venta."},
+  {bg:"linear-gradient(135deg,#8b5cf6,#3b82f6)",icon:"⭐",title:"Colección",
+   desc:"En Colección guardas las cartas que no quieres vender. Puedes crear Rainbows (variantes de una misma carta) y organizarlas en carpetas o cajas."},
+  {bg:"linear-gradient(135deg,#10b981,#06b6d4)",icon:"💰",title:"Finanzas y ROI",
+   desc:"La pestaña Fiscal calcula automáticamente tu ROI (rentabilidad) por carta. En Análisis ves tu evolución. En Facturas puedes generar facturas para tus ventas."},
+  {bg:"linear-gradient(135deg,#f97316,#f59e0b)",icon:"📦",title:"Lotes",
+   desc:"Registra lotes de cartas que compras en packs o cajas. CromoVault calcula automáticamente la rentabilidad total del lote según lo que vayas vendiendo."},
+  {bg:"linear-gradient(135deg,#8b5cf6,#ec4899)",icon:"🌐",title:"Tu perfil público",
+   desc:"En Ajustes → Mi perfil creas tu tienda online. Elige un nombre único (slug), añade foto, banner y datos de contacto. Una vez configurado, comparte tu enlace con compradores."},
+  {bg:"linear-gradient(135deg,#3b82f6,#10b981)",icon:"🔍",title:"Activar cartas para vender",
+   desc:"En el inventario, edita una carta y activa la opción 'Visible en perfil público'. Así aparecerá en tu tienda para que los compradores la vean y te hagan ofertas."},
+  {bg:"linear-gradient(135deg,#ef4444,#f97316)",icon:"💬",title:"Chats y Ofertas",
+   desc:"Los compradores te pueden escribir desde tu perfil. Recibirás notificaciones de mensajes y ofertas. Cuando vendas, comparte el código CV para recibir valoraciones."},
+  {bg:"linear-gradient(135deg,#06b6d4,#3b82f6)",icon:"🚀",title:"¡Listo para empezar!",
+   desc:"1º Añade tu primera carta en Inventario. 2º Configura tu perfil en Ajustes. 3º Activa cartas para vender. 4º Comparte tu enlace. ¡Mucho éxito!"}
 ];
 var s=slides[step];
 var last=step===slides.length-1;
-return ce("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}},
-  ce("div",{style:{background:"#fff",borderRadius:24,overflow:"hidden",maxWidth:400,width:"100%",fontFamily:"Inter,sans-serif",boxShadow:"0 24px 80px rgba(0,0,0,0.3)"}},
-    ce("div",{style:{background:s.bg,padding:"32px 28px 24px",textAlign:"center",position:"relative"}},
-      ce("div",{style:{fontSize:60,marginBottom:12,lineHeight:1}},s.icon),
-      ce("div",{style:{fontWeight:800,fontSize:20,color:"#fff",marginBottom:8,letterSpacing:"-0.3px"}},s.title),
-      ce("div",{style:{fontSize:13,color:"rgba(255,255,255,0.85)",lineHeight:1.6}},s.desc)
+return ce("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.65)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:16}},
+  ce("div",{style:{background:"#fff",borderRadius:24,overflow:"hidden",maxWidth:420,width:"100%",fontFamily:"Inter,sans-serif",boxShadow:"0 28px 80px rgba(0,0,0,0.35)"}},
+    ce("div",{style:{background:s.bg,padding:"36px 28px 28px",textAlign:"center",minHeight:200,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}},
+      ce("div",{style:{fontSize:64,marginBottom:14,lineHeight:1}},s.icon),
+      ce("div",{style:{fontWeight:800,fontSize:21,color:"#fff",marginBottom:10,letterSpacing:"-0.3px"}},s.title),
+      ce("div",{style:{fontSize:14,color:"rgba(255,255,255,0.88)",lineHeight:1.7,maxWidth:340}},s.desc)
     ),
-    ce("div",{style:{padding:"20px 24px 24px"}},
-      ce("div",{style:{display:"flex",gap:6,justifyContent:"center",marginBottom:20}},
+    ce("div",{style:{padding:"18px 22px 22px"}},
+      ce("div",{style:{display:"flex",gap:4,justifyContent:"center",marginBottom:18}},
         slides.map(function(_,i){
           return ce("div",{key:i,style:{height:4,borderRadius:2,background:i===step?"#3b82f6":"#e2e8f0",flex:i===step?2:1,transition:"all 0.3s"}});
         })
       ),
-      ce("div",{style:{display:"flex",gap:8}},
-        step>0?ce("button",{onClick:function(){setStep(step-1);},style:{flex:1,padding:"12px",background:"#f1f5f9",border:"none",borderRadius:12,cursor:"pointer",fontSize:14,fontWeight:600,fontFamily:"Inter,sans-serif",color:"#475569"}},"Anterior"):null,
+      ce("div",{style:{fontSize:12,color:"#9ca3af",textAlign:"center",marginBottom:14}},
+        (step+1)+" de "+slides.length
+      ),
+      ce("div",{style:{display:"flex",gap:8,alignItems:"center"}},
+        step>0
+          ?ce("button",{onClick:function(){setStep(step-1);},style:{padding:"11px 16px",background:"#f1f5f9",border:"none",borderRadius:12,cursor:"pointer",fontSize:14,fontWeight:600,fontFamily:"Inter,sans-serif",color:"#475569"}},"←")
+          :null,
         last
-          ?ce("button",{onClick:function(){localStorage.setItem("cv10_tutorial_done","1");onClose();},style:{flex:2,padding:"12px",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",border:"none",borderRadius:12,cursor:"pointer",fontSize:14,fontWeight:700,fontFamily:"Inter,sans-serif",color:"#fff"}},"🚀 Empezar")
-          :ce("button",{onClick:function(){setStep(step+1);},style:{flex:2,padding:"12px",background:"#3b82f6",border:"none",borderRadius:12,cursor:"pointer",fontSize:14,fontWeight:600,fontFamily:"Inter,sans-serif",color:"#fff"}},"Siguiente →"),
-        !last?ce("button",{onClick:function(){localStorage.setItem("cv10_tutorial_done","1");onClose();},style:{padding:"12px 14px",background:"none",border:"none",cursor:"pointer",fontSize:13,color:"#9ca3af",fontFamily:"Inter,sans-serif"}},"Saltar"):null
+          ?ce("button",{onClick:function(){localStorage.setItem("cv10_tutorial_done","1");onClose();},style:{flex:1,padding:"13px",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",border:"none",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:"Inter,sans-serif",color:"#fff"}},"🚀 ¡Empezar!")
+          :ce("button",{onClick:function(){setStep(step+1);},style:{flex:1,padding:"13px",background:"#3b82f6",border:"none",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:600,fontFamily:"Inter,sans-serif",color:"#fff"}},"Siguiente →"),
+        !last
+          ?ce("button",{onClick:function(){localStorage.setItem("cv10_tutorial_done","1");onClose();},style:{padding:"11px 14px",background:"none",border:"none",cursor:"pointer",fontSize:12,color:"#9ca3af",fontFamily:"Inter,sans-serif",whiteSpace:"nowrap"}},"Saltar")
+          :null
       )
     )
   )
@@ -19392,7 +19506,26 @@ var ts=useState("venta"),at=ts[0],sat=ts[1];
   var ms=useState([]),msgs=ms[0],setMsgs=ms[1];
   var ni=useState(""),newMsg=ni[0],setNewMsg=ni[1];
   React.useEffect(function(){if(!window._db||!window._currentUser)return;var uid=window._currentUser.uid;var ref=window._db.ref("chats/"+slug+"/"+uid);ref.on("value",function(snap){var d=snap.val();if(d){setMsgs(Object.keys(d).map(function(k){return d[k];}).sort(function(a,b){return a.ts-b.ts;}));}else{setMsgs([]);}});return function(){ref.off();};});
-var fs=useState(""),sr=fs[0],ssr=fs[1];var vc=useState(null),visitCount=vc[0],setVisitCount=vc[1];React.useEffect(function(){if(!window._db)return;var ref=window._db.ref("visits/"+slug);ref.transaction(function(n){return (n||0)+1;});ref.once("value").then(function(s){setVisitCount(s.val());});},[]);
+var fs=useState(""),sr=fs[0],ssr=fs[1];var vc=useState(null),visitCount=vc[0],setVisitCount=vc[1];React.useEffect(function(){
+    if(!window._db||!slug)return;
+    var ref=window._db.ref("chats/"+slug);
+    var lastSeen=parseInt(localStorage.getItem("cv10_last_seen_chats")||"0");
+    ref.on("value",function(snap){
+      var d=snap.val();
+      if(!d){setUnreadChats(0);return;}
+      var count=0;
+      Object.keys(d).forEach(function(uid){
+        var msgs=d[uid];
+        var keys=Object.keys(msgs||{});
+        keys.forEach(function(k){
+          if((msgs[k].ts||0)>lastSeen && msgs[k].sender!=="owner") count++;
+        });
+      });
+      setUnreadChats(count);
+    });
+    return function(){ref.off();};
+  },[slug]);
+    React.useEffect(function(){if(!window._db)return;var ref=window._db.ref("visits/"+slug);ref.transaction(function(n){return (n||0)+1;});ref.once("value").then(function(s){setVisitCount(s.val());});},[]);
 var fl=listed.filter(function(c){
   if(!sr)return true;
   var s=sr.toLowerCase();
