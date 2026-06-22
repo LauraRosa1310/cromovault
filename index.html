@@ -36,19 +36,41 @@
 </head>
 <body>
 <script>if(localStorage.getItem("cv10_dark")==="1"){document.body.classList.add("dark");}</script>
-  <div id="cv-login" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#1e293b);z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Inter,sans-serif;">
-    <div style="text-align:center;padding:40px;background:rgba(255,255,255,0.05);border-radius:20px;border:1px solid rgba(255,255,255,0.1);max-width:380px;width:90%;">
-      <div style="font-size:52px;margin-bottom:16px;">🃏</div>
-      <div style="font-size:28px;font-weight:700;color:#fff;margin-bottom:8px;">CromoVault</div>
-      <div style="font-size:14px;color:#94a3b8;margin-bottom:32px;">Tu gestor de cartas de inversión</div>
-      <button onclick="window._signIn()" style="width:100%;padding:14px 24px;background:#fff;color:#1e293b;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:Inter,sans-serif;">
+  <div id="cv-login" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%);z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Inter,sans-serif;overflow:auto;padding:20px;">
+    <div style="text-align:center;max-width:420px;width:100%;">
+      <div style="font-size:64px;margin-bottom:8px;">🃏</div>
+      <div style="font-size:32px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-0.5px;">CromoVault</div>
+      <div style="font-size:15px;color:#94a3b8;margin-bottom:36px;">Gestiona tu colección e inversión en cartas</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:32px;">
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px 12px;text-align:left;">
+          <div style="font-size:24px;margin-bottom:8px;">📦</div>
+          <div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:4px;">Inventario</div>
+          <div style="font-size:11px;color:#64748b;line-height:1.5;">Controla precios, ROI y estado de cada carta</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px 12px;text-align:left;">
+          <div style="font-size:24px;margin-bottom:8px;">💰</div>
+          <div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:4px;">Finanzas</div>
+          <div style="font-size:11px;color:#64748b;line-height:1.5;">Análisis fiscal, facturas y rentabilidad</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px 12px;text-align:left;">
+          <div style="font-size:24px;margin-bottom:8px;">🌐</div>
+          <div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:4px;">Perfil público</div>
+          <div style="font-size:11px;color:#64748b;line-height:1.5;">Vende cartas y recibe ofertas y valoraciones</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px 12px;text-align:left;">
+          <div style="font-size:24px;margin-bottom:8px;">☁️</div>
+          <div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:4px;">Sincronización</div>
+          <div style="font-size:11px;color:#64748b;line-height:1.5;">Tus datos siempre seguros en la nube</div>
+        </div>
+      </div>
+      <button onclick="window._signIn()" style="width:100%;padding:15px 24px;background:#fff;color:#1e293b;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;font-family:Inter,sans-serif;box-shadow:0 4px 24px rgba(0,0,0,0.3);">
         <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
         Continuar con Google
       </button>
-      <a href="?directorio" style="display:block;text-align:center;margin-top:12px;color:#94a3b8;font-size:13px;text-decoration:none;">Ver directorio</a>
-      <p style="color:#475569;font-size:12px;margin-top:20px;">Tus datos se guardan de forma segura en la nube</p>
+      <a href="?directorio" style="display:block;text-align:center;margin-top:14px;color:#475569;font-size:13px;text-decoration:none;">📖 Ver directorio de vendedores</a>
+      <p style="color:#334155;font-size:11px;margin-top:20px;">🔒 Acceso seguro con Google · Datos encriptados</p>
     </div>
-  </div>
+  </div>  </div>
   <div id="root" style="display:none;"></div>
   
   <script>
@@ -17763,6 +17785,7 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
                 React.createElement("span", { style: { fontSize: 10, color: SUB } }, l)))))));
 }
 function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
+    const [invView, setInvView] = useState(() => localStorage.getItem("cv10_inv_view") || "list");
     const [sr, setSr] = useState(""), [st, setSt] = useState("date"), [filterY, setFilterY] = useState("all"), [filterM, setFilterM] = useState("all");
     const [statusFl, setStatusFl] = useState(new Set()), [catFl, setCatFl] = useState(new Set()), [locFl, setLocFl] = useState(new Set()), [sortBy, setSortBy] = useState(""), [sortDir, setSortDir] = useState(1);
     const INV_MONTHS = [['all', 'Mes'], ['01', 'Ene'], ['02', 'Feb'], ['03', 'Mar'], ['04', 'Abr'], ['05', 'May'], ['06', 'Jun'], ['07', 'Jul'], ['08', 'Ago'], ['09', 'Sep'], ['10', 'Oct'], ['11', 'Nov'], ['12', 'Dic']];
@@ -17820,7 +17843,35 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
                         React.createElement("option", { value: "profit" }, "P&L"),
                         React.createElement("option", { value: "cost" }, "Coste"),
                         React.createElement("option", { value: "name" }, "Nombre")))),
-            fi.length === 0 ? (React.createElement(Empty, { icon: "\uD83D\uDCE6", title: inv.length === 0 ? "Sin cartas" : "Sin resultados" })) : (React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
+                React.createElement("div", { style: { display: "flex", gap: 3, marginLeft: 8 } },
+                    [["list", "☰"], ["grid", "⊞"]].map(function(pair) {
+                        return React.createElement("button", { key: pair[0], onClick: function() { setInvView(pair[0]); localStorage.setItem("cv10_inv_view", pair[0]); }, style: { padding: "5px 9px", borderRadius: 6, border: "1.5px solid " + (invView === pair[0] ? BLUE : BDR), background: invView === pair[0] ? "#eff4ff" : "transparent", color: invView === pair[0] ? BLUE : MUT, fontSize: 13, cursor: "pointer" } }, pair[1]);
+                    })
+                )),
+            fi.length === 0 ? (React.createElement(Empty, { icon: "\uD83D\uDCE6", title: inv.length === 0 ? "Sin cartas" : "Sin resultados" })) :
+            invView === "grid" ? React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 12, padding: "4px 0" } },
+                fi.map(function(card, i) {
+                    var isSold = card.status === "sold";
+                    var roi = card.buyPrice > 0 ? ((((card.sellPrice || card.targetPrice || 0) - card.buyPrice) / card.buyPrice) * 100).toFixed(0) : null;
+                    var statusColor = card.status === "listed" ? AMBER : card.status === "sold" ? GREEN : BLUE;
+                    var statusLabel = card.status === "listed" ? "En venta" : card.status === "sold" ? "Vendida" : "Cartera";
+                    return React.createElement("div", { key: card.id || i, style: { background: BGS, borderRadius: 12, border: "1px solid " + BDR, overflow: "hidden", cursor: "pointer", transition: "box-shadow 0.15s" }, onClick: function() { onEdit(card); } },
+                        card.imageUrl
+                            ? React.createElement("img", { src: card.imageUrl, style: { width: "100%", height: 140, objectFit: "cover", display: "block" } })
+                            : React.createElement("div", { style: { width: "100%", height: 140, background: "linear-gradient(135deg,#eff6ff,#f0fdf4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 } }, "\uD83C\uDFB4"),
+                        React.createElement("div", { style: { padding: "10px 10px 12px" } },
+                            React.createElement("div", { style: { fontWeight: 600, fontSize: 12, marginBottom: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, card.name),
+                            card.series ? React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, card.series) : null,
+                            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 } },
+                                React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: isSold ? GREEN : BLUE } }, eu(card.targetPrice || card.sellPrice || card.buyPrice || 0)),
+                                React.createElement("div", { style: { fontSize: 10, fontWeight: 600, padding: "2px 6px", borderRadius: 10, background: statusColor + "22", color: statusColor } }, statusLabel)
+                            ),
+                            roi ? React.createElement("div", { style: { fontSize: 11, color: parseFloat(roi) >= 0 ? GREEN : RED, marginTop: 3 } }, "ROI " + roi + "%") : null
+                        )
+                    );
+                })
+            ) :
+            (React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
                 React.createElement("thead",null,React.createElement("tr",null,["Carta","Rareza","Coste","ROI","Estado",""].map(function(h,i){var al=i>=2?"right":i===4?"center":"left";var cl=["Coste","ROI","Carta"].includes(h);var ky=h==="Coste"?"price":h==="ROI"?"roi":h==="Carta"?"name":"";return React.createElement("th",{key:h,onClick:cl?function(){if(sortBy===ky){setSortDir(sortDir*-1);}else{setSortBy(ky);setSortDir(-1);}}:null,style:{padding:"8px 6px",textAlign:al,fontSize:11,fontWeight:600,color:sortBy===ky?BLUE:SUB,cursor:cl?"pointer":"default",userSelect:"none",borderBottom:"2px solid "+BDR}},h+(sortBy===ky?(sortDir===1?" ↑":" ↓"):""));}))),
                 React.createElement("tbody", null, fiSorted.map(c => React.createElement(CardRow, { key: c.id, card: c, onEdit: onEdit, onDelete: onDelete, onSell: onSell, onDuplicate: onDuplicate }))),
                 fi.length > 1 && React.createElement("tfoot", null,
@@ -17832,7 +17883,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
                         React.createElement("td", { style: { padding: "9px 12px", textAlign: "right", fontSize: 13, fontWeight: 700, color: cl(fN) } },
                             sg(fN),
                             eu(fN)),
-                        React.createElement("td", { colSpan: 2 }))))))));
+                        React.createElement("td", { colSpan: 2 })))))));
 }
 function ColTab({ cards, onEdit, onDelete, onDuplicate }) {
     const [sr, setSr] = useState(""), [fl, setFl] = useState("all"), [view, setView] = useState("gallery"), [colSection, setColSection] = useState("cards");
@@ -19079,25 +19130,43 @@ function App() {
                     React.createElement("a", { href: "?directorio", target: "_blank", style: { background: "transparent", border: "1.5px solid " + BDR, borderRadius: 8, fontSize: 12, padding: "6px 12px", color: SUB, fontWeight: 600, textDecoration: "none", marginRight: 4, fontFamily: "Inter,sans-serif" } }, "\uD83D\uDED2 ", React.createElement("span", { className: "nav-label" }, "Comprar")), React.createElement("button", { onClick: function(){ setShowChats(true); }, style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB, marginRight: 4 } }, "\uD83D\uDCAC"), React.createElement("button", { onClick: () => setShowSettings(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\u2699\uFE0F")))),
                 tooltip && React.createElement("div", { onClick: function(){ setTooltip(null); }, style: { position: "fixed", inset: 0, zIndex: 998 } }),
         tooltip && React.createElement("div", { style: { position: "fixed", background: "#1e293b", color: "#fff", borderRadius: 10, padding: "10px 14px", fontSize: 12, maxWidth: 220, zIndex: 999, top: tooltip.y, left: tooltip.x, lineHeight: 1.5 } }, tooltip.text),
-        showChecklist && React.createElement("div", { style: { position: "fixed", bottom: 80, right: 16, zIndex: 999, background: BG, borderRadius: 16, padding: 20, width: 280, boxShadow: "0 8px 32px #00000033", border: "1px solid " + BDR } },
-          React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 } },
-            React.createElement("div", { style: { fontWeight: 700, fontSize: 15 } }, "\uD83D\uDE80 Primeros pasos"),
-            React.createElement("button", { onClick: function(){ localStorage.setItem("cv10_checklist_done","1"); setShowChecklist(false); }, style: { background: "none", border: "none", fontSize: 18, cursor: "pointer", color: SUB } }, "\u00D7")
+        showChecklist && React.createElement("div", { style: { position: "fixed", bottom: 80, right: 16, zIndex: 999, background: BG, borderRadius: 18, padding: "18px 18px 14px", width: 290, boxShadow: "0 12px 40px rgba(0,0,0,0.18)", border: "1px solid " + BDR } },
+          React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
+            React.createElement("div", { style: { fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", gap: 8 } },
+              React.createElement("span", { style: { fontSize: 20 } }, "🚀"),
+              "Primeros pasos"
+            ),
+            React.createElement("button", { onClick: function(){ localStorage.setItem("cv10_checklist_done","1"); setShowChecklist(false); }, style: { background: "none", border: "none", fontSize: 18, cursor: "pointer", color: SUB, lineHeight: 1 } }, "\u00D7")
           ),
-          [
-            ["cv10", "Añade tu primera carta", tab === "inventory" || tab === "collection"],
-            ["cv10_slug", "Configura tu perfil publico", !!localStorage.getItem("cv10_slug")],
-            ["cv10_pub", "Activa una carta para vender", JSON.parse(localStorage.getItem("cv10")||"[]").some(function(c){return c.publicVisible;})],
-            ["cv10_tutorial_done", "Completa el tutorial", !!localStorage.getItem("cv10_tutorial_done")]
-          ].map(function(item, i){
-            var done = item[2];
-            return React.createElement("div", { key: i, style: { display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: i < 3 ? "1px solid " + BDR : "none" } },
-              React.createElement("div", { style: { width: 20, height: 20, borderRadius: "50%", background: done ? "#16a34a" : BGS, border: "2px solid " + (done ? "#16a34a" : BDR), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 } },
-                done ? React.createElement("span", { style: { color: "#fff", fontSize: 11, fontWeight: 700 } }, "\u2713") : null
+          (function(){
+            var items = [
+              { key: "cv10", label: "A\xC3\xB1ade tu primera carta", done: JSON.parse(localStorage.getItem("cv10")||"[]").length > 0, tab: "inventory" },
+              { key: "cv10_slug", label: "Configura tu perfil p\xC3\xBAblico", done: !!localStorage.getItem("cv10_slug"), tab: null },
+              { key: "cv10_pub", label: "Activa una carta para vender", done: JSON.parse(localStorage.getItem("cv10")||"[]").some(function(c){return c.publicVisible;}), tab: "inventory" },
+              { key: "cv10_tutorial_done", label: "Completa el tutorial", done: !!localStorage.getItem("cv10_tutorial_done"), tab: null }
+            ];
+            var doneCount = items.filter(function(x){return x.done;}).length;
+            return React.createElement("div", null,
+              React.createElement("div", { style: { marginBottom: 12 } },
+                React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 11, color: SUB, marginBottom: 4 } },
+                  React.createElement("span", null, doneCount + " de " + items.length + " completados"),
+                  React.createElement("span", { style: { fontWeight: 600, color: BLUE } }, Math.round(doneCount/items.length*100) + "%")
+                ),
+                React.createElement("div", { style: { height: 6, borderRadius: 3, background: BGS, overflow: "hidden" } },
+                  React.createElement("div", { style: { height: "100%", width: Math.round(doneCount/items.length*100) + "%", background: "linear-gradient(90deg,#3b82f6,#8b5cf6)", borderRadius: 3, transition: "width 0.4s" } })
+                )
               ),
-              React.createElement("div", { style: { fontSize: 13, color: done ? SUB : TXT, textDecoration: done ? "line-through" : "none" } }, item[1])
+              items.map(function(item, i){
+                return React.createElement("div", { key: i, style: { display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < items.length-1 ? "1px solid " + BDR : "none" } },
+                  React.createElement("div", { style: { width: 22, height: 22, borderRadius: "50%", background: item.done ? "linear-gradient(135deg,#10b981,#3b82f6)" : BGS, border: "2px solid " + (item.done ? "transparent" : BDR), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.3s" } },
+                    item.done ? React.createElement("span", { style: { color: "#fff", fontSize: 12, fontWeight: 700 } }, "\u2713") : React.createElement("span", { style: { fontSize: 11, color: SUB } }, String(i+1))
+                  ),
+                  React.createElement("div", { style: { flex: 1, fontSize: 13, color: item.done ? SUB : TXT, textDecoration: item.done ? "line-through" : "none" } }, item.label)
+                );
+              }),
+              doneCount === items.length ? React.createElement("div", { style: { marginTop: 12, padding: "10px 14px", background: "linear-gradient(135deg,#ecfdf5,#eff6ff)", borderRadius: 10, textAlign: "center", fontSize: 13, color: "#059669", fontWeight: 600 } }, "🎉 ¡Todo listo! Ya eres un CromoVaulter.") : null
             );
-          })
+          })()
         ),
         showChats && React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 1000, display: "flex", justifyContent: "flex-end" } }, React.createElement("div", { onClick: function(){ setShowChats(false); }, style: { position: "absolute", inset: 0, background: "#00000055" } }), React.createElement("div", { style: { position: "relative", width: "380px", maxWidth: "95%", height: "100vh", background: BG, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px #00000026" } }, React.createElement(MessagesTab, { onClose: function(){ setShowChats(false); } }))),
         showSettings && React.createElement("div", { onClick: function() { setShowSettings(false); }, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" } },
@@ -19108,7 +19177,7 @@ function App() {
     ),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "AYUDA"),
     React.createElement("button", { onClick: function() { setShowSettings(false); var __td2=document.createElement("div"); document.body.appendChild(__td2); ReactDOM.createRoot(__td2).render(React.createElement(window._TutorialModal,{onClose:function(){__td2.remove();}})); }, style: { width: "100%", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 13, color: TXT, textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 8 } }, "\uD83D\uDCD6 Ver tutorial"),
-    React.createElement("button", { onClick: function() { setShowSettings(false); setTimeout(function(){ var c=JSON.parse(localStorage.getItem("cv10")||"[]"); var msg="Primeros pasos:\n\n"+(c.length>0?"OK":"  ")+" Anade tu primera carta\n"+(localStorage.getItem("cv10_slug")?"OK":"  ")+" Configura tu perfil publico\n"+(c.some(function(x){return x.publicVisible;})?"OK":"  ")+" Activa una carta para vender\n"+(localStorage.getItem("cv10_tutorial_done")?"OK":"  ")+" Completa el tutorial"; alert(msg); },200); }, style: { width: "100%", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 13, color: TXT, textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 16 } }, "\u2705 Ver checklist de inicio"),
+    React.createElement("button", { onClick: function() { setShowSettings(false); setTimeout(function(){ setShowChecklist(true); }, 200); }, style: { width: "100%", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 13, color: TXT, textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 16 } }, "\u2705 Ver checklist de inicio"),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "HERRAMIENTAS"),
     React.createElement("button", { onClick: function() { setShowSettings(false); dlPriceList(JSON.parse(localStorage.getItem("cv10")||"[]")); }, style: { width: "100%", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 13, color: TXT, textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 16 } }, "\uD83D\uDCCB Exportar lista de precios"),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "APARIENCIA"),
@@ -19266,7 +19335,44 @@ window._mountApp = function() {
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>window.compressImage=function(file,cb){var reader=new FileReader();reader.onload=function(e){var img=new Image();img.onload=function(){var canvas=document.createElement("canvas");var MAX=800;var w=img.width,h=img.height;if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}canvas.width=w;canvas.height=h;canvas.getContext("2d").drawImage(img,0,0,w,h);canvas.toBlob(function(blob){cb(blob,canvas.toDataURL("image/jpeg",0.75));},"image/jpeg",0.75);};img.src=e.target.result;};reader.readAsDataURL(file);};
 window.uploadToCloudinary=function(blob,cb){var fd=new FormData();fd.append("file",blob,"card.jpg");fd.append("upload_preset","cromovault");fetch("https://api.cloudinary.com/v1_1/dznkhldnx/image/upload",{method:"POST",body:fd}).then(function(r){return r.json();}).then(function(d){if(d.secure_url){var url=d.secure_url.replace("/upload/","/upload/q_auto,f_auto,w_600/");cb(null,url);}else{cb(new Error(d.error?d.error.message:"Sin URL"));}}).catch(function(e){cb(e);});};
-function TutorialModal(props){var onClose=props.onClose;var ts=useState(0),step=ts[0],setStep=ts[1];var ce=React.createElement;var slides=[{icon:"??",title:"Bienvenido a CromoVault",desc:"Tu app para gestionar tu coleccion e inversion en cromos."},{icon:"??",title:"Inventario y Coleccion",desc:"Inventario: cartas en venta. Coleccion: cartas que guardas. Añade precio, condicion y foto."},{icon:"??",title:"Finanzas",desc:"Analiza rentabilidad. El ROI se calcula automaticamente con el precio de compra y venta."},{icon:"??",title:"Perfil Publico",desc:"Crea tu perfil en Ajustes. Activa cartas para vender y comparte tu enlace con compradores."},{icon:"??",title:"Chats y Ofertas",desc:"Recibe mensajes y ofertas en el panel de chats. Al vender, comparte el codigo CV para valoraciones."},{icon:"??",title:"Para empezar",desc:"1) Añade tu primera carta. 2) Configura perfil en Ajustes. 3) Activa cartas para vender. 4) Comparte tu enlace."}];var s=slides[step];var last=step===slides.length-1;return ce("div",{style:{position:"fixed",inset:0,background:"#00000088",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}},ce("div",{style:{background:"#fff",borderRadius:20,padding:32,maxWidth:400,width:"100%",textAlign:"center",fontFamily:"Inter,sans-serif"}},ce("div",{style:{fontSize:56,marginBottom:16}},s.icon),ce("div",{style:{fontWeight:700,fontSize:20,marginBottom:12,color:"#111"}},s.title),ce("div",{style:{fontSize:14,color:"#6b7280",lineHeight:1.7,marginBottom:28}},s.desc),ce("div",{style:{display:"flex",gap:8,justifyContent:"center",marginBottom:24}},slides.map(function(_,i){return ce("div",{key:i,style:{width:8,height:8,borderRadius:"50%",background:i===step?"#3b82f6":"#e8eaed"}});})),ce("div",{style:{display:"flex",gap:8}},step>0?ce("button",{onClick:function(){setStep(step-1);},style:{flex:1,padding:"12px",background:"#f1f5f9",border:"none",borderRadius:10,cursor:"pointer",fontSize:14,fontFamily:"Inter,sans-serif"}},"Anterior"):null,last?ce("button",{onClick:onClose,style:{flex:1,padding:"12px",background:"#3b82f6",border:"none",borderRadius:10,cursor:"pointer",fontSize:14,color:"#fff",fontWeight:600,fontFamily:"Inter,sans-serif"}},"?? Empezar"):ce("button",{onClick:function(){setStep(step+1);},style:{flex:1,padding:"12px",background:"#3b82f6",border:"none",borderRadius:10,cursor:"pointer",fontSize:14,color:"#fff",fontWeight:600,fontFamily:"Inter,sans-serif"}},"Siguiente")),step===0?ce("button",{onClick:onClose,style:{marginTop:12,background:"none",border:"none",color:"#9ca3af",fontSize:12,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Saltar"):null));}
+function TutorialModal(props){
+var onClose=props.onClose;
+var ts=useState(0),step=ts[0],setStep=ts[1];
+var ce=React.createElement;
+var slides=[
+  {bg:"linear-gradient(135deg,#3b82f6,#8b5cf6)",icon:"🃏",title:"Bienvenido a CromoVault",desc:"Tu app para gestionar y rentabilizar tu colección de cartas. Sigue estos pasos para empezar."},
+  {bg:"linear-gradient(135deg,#f59e0b,#ef4444)",icon:"📦",title:"Inventario y Colección",desc:"En Inventario gestiona las cartas que tienes o vendes. En Colección guarda las que atesoras. Añade precio, condición y foto."},
+  {bg:"linear-gradient(135deg,#10b981,#3b82f6)",icon:"💰",title:"Finanzas y ROI",desc:"La pestaña Fiscal calcula tu rentabilidad automáticamente. El ROI se actualiza con cada compra y venta."},
+  {bg:"linear-gradient(135deg,#8b5cf6,#ec4899)",icon:"🌐",title:"Tu perfil público",desc:"En Ajustes → Mi perfil crea tu tienda. Activa cartas para vender y comparte tu enlace con compradores."},
+  {bg:"linear-gradient(135deg,#f97316,#f59e0b)",icon:"💬",title:"Chats y Ofertas",desc:"Recibe mensajes y ofertas directamente en tu perfil. Al vender, comparte el código CV para que te dejen valoraciones."},
+  {bg:"linear-gradient(135deg,#06b6d4,#3b82f6)",icon:"🚀",title:"¡Listo para empezar!",desc:"1) Añade tu primera carta. 2) Configura tu perfil en Ajustes. 3) Activa cartas para vender. 4) Comparte tu enlace."}
+];
+var s=slides[step];
+var last=step===slides.length-1;
+return ce("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}},
+  ce("div",{style:{background:"#fff",borderRadius:24,overflow:"hidden",maxWidth:400,width:"100%",fontFamily:"Inter,sans-serif",boxShadow:"0 24px 80px rgba(0,0,0,0.3)"}},
+    ce("div",{style:{background:s.bg,padding:"32px 28px 24px",textAlign:"center",position:"relative"}},
+      ce("div",{style:{fontSize:60,marginBottom:12,lineHeight:1}},s.icon),
+      ce("div",{style:{fontWeight:800,fontSize:20,color:"#fff",marginBottom:8,letterSpacing:"-0.3px"}},s.title),
+      ce("div",{style:{fontSize:13,color:"rgba(255,255,255,0.85)",lineHeight:1.6}},s.desc)
+    ),
+    ce("div",{style:{padding:"20px 24px 24px"}},
+      ce("div",{style:{display:"flex",gap:6,justifyContent:"center",marginBottom:20}},
+        slides.map(function(_,i){
+          return ce("div",{key:i,style:{height:4,borderRadius:2,background:i===step?"#3b82f6":"#e2e8f0",flex:i===step?2:1,transition:"all 0.3s"}});
+        })
+      ),
+      ce("div",{style:{display:"flex",gap:8}},
+        step>0?ce("button",{onClick:function(){setStep(step-1);},style:{flex:1,padding:"12px",background:"#f1f5f9",border:"none",borderRadius:12,cursor:"pointer",fontSize:14,fontWeight:600,fontFamily:"Inter,sans-serif",color:"#475569"}},"Anterior"):null,
+        last
+          ?ce("button",{onClick:function(){localStorage.setItem("cv10_tutorial_done","1");onClose();},style:{flex:2,padding:"12px",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",border:"none",borderRadius:12,cursor:"pointer",fontSize:14,fontWeight:700,fontFamily:"Inter,sans-serif",color:"#fff"}},"🚀 Empezar")
+          :ce("button",{onClick:function(){setStep(step+1);},style:{flex:2,padding:"12px",background:"#3b82f6",border:"none",borderRadius:12,cursor:"pointer",fontSize:14,fontWeight:600,fontFamily:"Inter,sans-serif",color:"#fff"}},"Siguiente →"),
+        !last?ce("button",{onClick:function(){localStorage.setItem("cv10_tutorial_done","1");onClose();},style:{padding:"12px 14px",background:"none",border:"none",cursor:"pointer",fontSize:13,color:"#9ca3af",fontFamily:"Inter,sans-serif"}},"Saltar"):null
+      )
+    )
+  )
+);
+}
 window._TutorialModal=TutorialModal;
 
 function FavButton(props){var slug=props.slug,cardId=props.cardId,price=props.price,cardName=props.cardName;var safeId=cardId.split("").filter(function(c){return (c>="a"&&c<="z")||(c>="A"&&c<="Z")||(c>="0"&&c<="9");}).join("");var key="favs_"+slug+"_"+safeId;var fs=useState(function(){try{return JSON.parse(localStorage.getItem(key)||"false");}catch(e){return false;}}),isFav=fs[0],setIsFav=fs[1];function toggle(){var newVal=!isFav;setIsFav(newVal);localStorage.setItem(key,JSON.stringify(newVal));if(window._db){var ref=window._db.ref("favorites/"+slug+"/"+safeId);if(newVal){ref.set({cardId:cardId,cardName:cardName,price:price,priceAtSave:price,savedAt:Date.now()});}else{ref.remove();}}}return React.createElement("button",{onClick:function(e){e.stopPropagation();toggle();},title:isFav?"Quitar":"Favorito",style:{background:"rgba(255,255,255,0.9)",border:"none",cursor:"pointer",fontSize:18,padding:"4px",lineHeight:1,borderRadius:"50%",color:isFav?"#ef4444":"#9ca3af"}},isFav?"♥":"♡");}
@@ -19325,7 +19431,7 @@ var ventaTab=ce("div",null,
         ce("div",{style:{fontWeight:600,fontSize:13,marginTop:4}},c.name),
         ce("div",{style:{color:"#6b7280",fontSize:11}},[c.series,c.rarity].filter(Boolean).join(" - ")),
         ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:4}},c.salePrice?ce("div",null,ce("span",{style:{textDecoration:"line-through",color:"#9ca3af",fontSize:12,marginRight:4}},"EUR "+parseFloat(c.targetPrice||0).toFixed(2)),ce("span",{style:{fontWeight:700,color:"#ef4444"}},"EUR "+parseFloat(c.salePrice).toFixed(2))):c.targetPrice?ce("div",{style:{fontWeight:700,color:"#3b82f6"}},"EUR "+parseFloat(c.targetPrice).toFixed(2)):ce("div",null),ce("div",{style:{display:"flex",gap:4}},
-        ce("button",{title:"Compartir",onClick:function(e){e.stopPropagation();var lines=[];lines.push("🎴 "+c.name);if(c.series)lines.push("📦 "+c.series);if(c.rarity)lines.push("✨ "+c.rarity);if(c.condition)lines.push("📋 "+c.condition);var price=parseFloat(c.salePrice||c.targetPrice||0);if(price)lines.push("💰 EUR "+price.toFixed(2));lines.push("🔗 https://laurarosa1310.github.io/cromovault/?p="+slug);var txt=lines.join("\n");if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){alert("Copiado!");}).catch(function(){prompt("Copia:",txt);});}else{prompt("Copia:",txt);}},style:{background:"rgba(255,255,255,0.9)",border:"none",cursor:"pointer",fontSize:15,padding:"3px 5px",borderRadius:"50%",lineHeight:1}},"🔗"),
+        ce("button",{title:"Compartir",onClick:function(e){e.stopPropagation();var lines=[];lines.push("🎴 "+c.name);if(c.series)lines.push("📦 "+c.series);if(c.rarity)lines.push("✨ "+c.rarity);if(c.condition)lines.push("📋 "+c.condition);var price=parseFloat(c.salePrice||c.targetPrice||0);if(price)lines.push("💰 EUR "+price.toFixed(2));var txt="https://laurarosa1310.github.io/cromovault/?p="+slug;if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){alert("Copiado!");}).catch(function(){prompt("Copia:",txt);});}else{prompt("Copia:",txt);}},style:{background:"rgba(255,255,255,0.9)",border:"none",cursor:"pointer",fontSize:15,padding:"3px 5px",borderRadius:"50%",lineHeight:1}},"🔗"),
         ce(FavButton,{slug:slug,cardId:c.id||c.name,price:parseFloat(c.salePrice||c.targetPrice)||0,cardName:c.name})
       ))
       );
