@@ -19042,9 +19042,30 @@ function MessagesTab(props){
   var ni=useState(""),newMsg=ni[0],setNewMsg=ni[1];
   var slug=localStorage.getItem("cv10_slug");
   React.useEffect(function(){
-    if(!window._db||!slug){console.log("MessagesTab: no db or slug",{db:!!window._db,slug:slug,props:props.slug,win:window._currentSlug,ls:localStorage.getItem("cv10_slug")});return;}
-    console.log("MessagesTab: loading chats for slug=",slug);
-    window._db.ref("chats/"+slug).on("value",function(snap){
+    var effectSlug = props.slug || window._currentSlug || localStorage.getItem("cv10_slug");
+    if(!window._db || !effectSlug) {
+      console.log("MessagesTab: retrying in 1s, slug=", effectSlug);
+      var t = setTimeout(function(){
+        var retrySlug = window._currentSlug || localStorage.getItem("cv10_slug");
+        if(window._db && retrySlug) {
+          console.log("MessagesTab: retry loading chats for slug=", retrySlug);
+          window._db.ref("chats/"+retrySlug).on("value",function(snap){
+            var d=snap.val();
+            if(!d){setConvs([]);return;}
+            var list=Object.keys(d).map(function(uid){
+              var msgs=d[uid];
+              var keys=Object.keys(msgs||{});
+              var last=keys.length>0?msgs[keys[keys.length-1]]:{};
+              return {uid:uid,name:last.name||"Usuario",lastMsg:last.text||"",lastTs:last.ts||0,msgs:msgs};
+            }).sort(function(a,b){return b.lastTs-a.lastTs;});
+            setConvs(list);
+          });
+        }
+      }, 1500);
+      return function(){clearTimeout(t);};
+    }
+    console.log("MessagesTab: loading chats for slug=", effectSlug);
+    window._db.ref("chats/"+effectSlug).on("value",function(snap){
       var d=snap.val();
       if(!d){setConvs([]);return;}
       var list=Object.keys(d).map(function(uid){
@@ -19055,8 +19076,8 @@ function MessagesTab(props){
       }).sort(function(a,b){return b.lastTs-a.lastTs;});
       setConvs(list);
     });
-    return function(){if(window._db&&slug)window._db.ref("chats/"+slug).off();};
-  },[slug]);
+    return function(){if(window._db&&effectSlug)window._db.ref("chats/"+effectSlug).off();};
+  },[props.slug]);
   React.useEffect(function(){
     if(!selected)return;
     var conv=convs.find(function(c){return c.uid===selected;});
@@ -19776,7 +19797,7 @@ return ce("div",{style:{minHeight:"100vh",background:"#f7f8fa",fontFamily:"Inter
           if(!window._db){alert("Error de conexion");return;}
           var user=window._currentUser;
           var cardName=selCard.name;
-          var msg="?? Oferta por "+cardName+": EUR "+ofVal.toFixed(2);
+          var cur=localStorage.getItem("cv10_currency")||"EUR";var msg="💰 Nueva oferta\nCarta: "+cardName+"\nPrecio ofertado: "+cur+" "+ofVal.toFixed(2)+"\nEnvíame un mensaje si estás interesado en cerrar el trato.";
           window._db.ref("chats/"+slug+"/"+user.uid).push({name:user.displayName||user.email||"Comprador",uid:user.uid,text:msg,ts:Date.now(),isOffer:true,offerAmount:ofVal,cardName:cardName});
           setOferta("");
           setSelCard(null);
