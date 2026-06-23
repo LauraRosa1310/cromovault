@@ -19152,21 +19152,8 @@ function MessagesTab(props){
     ),
     activeTab==="notifs"?
       ce("div",{style:{flex:1,overflowY:"auto",padding:16}},notifs.length===0?ce("div",{style:{textAlign:"center",color:"#6b7280",padding:40}},"Sin notificaciones"):notifs.map(function(n,i){return ce("div",{key:i,style:{padding:"12px 16px",borderBottom:"1px solid #f1f5f9",fontSize:13}},ce("div",null,n.text),ce("div",{style:{fontSize:10,color:"#9ca3af",marginTop:4}},new Date(n.ts).toLocaleString("es-ES")));}))
-    :ce("div",{style:{display:"flex",flex:1,overflow:"hidden"}},
-    ce("div",{style:{width:selected?"0":"100%",minWidth:selected?"0":"100%",maxWidth:selected?"0":"100%",overflow:"hidden",borderRight:"1px solid #e8eaed",overflowY:"auto",background:"#fff",transition:"all 0.2s",display:window.innerWidth>=600||!selected?"flex":selected?"none":"flex",flexDirection:"column",flexShrink:0}},
-    ce("div",{style:{width:"100%"}},
-
-      ce("div",{style:{padding:"16px",fontWeight:700,fontSize:15,borderBottom:"1px solid #e8eaed"}},"Conversaciones"),
-      convs.length===0?ce("div",{style:{padding:20,color:"#6b7280",fontSize:13}},"Sin mensajes aun"):
-      convs.map(function(c,i){
-        return ce("div",{key:i,onClick:function(){setSelected(c.uid);},style:{padding:"12px 16px",cursor:"pointer",background:selected===c.uid?"#eff6ff":"#fff",borderBottom:"1px solid #f1f5f9"}},
-          ce("div",{style:{fontWeight:600,fontSize:14,marginBottom:2}},c.name),
-          ce("div",{style:{fontSize:12,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},c.lastMsg),
-          ce("div",{style:{fontSize:10,color:"#9ca3af",marginTop:2}},c.lastTs?new Date(c.lastTs).toLocaleDateString("es-ES"):"")
-        );
-      })
-    )
-    ),
+    :selected
+    ?ce("div",{style:{display:"flex",flex:1,flexDirection:"column",overflow:"hidden"}},
     selected?ce("div",{style:{flex:1,display:"flex",flexDirection:"column"}},
       ce("div",{style:{padding:"12px 16px",borderBottom:"1px solid #e8eaed",fontWeight:600,fontSize:14,background:"#fff",display:"flex",justifyContent:"space-between",alignItems:"center"}},
         ce("div",{style:{display:"flex",alignItems:"center",gap:8}},
@@ -19238,8 +19225,21 @@ function MessagesTab(props){
         ce("input",{value:newMsg,onChange:function(e){setNewMsg(e.target.value);},onKeyDown:function(e){if(e.key==="Enter"){sendReply();}},placeholder:"Responder...",style:{flex:1,padding:"10px 14px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,fontFamily:"Inter,sans-serif"}}),
         ce("button",{onClick:sendReply,style:{padding:"10px 20px",background:"#3b82f6",border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Enviar")
       )
-    )):ce("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:14}},"Selecciona una conversacion")
-  ));
+    )):ce("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280",fontSize:14}},"Selecciona una conversacion"))
+    :ce("div",{style:{flex:1,overflowY:"auto",background:"#fff"}},
+      ce("div",{style:{padding:"16px",fontWeight:700,fontSize:15,borderBottom:"1px solid #e8eaed"}},"Conversaciones"),
+      convs.length===0?ce("div",{style:{padding:20,color:"#6b7280",fontSize:13}},"Sin mensajes aun"):
+      convs.map(function(c,i){
+        return ce("div",{key:i,onClick:function(){setSelected(c.uid);},style:{padding:"12px 16px",cursor:"pointer",background:"#fff",borderBottom:"1px solid #f1f5f9",display:"flex",justifyContent:"space-between",alignItems:"center"}},
+          ce("div",{style:{flex:1,minWidth:0}},
+            ce("div",{style:{fontWeight:600,fontSize:14,marginBottom:2}},c.name),
+            ce("div",{style:{fontSize:12,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},c.lastMsg)
+          ),
+          ce("div",{style:{fontSize:10,color:"#9ca3af",marginLeft:8,flexShrink:0}},c.lastTs?new Date(c.lastTs).toLocaleDateString("es-ES"):"")
+        );
+      })
+    )
+  );
 }
 function Tip(props){return React.createElement("button",{title:props.text,onClick:function(e){e.stopPropagation();alert(props.text);},style:{background:"none",border:"1px solid "+BDR,borderRadius:"50%",width:16,height:16,fontSize:10,cursor:"pointer",color:SUB,display:"inline-flex",alignItems:"center",justifyContent:"center",marginLeft:4,flexShrink:0,fontFamily:"Inter,sans-serif",lineHeight:1}},"?");}
 function isPremium(){return window._isAdmin===true;}
