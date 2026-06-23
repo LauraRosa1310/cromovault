@@ -19082,8 +19082,10 @@ function MessagesTab(props){
       if(!d) return [];
       return Object.keys(d).filter(function(k){return k!=="info";}).map(function(uid){
         var msgs=d[uid]; var keys=Object.keys(msgs||{});
-        var last=keys.length>0?msgs[keys[keys.length-1]]:{};
-        return {uid:uid,name:last.name||"Usuario",lastMsg:last.text||"",lastTs:last.ts||0,msgs:msgs,prefix:prefix||s};
+        var nonSystem=keys.filter(function(k){return !msgs[k].isSystem;});
+        var last=nonSystem.length>0?msgs[nonSystem[nonSystem.length-1]]:keys.length>0?msgs[keys[keys.length-1]]:{};
+        var firstName=nonSystem.length>0?msgs[nonSystem[0]].name:null;
+        return {uid:uid,name:firstName||last.name||"Usuario",lastMsg:last.isSystem?"":last.text||"",lastTs:last.ts||0,msgs:msgs,prefix:prefix||s};
       });
     }
     window._db.ref("chats/"+s).on("value",function(snap){
