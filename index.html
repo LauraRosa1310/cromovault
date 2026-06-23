@@ -19923,7 +19923,14 @@ function initFirebase() {
         locs: localStorage.getItem('cv10_locs'),
         minRoi: localStorage.getItem('cv10_minroi')
       });
-      setTimeout(function() { auth.signOut(); }, 500);
+      setTimeout(function() {
+        auth.signOut().then(function() {
+          Object.keys(localStorage).forEach(function(k) {
+            if (k.indexOf('cv10') === 0) localStorage.removeItem(k);
+          });
+          window.location.reload();
+        });
+      }, 500);
     };
 
     auth.onAuthStateChanged(function(user) {
