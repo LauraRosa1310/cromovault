@@ -19470,9 +19470,7 @@ window._signOut = function() {
       Object.keys(localStorage).forEach(function(k) {
         if (k.indexOf('cv10') === 0) localStorage.removeItem(k);
       });
-      window._appMounted = false;
-      document.getElementById('root').style.display = 'none';
-      document.getElementById('cv-login').style.display = 'flex';
+      window.location.reload();
     });
   }
 };
@@ -19959,18 +19957,17 @@ function initFirebase() {
             if (!window._appMounted && window._mountApp) {
               window._mountApp();
               window._appMounted = true;
-            } else if (window._appMounted && window._resetApp) {
-              window._resetApp();
+            } else if (window._appMounted) {
+              window.location.reload();
             }
           });
       } else {
-        document.getElementById('root').style.display = 'none';
-        document.getElementById('cv-login').style.display = 'flex';
-        window._appMounted = false;
-        // Clear all user data from localStorage on logout
         Object.keys(localStorage).forEach(function(k) {
           if (k.indexOf('cv10') === 0) localStorage.removeItem(k);
         });
+        document.getElementById('root').style.display = 'none';
+        document.getElementById('cv-login').style.display = 'flex';
+        window._appMounted = false;
       }
     });
   }
