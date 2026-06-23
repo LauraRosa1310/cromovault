@@ -19037,35 +19037,30 @@ function MessagesTab(props){
   var ms=useState([]),msgs=ms[0],setMsgs=ms[1];
   var at=useState("chats"),activeTab=at[0],setActiveTab=at[1];
   var ns=useState([]),notifs=ns[0],setNotifs=ns[1];
-  var slug=props.slug||(window._currentSlug||localStorage.getItem("cv10_slug")||"");
-  React.useEffect(function(){if(!window._db||!slug)return;var lastCheck=parseInt(localStorage.getItem("cv10_lastcheck")||"0");window._db.ref("favorites/"+slug).once("value").then(function(snap){var favs=snap.val();if(!favs)return;var list=[];Object.keys(favs).forEach(function(k){var f=favs[k];if(f.savedAt>lastCheck){list.push({text:"♥ Favorito: "+(f.cardName||k),ts:f.savedAt});}});setNotifs(list);});},[]); 
+  var slugState=useState(props.slug||window._currentSlug||localStorage.getItem("cv10_slug")||null);
+  var slug=slugState[0],setSlug=slugState[1];
+  React.useEffect(function(){
+    if(slug) return;
+    if(!window._db||!window._currentUser) return;
+    window._db.ref("public").orderByChild("uid").equalTo(window._currentUser.uid).once("value").then(function(snap){
+      var d=snap.val();
+      if(d){
+        var key=Object.keys(d)[0];
+        if(d[key]&&d[key].slug){
+          window._currentSlug=d[key].slug;
+          localStorage.setItem("cv10_slug",d[key].slug);
+          setSlug(d[key].slug);
+        }
+      }
+    });
+  },[]);
+  React.useEffect(function(){if(!window._db||!slug)return;var lastCheck=parseInt(localStorage.getItem("cv10_lastcheck")||"0");window._db.ref("favorites/"+slug).once("value").then(function(snap){var favs=snap.val();if(!favs)return;var list=[];Object.keys(favs).forEach(function(k){var f=favs[k];if(f.savedAt>lastCheck){list.push({text:"♥ Favorito: "+(f.cardName||k),ts:f.savedAt});}});setNotifs(list);});},[slug]); 
   var ni=useState(""),newMsg=ni[0],setNewMsg=ni[1];
   var slug=localStorage.getItem("cv10_slug");
   React.useEffect(function(){
-    var effectSlug = props.slug || window._currentSlug || localStorage.getItem("cv10_slug");
-    if(!window._db || !effectSlug) {
-      console.log("MessagesTab: retrying in 1s, slug=", effectSlug);
-      var t = setTimeout(function(){
-        var retrySlug = window._currentSlug || localStorage.getItem("cv10_slug");
-        if(window._db && retrySlug) {
-          console.log("MessagesTab: retry loading chats for slug=", retrySlug);
-          window._db.ref("chats/"+retrySlug).on("value",function(snap){
-            var d=snap.val();
-            if(!d){setConvs([]);return;}
-            var list=Object.keys(d).map(function(uid){
-              var msgs=d[uid];
-              var keys=Object.keys(msgs||{});
-              var last=keys.length>0?msgs[keys[keys.length-1]]:{};
-              return {uid:uid,name:last.name||"Usuario",lastMsg:last.text||"",lastTs:last.ts||0,msgs:msgs};
-            }).sort(function(a,b){return b.lastTs-a.lastTs;});
-            setConvs(list);
-          });
-        }
-      }, 1500);
-      return function(){clearTimeout(t);};
-    }
-    console.log("MessagesTab: loading chats for slug=", effectSlug);
-    window._db.ref("chats/"+effectSlug).on("value",function(snap){
+    if(!window._db || !slug) return;
+    console.log("MessagesTab: loading chats for slug=", slug);
+    window._db.ref("chats/"+slug).on("value",function(snap){
       var d=snap.val();
       if(!d){setConvs([]);return;}
       var list=Object.keys(d).map(function(uid){
@@ -19076,8 +19071,8 @@ function MessagesTab(props){
       }).sort(function(a,b){return b.lastTs-a.lastTs;});
       setConvs(list);
     });
-    return function(){if(window._db&&effectSlug)window._db.ref("chats/"+effectSlug).off();};
-  },[props.slug]);
+    return function(){if(window._db&&slug)window._db.ref("chats/"+slug).off();};
+  },[slug]);
   React.useEffect(function(){
     if(!selected)return;
     var conv=convs.find(function(c){return c.uid===selected;});
