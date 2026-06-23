@@ -19037,12 +19037,13 @@ function MessagesTab(props){
   var ms=useState([]),msgs=ms[0],setMsgs=ms[1];
   var at=useState("chats"),activeTab=at[0],setActiveTab=at[1];
   var ns=useState([]),notifs=ns[0],setNotifs=ns[1];
-  var slug=props.slug||window._currentSlug||localStorage.getItem("cv10_slug");
+  var slug=props.slug||(window._currentSlug||localStorage.getItem("cv10_slug")||"");
   React.useEffect(function(){if(!window._db||!slug)return;var lastCheck=parseInt(localStorage.getItem("cv10_lastcheck")||"0");window._db.ref("favorites/"+slug).once("value").then(function(snap){var favs=snap.val();if(!favs)return;var list=[];Object.keys(favs).forEach(function(k){var f=favs[k];if(f.savedAt>lastCheck){list.push({text:"♥ Favorito: "+(f.cardName||k),ts:f.savedAt});}});setNotifs(list);});},[]); 
   var ni=useState(""),newMsg=ni[0],setNewMsg=ni[1];
   var slug=localStorage.getItem("cv10_slug");
   React.useEffect(function(){
-    if(!window._db||!slug)return;
+    if(!window._db||!slug){console.log("MessagesTab: no db or slug",{db:!!window._db,slug:slug,props:props.slug,win:window._currentSlug,ls:localStorage.getItem("cv10_slug")});return;}
+    console.log("MessagesTab: loading chats for slug=",slug);
     window._db.ref("chats/"+slug).on("value",function(snap){
       var d=snap.val();
       if(!d){setConvs([]);return;}
@@ -19322,7 +19323,7 @@ function App() {
             );
           })()
         ),
-        showChats && React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 1000, display: "flex", justifyContent: "flex-end" } }, React.createElement("div", { onClick: function(){ setShowChats(false); }, style: { position: "absolute", inset: 0, background: "#00000055" } }), React.createElement("div", { style: { position: "relative", width: "380px", maxWidth: "95%", height: "100vh", background: BG, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px #00000026" } }, React.createElement(MessagesTab, { onClose: function(){ setShowChats(false); } }))),
+        showChats && React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 1000, display: "flex", justifyContent: "flex-end" } }, React.createElement("div", { onClick: function(){ setShowChats(false); }, style: { position: "absolute", inset: 0, background: "#00000055" } }), React.createElement("div", { style: { position: "relative", width: "380px", maxWidth: "95%", height: "100vh", background: BG, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px #00000026" } }, React.createElement(MessagesTab, { onClose: function(){ setShowChats(false); }, slug: publicSlug || window._currentSlug || localStorage.getItem("cv10_slug") }))),
         showSettings && React.createElement("div", { onClick: function() { setShowSettings(false); }, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" } },
   React.createElement("div", { onClick: function(e) { e.stopPropagation(); }, style: { background: BG, borderRadius: 16, padding: 28, minWidth: 300, maxWidth: 380, width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)", maxHeight: "90vh", overflowY: "auto" } },
     React.createElement("div", { style: { fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between" } },
