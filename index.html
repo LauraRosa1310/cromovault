@@ -19037,7 +19037,7 @@ function MessagesTab(props){
   var ms=useState([]),msgs=ms[0],setMsgs=ms[1];
   var at=useState("chats"),activeTab=at[0],setActiveTab=at[1];
   var ns=useState([]),notifs=ns[0],setNotifs=ns[1];
-  var slug=props.slug||localStorage.getItem("cv10_slug");
+  var slug=props.slug||window._currentSlug||localStorage.getItem("cv10_slug");
   React.useEffect(function(){if(!window._db||!slug)return;var lastCheck=parseInt(localStorage.getItem("cv10_lastcheck")||"0");window._db.ref("favorites/"+slug).once("value").then(function(snap){var favs=snap.val();if(!favs)return;var list=[];Object.keys(favs).forEach(function(k){var f=favs[k];if(f.savedAt>lastCheck){list.push({text:"♥ Favorito: "+(f.cardName||k),ts:f.savedAt});}});setNotifs(list);});},[]); 
   var ni=useState(""),newMsg=ni[0],setNewMsg=ni[1];
   var slug=localStorage.getItem("cv10_slug");
@@ -19166,6 +19166,21 @@ function MessagesTab(props){
 function Tip(props){return React.createElement("button",{title:props.text,onClick:function(e){e.stopPropagation();alert(props.text);},style:{background:"none",border:"1px solid "+BDR,borderRadius:"50%",width:16,height:16,fontSize:10,cursor:"pointer",color:SUB,display:"inline-flex",alignItems:"center",justifyContent:"center",marginLeft:4,flexShrink:0,fontFamily:"Inter,sans-serif",lineHeight:1}},"?");}
 function isPremium(){return window._isAdmin===true;}
 function App() {
+    React.useEffect(function() {
+      function onDataLoaded() {
+        setPublicSlug(localStorage.getItem("cv10_slug")||"");
+        setPublicContact(localStorage.getItem("cv10_contact")||"");
+        setPublicPayment(localStorage.getItem("cv10_payment")||"");
+        setPublicShipping(localStorage.getItem("cv10_shipping")||"");
+        setPublicAvatar(localStorage.getItem("cv10_avatar")||"");
+        setPublicBanner(localStorage.getItem("cv10_banner")||"");
+        setPublicInstagram(localStorage.getItem("cv10_ig")||"");
+        setPublicTwitter(localStorage.getItem("cv10_tw")||"");
+        setCards(function() { try { return JSON.parse(localStorage.getItem("cv10")||"[]"); } catch(e) { return []; } });
+      }
+      window.addEventListener("cv10-data-loaded", onDataLoaded);
+      return function() { window.removeEventListener("cv10-data-loaded", onDataLoaded); };
+    }, []);
     const [cards, setCards] = useState(() => { try {
         return JSON.parse(localStorage.getItem("cv10") || "[]");
     }
@@ -19968,7 +19983,7 @@ function initFirebase() {
           });
         }
         localStorage.setItem('cv10_uid', user.uid);
-        var wasSlug=localStorage.getItem('cv10_slug'); if(window._db&&!wasSlug){window._db.ref('public').orderByChild('uid').equalTo(user.uid).once('value').then(function(snap){var d=snap.val();if(d){var key=Object.keys(d)[0];var p=d[key];if(p&&p.slug){localStorage.setItem('cv10_slug',p.slug);if(p.contact)localStorage.setItem('cv10_contact',p.contact);if(p.payment)localStorage.setItem('cv10_payment',p.payment);if(p.shipping)localStorage.setItem('cv10_shipping',p.shipping);if(p.avatar)localStorage.setItem('cv10_avatar',p.avatar);if(p.banner)localStorage.setItem('cv10_banner',p.banner);}}});}
+        var wasSlug=localStorage.getItem('cv10_slug'); if(window._db&&!wasSlug){window._db.ref('public').orderByChild('uid').equalTo(user.uid).once('value').then(function(snap){var d=snap.val();if(d){var key=Object.keys(d)[0];var p=d[key];if(p&&p.slug){localStorage.setItem('cv10_slug',p.slug);window._currentSlug=p.slug;if(p.contact)localStorage.setItem('cv10_contact',p.contact);if(p.payment)localStorage.setItem('cv10_payment',p.payment);if(p.shipping)localStorage.setItem('cv10_shipping',p.shipping);if(p.avatar)localStorage.setItem('cv10_avatar',p.avatar);if(p.banner)localStorage.setItem('cv10_banner',p.banner);}}});}
         db.collection('users').doc(user.uid).collection('data').doc('main').get()
           .then(function(snap) {
             if (snap.exists) {
@@ -19980,7 +19995,7 @@ function initFirebase() {
               if (d.lotsData) localStorage.setItem('cv10_lots', JSON.stringify(d.lotsData));
               if (d.locs) localStorage.setItem('cv10_locs', d.locs);
               if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
-              if (d.publicSlug) localStorage.setItem('cv10_slug', d.publicSlug);
+              if (d.publicSlug) { localStorage.setItem('cv10_slug', d.publicSlug); window._currentSlug = d.publicSlug; }
               if (d.publicContact) localStorage.setItem('cv10_contact', d.publicContact);
               if (d.publicPayment) localStorage.setItem('cv10_payment', d.publicPayment);
               if (d.publicShipping) localStorage.setItem('cv10_shipping', d.publicShipping);
@@ -19998,6 +20013,7 @@ function initFirebase() {
             } else if (window._appMounted) {
               window.location.reload();
             }
+            window.dispatchEvent(new Event('cv10-data-loaded'));
           });
       } else {
         Object.keys(localStorage).forEach(function(k) {
