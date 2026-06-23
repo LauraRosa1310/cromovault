@@ -17728,9 +17728,9 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
     const topSold = sold.map(c => ({ name: c.name, pnl: np(c), r: pc((c.sellPrice || 0) * (1 - (c.platformFee || 0) / 100) - (c.shippingCost || 0), (c.buyPrice || 0) * (c.quantity || 1)) })).sort((a, b) => b.pnl - a.pnl).slice(0, 4);
     const favs = cards.filter(c => c.isFavorite).slice(0, 4);
     const recent = inv.slice().sort((a, b) => (b.buyDate || "").localeCompare(a.buyDate || "")).slice(0, 5);
-    const alerts = listed.filter(c => c.listingDate && daysSince(c.listingDate) >= 14).sort((a, b) => daysSince(b.listingDate) - daysSince(a.listingDate));
+
     return (React.createElement("div", null,
-        uname?React.createElement("div",{style:{padding:"10px 20px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",null,React.createElement("div",{style:{fontSize:17,fontWeight:700,color:TXT,fontFamily:"Inter,sans-serif"}},"Hola, "+(uname.split(" ")[0])+" \uD83D\uDC4B"),React.createElement("div",{style:{fontSize:13,color:SUB,marginTop:2}},"Bienvenido a tu portfolio")),localStorage.getItem("cv10_slug")?React.createElement("a",{href:"https://laurarosa1310.github.io/cromovault/?p="+localStorage.getItem("cv10_slug"),target:"_blank",style:{fontSize:12,color:BLUE,textDecoration:"none",fontFamily:"Inter,sans-serif",fontWeight:600,padding:"6px 12px",background:"#eff6ff",borderRadius:8,whiteSpace:"nowrap"}},"🔗 Ver mi perfil"):null):null,
+        uname?React.createElement("div",{style:{padding:"10px 20px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",null,React.createElement("div",{style:{fontSize:17,fontWeight:700,color:TXT,fontFamily:"Inter,sans-serif"}},"Hola, "+(uname.split(" ")[0])+" \uD83D\uDC4B"),React.createElement("div",{style:{fontSize:13,color:SUB,marginTop:2}},"Bienvenido a tu portfolio")),(localStorage.getItem("cv10_slug")||window._currentSlug)?React.createElement("a",{href:"https://laurarosa1310.github.io/cromovault/?p="+(localStorage.getItem("cv10_slug")||window._currentSlug),target:"_blank",style:{fontSize:12,color:BLUE,textDecoration:"none",fontFamily:"Inter,sans-serif",fontWeight:600,padding:"6px 12px",background:"#eff6ff",borderRadius:8,whiteSpace:"nowrap"}},"🔗 Ver mi perfil"):null):null,
         React.createElement(Card, { style: { marginBottom: 20, padding: "20px 24px" } },
             React.createElement(SL, { style: { marginBottom: 16 } }, "\uD83D\uDCB0 Balance de cartera"),
             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))", gap: 10, marginBottom: 10 } },
@@ -17749,18 +17749,7 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
                 React.createElement("span", { style: { color: MUT } }, " = "),
                 React.createElement("span", { style: { fontWeight: 700, color: cl(balance) } }, balance >= 0 ? "+" : "", euk(balance)))),
 
-        alerts.length > 0 && (React.createElement(Card, { style: { marginBottom: 20, padding: "14px 18px", border: "1px solid #fde68a", background: "#fffbeb" } },
-            React.createElement(SL, { style: { marginBottom: 10, color: AMBER } }, "\u26A0\uFE0F Alertas \u2014 cartas en venta hace tiempo"),
-            React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, alerts.map(c => { const d = daysSince(c.listingDate); return (React.createElement("div", { key: c.id, style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 8, background: d >= 30 ? "#fecaca" : "#fde68a", border: "1px solid " + (d >= 30 ? "#f87171" : "#f59e0b") } },
-                React.createElement("div", null,
-                    React.createElement("span", { style: { fontSize: 13, fontWeight: 600 } }, c.name),
-                    React.createElement("span", { style: { fontSize: 11, color: SUB, marginLeft: 8 } }, eu((c.buyPrice || 0) * (c.quantity || 1)))),
-                React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
-                    React.createElement("span", { style: { fontSize: 12, fontWeight: 700, color: d >= 30 ? RED : AMBER } },
-                        d,
-                        " d\u00EDas en venta"),
-                    React.createElement(Btn, { sm: true, v: "outline", onClick: () => onEdit(c) }, "Revisar")))); })))),
-        React.createElement("div", { className: "dash-chart-grid", style: { display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(0,2fr)", gap: 16, marginBottom: 20 } },
+                React.createElement("div", { className: "dash-chart-grid", style: { display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(0,2fr)", gap: 16, marginBottom: 20 } },
             React.createElement(Card, { style: { padding: "18px 18px 12px" } },
                 React.createElement(SL, null, "P&L mensual (neto)"),
                 chartData.length > 0 ? (React.createElement(Recharts.ResponsiveContainer, { width: "100%", height: 150 },
@@ -19121,24 +19110,39 @@ function MessagesTab(props){
     if(conv&&conv.msgs){
       var list=Object.keys(conv.msgs).map(function(k){return conv.msgs[k];}).sort(function(a,b){return a.ts-b.ts;});
       setMsgs(list);
-      var slug=localStorage.getItem("cv10_slug");
-      if(window._db&&slug){
-        var keys=Object.keys(conv.msgs||{});
-        keys.forEach(function(k){
-          var msg=conv.msgs[k];
-          if(!msg.seen&&window._currentUser&&msg.uid!==window._currentUser.uid){
-            window._db.ref("chats/"+slug+"/"+selected+"/"+k+"/seen").set(true);
-          }
-        });
+      // Only mark seen for seller conversations (not buyer)
+      if(!conv.isBuyer){
+        var slug2=localStorage.getItem("cv10_slug");
+        if(window._db&&slug2&&window._currentUser){
+          Object.keys(conv.msgs||{}).forEach(function(k){
+            var msg=conv.msgs[k];
+            if(!msg.seen&&msg.uid!==window._currentUser.uid){
+              window._db.ref("chats/"+slug2+"/"+selected+"/"+k+"/seen").set(true);
+            }
+          });
+        }
       }
     }
   },[selected,convs]);
   var ce=React.createElement;
   function sendReply(){
-    if(!newMsg.trim()||!window._db||!slug||!selected||!window._currentUser)return;
+    if(!newMsg.trim()||!window._db||!window._currentUser)return;
     var user=window._currentUser;
-    var msg={name:user.displayName||"Vendedor",uid:user.uid,text:newMsg.trim(),ts:Date.now()};
-    window._db.ref("chats/"+slug+"/"+selected).push(msg);
+    var conv=convs.find(function(c){return c.uid===selected;});
+    var msg={name:user.displayName||"Usuario",uid:user.uid,text:newMsg.trim(),ts:Date.now()};
+    if(conv&&conv.isBuyer){
+      // Buyer replying - send to seller chats AND buyer copy
+      var sellerSlug=conv.sellerSlug;
+      var buyerUid=user.uid;
+      window._db.ref("chats/"+sellerSlug+"/"+buyerUid).push(msg);
+      var buyerSlug2=window._currentSlug||localStorage.getItem("cv10_slug");
+      if(buyerSlug2) window._db.ref("chats/"+buyerSlug2+"/_as_buyer_/"+sellerSlug).push(msg);
+    } else {
+      // Seller replying
+      var s2=slug||window._currentSlug||localStorage.getItem("cv10_slug");
+      if(!s2||!selected)return;
+      window._db.ref("chats/"+s2+"/"+selected).push(msg);
+    }
     setNewMsg("");
   }
   return ce("div",{style:{display:"flex",flexDirection:"column",height:"100vh",fontFamily:"Inter,sans-serif"}},
@@ -19922,7 +19926,7 @@ function Directory(){
           })
         )
       ):
-      activeTab==="todos"?ce("div",null,
+      (activeTab==="todos"||activeTab==="buscar-carta")?ce("div",null,
         ce("input",{value:search,onChange:function(e){setSearch(e.target.value);},placeholder:activeTab==="buscar-carta"?"🔍 Buscar carta (nombre, set, jugador...)":"Buscar vendedor...",style:{width:"100%",padding:"12px 16px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,marginBottom:20,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
         filtered.length===0?ce("div",{style:{textAlign:"center",color:"#6b7280",padding:40}},"No hay vendedores"):
         ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(250px,1fr))",gap:16}},
