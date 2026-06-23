@@ -19030,7 +19030,7 @@ function LotModal({ cards, onSell, onClose }) {
 }
 function dlPriceList(cards){var listed=cards.filter(function(c){return c.status==="listed"&&c.mode==="inventory";});if(!listed.length){alert("No tienes cartas en venta");return;}var sym=getCurrencySymbol();var minRoi=parseFloat(localStorage.getItem("cv10_minroi")||"40");var rows=listed.map(function(c){var precio=parseFloat(c.targetPrice)||parseFloat(c.sellPrice)||parseFloat(c.buyPrice)||0;var compra=(parseFloat(c.buyPrice)||0)*(parseFloat(c.quantity)||1);var minVenta=compra>0?(compra*(1+minRoi/100)).toFixed(2):"-";return "<tr><td>"+c.name+"</td><td>"+(c.series||"-")+"</td><td>"+(c.rarity||"-")+"</td><td>"+(c.condition||"-")+"</td><td align=right>"+sym+precio.toFixed(2)+"</td><td align=right style=color:#16a34a>"+(minVenta!=="-"?sym+minVenta:"-")+"</td></tr>";}).join("");var html="<!DOCTYPE html><html><head><meta charset=utf-8><title>Lista precios</title></head><body><h1>Lista de precios</h1><p>"+listed.length+" cartas</p><table><thead><tr><th>Carta</th><th>Set</th><th>Rareza</th><th>Condicion</th><th>Precio</th><th>Min "+minRoi+"%</th></tr></thead><tbody>"+rows+"</tbody></table></body></html>";var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));a.download="lista-precios.html";document.body.appendChild(a);a.click();document.body.removeChild(a);}
 function savePublicProfile(cards,slug,contact,payment,shipping,avatar,banner){if(!slug)return;var user=window._currentUser||(typeof firebase!=="undefined"&&firebase.apps.length>0?firebase.auth().currentUser:null);if(!user){alert("Necesitas estar logueado");return;}if(!window._db){alert("DB no disponible");return;}var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";});var sold=cards.filter(function(c){return c.status==="sold";});var validCodes=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;});var vac=localStorage.getItem("cv10_vac")||"";var offer=localStorage.getItem("cv10_offer")||"";
-  var pub={slug:slug,uid:user.uid,cards:listed,sold:sold,validCodes:validCodes,updatedAt:Date.now(),contact:contact||"",payment:payment||"",shipping:shipping||"",avatar:avatar||"",banner:banner||"",vacaciones:vac,offerBanner:offer||null};window._db.ref("public/"+slug).set(pub).then(function(){var profData={publicSlug:slug,publicContact:contact||"",publicPayment:payment||"",publicShipping:shipping||"",publicAvatar:avatar||"",publicBanner:banner||""};if(typeof db!=="undefined")db.collection("users").doc(user.uid).collection("data").doc("main").set(profData,{merge:true});alert("Perfil guardado!");}).catch(function(e){alert("Error: "+e.message);});}
+  var pub={slug:slug,uid:user.uid,cards:listed,sold:sold,validCodes:validCodes,updatedAt:Date.now(),contact:contact||"",payment:payment||"",shipping:shipping||"",avatar:avatar||"",banner:banner||"",vacaciones:vac,offerBanner:offer||null,instagram:localStorage.getItem("cv10_ig")||"",twitter:localStorage.getItem("cv10_tw")||"",profileMode:localStorage.getItem("cv10_mode")||"seller",quickReplies:JSON.parse(localStorage.getItem("cv10_qr")||"[]")};window._db.ref("public/"+slug).set(pub).then(function(){var profData={publicSlug:slug,publicContact:contact||"",publicPayment:payment||"",publicShipping:shipping||"",publicAvatar:avatar||"",publicBanner:banner||""};if(typeof db!=="undefined")db.collection("users").doc(user.uid).collection("data").doc("main").set(profData,{merge:true});alert("Perfil guardado!");}).catch(function(e){alert("Error: "+e.message);});}
 function MessagesTab(){
   var state=useState([]),convs=state[0],setConvs=state[1];
   var sel=useState(null),selected=sel[0],setSelected=sel[1];
@@ -19062,6 +19062,16 @@ function MessagesTab(){
     if(conv&&conv.msgs){
       var list=Object.keys(conv.msgs).map(function(k){return conv.msgs[k];}).sort(function(a,b){return a.ts-b.ts;});
       setMsgs(list);
+      var slug=localStorage.getItem("cv10_slug");
+      if(window._db&&slug){
+        var keys=Object.keys(conv.msgs||{});
+        keys.forEach(function(k){
+          var msg=conv.msgs[k];
+          if(!msg.seen&&msg.uid!==window._currentUser.uid){
+            window._db.ref("chats/"+slug+"/"+selected+"/"+k+"/seen").set(true);
+          }
+        });
+      }
     }
   },[selected,convs]);
   var ce=React.createElement;
@@ -19108,12 +19118,42 @@ function MessagesTab(){
         msgs.map(function(m,i){
           var mine=window._currentUser&&m.uid===window._currentUser.uid;
           return ce("div",{key:i,style:{display:"flex",flexDirection:"column",alignItems:mine?"flex-end":"flex-start"}},
-            ce("div",{style:{background:mine?"#3b82f6":"#fff",color:mine?"#fff":"#111",borderRadius:12,padding:"10px 14px",border:"1px solid #e8eaed",maxWidth:"75%"}},
+            ce("div",{style:{background:mine?"#3b82f6":m.isOffer?"#f0fdf4":"#fff",color:mine?"#fff":"#111",borderRadius:12,padding:"10px 14px",border:"1px solid "+(m.isOffer?"#86efac":"#e8eaed"),maxWidth:"75%"}},
               ce("div",{style:{fontWeight:600,fontSize:11,marginBottom:2,opacity:0.7}},mine?"Tu":m.name),
-              ce("div",{style:{fontSize:14}},m.text)
+              ce("div",{style:{fontSize:14,fontWeight:m.isOffer?700:400}},m.text),
+              m.isOffer&&!mine?ce("div",{style:{marginTop:8,display:"flex",gap:6}},
+                ce("button",{onClick:function(){
+                  var counter=prompt("Tu contraoferta (\u20AC):");
+                  if(!counter||isNaN(parseFloat(counter)))return;
+                  var slug=localStorage.getItem("cv10_slug");
+                  var user=window._currentUser;
+                  if(!window._db||!slug||!user)return;
+                  window._db.ref("chats/"+slug+"/"+selected).push({name:user.displayName||"Vendedor",uid:user.uid,text:"🔄 Contraoferta: \u20AC"+parseFloat(counter).toFixed(2)+" por "+m.cardName,ts:Date.now(),isCounterOffer:true,offerAmount:parseFloat(counter),cardName:m.cardName});
+                },style:{padding:"5px 10px",background:"#3b82f6",border:"none",borderRadius:6,color:"#fff",fontSize:12,cursor:"pointer",fontFamily:"Inter,sans-serif",fontWeight:600}},"🔄 Contraoferta"),
+                ce("button",{onClick:function(){
+                  var slug=localStorage.getItem("cv10_slug");
+                  var user=window._currentUser;
+                  if(!window._db||!slug||!user)return;
+                  window._db.ref("chats/"+slug+"/"+selected).push({name:user.displayName||"Vendedor",uid:user.uid,text:"✅ Oferta aceptada: \u20AC"+m.offerAmount.toFixed(2)+" por "+m.cardName+". ¡Hablamos por aquí para coordinar!",ts:Date.now()});
+                },style:{padding:"5px 10px",background:"#16a34a",border:"none",borderRadius:6,color:"#fff",fontSize:12,cursor:"pointer",fontFamily:"Inter,sans-serif",fontWeight:600}},"✅ Aceptar"),
+                ce("button",{onClick:function(){
+                  var slug=localStorage.getItem("cv10_slug");
+                  var user=window._currentUser;
+                  if(!window._db||!slug||!user)return;
+                  window._db.ref("chats/"+slug+"/"+selected).push({name:user.displayName||"Vendedor",uid:user.uid,text:"❌ Oferta rechazada. Si quieres podemos negociar otro precio.",ts:Date.now()});
+                },style:{padding:"5px 10px",background:"#ef4444",border:"none",borderRadius:6,color:"#fff",fontSize:12,cursor:"pointer",fontFamily:"Inter,sans-serif",fontWeight:600}},"❌ Rechazar")
+              ):null
             ),
-            ce("div",{style:{fontSize:10,color:"#9ca3af",marginTop:2}},new Date(m.ts).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}))
+            ce("div",{style:{fontSize:10,color:"#9ca3af",marginTop:2,display:"flex",alignItems:"center",gap:4}},
+              new Date(m.ts).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}),
+              mine?ce("span",{style:{color:m.seen?"#3b82f6":"#9ca3af",fontSize:11}},m.seen?"✓✓":"✓"):null
+            )
           );
+        })
+      ),
+      ce("div",{style:{padding:"8px 12px 0",background:"#fff",display:"flex",flexWrap:"wrap",gap:6}},
+        (data.quickReplies&&data.quickReplies.length>0?data.quickReplies:[]).map(function(qr,i){
+          return ce("button",{key:i,onClick:function(){setNewMsg(qr);},style:{padding:"5px 12px",background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:20,fontSize:12,cursor:"pointer",fontFamily:"Inter,sans-serif",color:"#374151"}},qr);
         })
       ),
       ce("div",{style:{padding:12,borderTop:"1px solid #e8eaed",display:"flex",gap:8,background:"#fff"}},
@@ -19150,6 +19190,10 @@ function App() {
     const [publicPayment, setPublicPayment] = useState(() => localStorage.getItem("cv10_payment")||"");
     const [publicAvatar, setPublicAvatar] = useState(() => localStorage.getItem("cv10_avatar")||"");
     const [publicBanner, setPublicBanner] = useState(() => localStorage.getItem("cv10_banner")||"");
+    const [publicInstagram, setPublicInstagram] = useState(() => localStorage.getItem("cv10_ig")||"");
+    const [publicTwitter, setPublicTwitter] = useState(() => localStorage.getItem("cv10_tw")||"");
+    const [publicMode, setPublicMode] = useState(() => localStorage.getItem("cv10_mode")||"seller");
+    const [quickReplies, setQuickReplies] = useState(() => { try { return JSON.parse(localStorage.getItem("cv10_qr")||"[]"); } catch(e) { return []; } });
     const [showLot, setShowLot] = useState(false);
     const [showChats, setShowChats] = useState(false);
     const [tooltip, setTooltip] = useState(null);
@@ -19342,9 +19386,35 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
         React.createElement("input", { type: "number", value: minRoi, onChange: function(e){ setMinRoi(parseFloat(e.target.value)||0); localStorage.setItem("cv10_minroi", e.target.value); }, min: 0, max: 500, style: { width: 90, padding: "9px 12px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif" } }),
         React.createElement("span", { style: { fontSize: 13, color: SUB } }, "ROI m\u00EDnimo para el c\u00E1lculo de precio")
       ),
-      React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 6 } }, "\uD83D\uDDC2\uFE0F CAJAS Y UBICACIONES"),
-      React.createElement("textarea", { value: locs, onChange: function(e){ setLocs(e.target.value); localStorage.setItem("cv10_locs", e.target.value); }, placeholder: "Ej: Caja A, Caja B, Carpeta 1...", rows: 3, style: { width: "100%", padding: "9px 12px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif", boxSizing: "border-box", resize: "vertical", marginBottom: 8 } }),
-      React.createElement("p", { style: { fontSize: 11, color: SUB, marginBottom: 20 } }, "Una ubicaci\u00F3n por l\u00EDnea. Se usar\u00E1n como opciones al a\u00F1adir cartas."),
+            React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "MODO DE PERFIL"),
+      React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 16 } },
+        [["seller", "🏷️ Vendedor"], ["collection", "⭐ Solo colección"]].map(function(pair) {
+          return React.createElement("button", { key: pair[0], onClick: function(){ setPublicMode(pair[0]); localStorage.setItem("cv10_mode", pair[0]); }, style: { flex: 1, padding: "10px", border: "2px solid "+(publicMode===pair[0]?BLUE:BDR), borderRadius: 10, background: publicMode===pair[0]?"#eff6ff":BG, color: publicMode===pair[0]?BLUE:TXT, fontWeight: publicMode===pair[0]?700:400, fontSize: 13, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, pair[1]);
+        })
+      ),
+      React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "REDES SOCIALES"),
+      React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 8 } },
+        React.createElement("span", { style: { fontSize: 16, width: 24 } }, "📸"),
+        React.createElement("input", { value: publicInstagram, onChange: function(e){ setPublicInstagram(e.target.value); }, placeholder: "Instagram (sin @)", style: { flex: 1, padding: "9px 12px", border: "1px solid "+BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif" } })
+      ),
+      React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 16 } },
+        React.createElement("span", { style: { fontSize: 16, width: 24 } }, "🐦"),
+        React.createElement("input", { value: publicTwitter, onChange: function(e){ setPublicTwitter(e.target.value); }, placeholder: "Twitter/X (sin @)", style: { flex: 1, padding: "9px 12px", border: "1px solid "+BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif" } })
+      ),
+            React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "RESPUESTAS RÁPIDAS (chat)"),
+      React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 8 } },
+        (quickReplies.length === 0 ? ["📦 Envío en 24h", "👍 ¡Te la reservo!", "💬 ¿Me haces oferta?"] : quickReplies).map(function(qr, i) {
+          return React.createElement("div", { key: i, style: { display: "flex", gap: 6 } },
+            React.createElement("input", { value: qr, onChange: function(e) {
+              var arr = (quickReplies.length===0 ? ["📦 Envío en 24h", "👍 ¡Te la reservo!", "💬 ¿Me haces oferta?"] : quickReplies).slice();
+              arr[i] = e.target.value;
+              setQuickReplies(arr);
+              localStorage.setItem("cv10_qr", JSON.stringify(arr));
+            }, style: { flex: 1, padding: "8px 10px", border: "1px solid "+BDR, borderRadius: 8, fontSize: 12, background: BG, color: TXT, fontFamily: "Inter,sans-serif" } })
+          );
+        })
+      ),
+      React.createElement("p", { style: { fontSize: 11, color: SUB, marginBottom: 20 } }, "Aparecerán como botones en tu chat público."),
       React.createElement("button", { onClick: function() {
           if(!publicSlug){alert("Escribe un nombre p\u00FAblico primero");return;}
           localStorage.setItem("cv10_slug",publicSlug);
@@ -19356,6 +19426,9 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
           localStorage.setItem("cv10_vac",vacaciones);
           localStorage.setItem("cv10_offer",offerBanner);
           localStorage.setItem("cv10_minroi",minRoi);
+          localStorage.setItem("cv10_ig", publicInstagram);
+          localStorage.setItem("cv10_tw", publicTwitter);
+          localStorage.setItem("cv10_mode", publicMode);
           savePublicProfile(JSON.parse(localStorage.getItem("cv10")||"[]"),publicSlug,publicContact,publicPayment,publicShipping,publicAvatar,publicBanner);
       }, style: { width: "100%", padding: "13px", background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 14, color: "#fff", fontFamily: "Inter,sans-serif", fontWeight: 700 } }, "Guardar perfil")
     )
@@ -19390,6 +19463,18 @@ window._mountApp = function() {
   var ps=params.get('p');
   if(ps&&window._db){document.getElementById('cv-login').style.display='none';document.getElementById('root').style.display='block';window._db.ref('public/'+ps).once('value').then(function(snap){var d=snap.val();if(d&&d.cards){ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(PublicProfile,{data:d,slug:ps}));}else{ReactDOM.createRoot(document.getElementById('root')).render(React.createElement('div',{style:{padding:40,textAlign:'center',fontFamily:'Inter,sans-serif'}},React.createElement('div',{style:{fontSize:20,fontWeight:700}},'Perfil no encontrado')));}}); return;}
   ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+};
+window._signOut = function() {
+  if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+    firebase.auth().signOut().then(function() {
+      Object.keys(localStorage).forEach(function(k) {
+        if (k.indexOf('cv10') === 0) localStorage.removeItem(k);
+      });
+      window._appMounted = false;
+      document.getElementById('root').style.display = 'none';
+      document.getElementById('cv-login').style.display = 'flex';
+    });
+  }
 };
   </script>
 
@@ -19536,19 +19621,21 @@ var sty={background:"#fff",borderRadius:12,padding:14,border:"1px solid #e8eaed"
 var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",padding:"24px",display:"flex",gap:16,flexWrap:"wrap"}},
   data.avatar?ce("img",{src:data.avatar,style:{width:80,height:80,borderRadius:"50%",objectFit:"cover"}}):ce("div",{style:{width:80,height:80,borderRadius:"50%",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,color:"#fff",fontWeight:700}},slug.substring(0,2).toUpperCase()),
   ce("div",{style:{flex:1}},
-    ce("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:4}},ce("div",{style:{fontWeight:700,fontSize:22}},slug),ratings.length>=5?ce("div",{title:"Vendedor verificado",style:{background:"#3b82f6",color:"#fff",borderRadius:"50%",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,flexShrink:0}},"✓"):null),
+    ce("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:4}},ce("div",{style:{fontWeight:700,fontSize:22}},slug),data.verified?ce("div",{title:"Vendedor verificado",style:{background:"#3b82f6",color:"#fff",borderRadius:"50%",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,flexShrink:0}},"✓"):null),
     avg?ce("div",{style:{color:"#f59e0b",fontSize:13,marginBottom:6}},"*".repeat(Math.round(parseFloat(avg)))+" "+avg+" ("+ratings.length+")"):ce("div",{style:{color:"#9ca3af",fontSize:13,marginBottom:6}},"Sin valoraciones"),
     ce("div",{style:{display:"flex",gap:12,fontSize:13,color:"#6b7280"}},
-      data.shipping?ce("span",null,"Envios: "+data.shipping):null,
+      data.shipping?ce("span",null,"Envíos: "+data.shipping):null,
       data.payment?ce("span",null,"Pago: "+data.payment):null,
+      data.instagram?ce("a",{href:"https://instagram.com/"+data.instagram,target:"_blank",style:{color:"#e1306c",textDecoration:"none",fontSize:13}},"📸 @"+data.instagram):null,
+      data.twitter?ce("a",{href:"https://x.com/"+data.twitter,target:"_blank",style:{color:"#1da1f2",textDecoration:"none",fontSize:13}},"🐦 @"+data.twitter):null,
       visitCount?ce("span",{style:{color:"#9ca3af"}},visitCount+" visitas"):null
     ),
     data.contact?ce("a",{href:data.contact.indexOf("@")>=0?"mailto:"+data.contact:"https://wa.me/"+data.contact,target:"_blank",style:{display:"inline-block",marginTop:8,padding:"8px 18px",background:"#3b82f6",color:"#fff",borderRadius:20,textDecoration:"none",fontSize:13,fontWeight:600}},"Contactar"):null
   ),
-  data.vacaciones?ce("div",{style:{background:"linear-gradient(135deg,#fef9c3,#fde68a)",borderLeft:"4px solid #f59e0b",padding:"14px 20px",fontSize:13,color:"#78350f",display:"flex",alignItems:"center",gap:10,fontWeight:500}},ce("span",{style:{fontSize:18}},"\uD83C\uDFD6\uFE0F"),ce("span",null,data.vacaciones)):null,data.offerBanner?ce("div",{style:{background:"linear-gradient(135deg,#dc2626,#f97316)",padding:"12px 20px",fontSize:13,color:"#fff",display:"flex",alignItems:"center",gap:10,fontWeight:600}},ce("span",{style:{fontSize:18}},"\uD83C\uDFF7\uFE0F"),ce("span",null,data.offerBanner)):null
+  data.vacaciones?ce("div",{style:{background:"linear-gradient(135deg,#fef9c3,#fde68a)",borderLeft:"4px solid #f59e0b",padding:"14px 20px",fontSize:13,color:"#78350f",display:"flex",alignItems:"center",gap:10,fontWeight:500}},ce("span",{style:{fontSize:18}},"\uD83C\uDFD6\uFE0F"),ce("span",null,data.vacaciones)):null,  data.offerBanner?ce("div",{style:{background:"linear-gradient(135deg,#dc2626,#f97316)",padding:"12px 20px",fontSize:13,color:"#fff",display:"flex",alignItems:"center",gap:10,fontWeight:600}},ce("span",{style:{fontSize:18}},"\uD83C\uDFF7\uFE0F"),ce("span",null,data.offerBanner)):null
 );
 var tabs=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",display:"flex"}},
-  ["venta","coleccion","valoraciones","vendidas","chat"].map(function(t){
+  (data.profileMode==="collection"?["coleccion","valoraciones"]:["venta","coleccion","valoraciones","vendidas","chat"]).map(function(t){
     return ce("button",{key:t,onClick:function(){sat(t);},style:{padding:"10px 10px",border:"none",background:"none",fontSize:12,fontWeight:at===t?700:400,color:at===t?"#3b82f6":"#6b7280",borderBottom:at===t?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},
       t==="venta"?"En venta ("+listed.length+")":t==="coleccion"?"Coleccion ("+col.length+")":t==="valoraciones"?"Valoraciones ("+ratings.length+")":t==="vendidas"?"Vendidas ("+sold.length+")":"Chat"
     );
@@ -19564,6 +19651,12 @@ var ventaTab=ce("div",null,
         ce("div",{style:{fontWeight:600,fontSize:13,marginTop:4}},c.name),
         ce("div",{style:{color:"#6b7280",fontSize:11}},[c.series,c.rarity].filter(Boolean).join(" - ")),
         ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:4}},c.salePrice?ce("div",null,ce("span",{style:{textDecoration:"line-through",color:"#9ca3af",fontSize:12,marginRight:4}},"EUR "+parseFloat(c.targetPrice||0).toFixed(2)),ce("span",{style:{fontWeight:700,color:"#ef4444"}},"EUR "+parseFloat(c.salePrice).toFixed(2))):c.targetPrice?ce("div",{style:{fontWeight:700,color:"#3b82f6"}},"EUR "+parseFloat(c.targetPrice).toFixed(2)):ce("div",null),ce("div",{style:{display:"flex",gap:4}},
+        ce("button",{title:"Reservar carta",onClick:function(e){e.stopPropagation();
+          if(!window._currentUser){alert("Inicia sesión para reservar");return;}
+          var ref=window._db.ref("reservations/"+slug+"/"+c.id);
+          ref.set({uid:window._currentUser.uid,name:window._currentUser.displayName||"Usuario",ts:Date.now(),cardName:c.name});
+          alert("👍 Carta reservada. El vendedor recibirá un aviso.");
+        },style:{background:"rgba(255,255,255,0.9)",border:"none",cursor:"pointer",fontSize:14,padding:"3px 5px",borderRadius:"50%",lineHeight:1}},"🔖"),
         ce("button",{title:"Compartir",onClick:function(e){e.stopPropagation();var lines=[];lines.push("🎴 "+c.name);if(c.series)lines.push("📦 "+c.series);if(c.rarity)lines.push("✨ "+c.rarity);if(c.condition)lines.push("📋 "+c.condition);var price=parseFloat(c.salePrice||c.targetPrice||0);if(price)lines.push("💰 EUR "+price.toFixed(2));var txt="https://laurarosa1310.github.io/cromovault/?p="+slug;if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){alert("Copiado!");}).catch(function(){prompt("Copia:",txt);});}else{prompt("Copia:",txt);}},style:{background:"rgba(255,255,255,0.9)",border:"none",cursor:"pointer",fontSize:15,padding:"3px 5px",borderRadius:"50%",lineHeight:1}},"🔗"),
         ce(FavButton,{slug:slug,cardId:c.id||c.name,price:parseFloat(c.salePrice||c.targetPrice)||0,cardName:c.name})
       ))
@@ -19687,7 +19780,16 @@ function Directory(){
     });
     setFavCards(favList);
   });
-  var filtered=profiles.filter(function(p){if(!search)return true;return(p.slug||"").toLowerCase().indexOf(search.toLowerCase())>=0;});
+  var filtered=profiles.filter(function(p){if(!search||activeTab==="buscar-carta")return true;return(p.slug||"").toLowerCase().indexOf(search.toLowerCase())>=0;});
+  var cardResults=activeTab==="buscar-carta"&&search?profiles.reduce(function(acc,p){
+    var s=search.toLowerCase();
+    (p.cards||[]).forEach(function(c){
+      if((c.name||"").toLowerCase().indexOf(s)>=0||(c.series||"").toLowerCase().indexOf(s)>=0||(c.team||"").toLowerCase().indexOf(s)>=0){
+        acc.push({card:c,seller:p});
+      }
+    });
+    return acc;
+  },[]):[];
   var ce=React.createElement;
   return ce("div",{style:{minHeight:"100vh",background:"#f7f8fa",fontFamily:"Inter,sans-serif",fontSize:14}},
     ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",padding:"16px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}},
@@ -19696,11 +19798,30 @@ function Directory(){
     ),
     ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",display:"flex"}},
       ce("button",{onClick:function(){setActiveTab("todos");},style:{padding:"12px 24px",border:"none",background:"none",fontSize:14,fontWeight:activeTab==="todos"?700:400,color:activeTab==="todos"?"#3b82f6":"#6b7280",borderBottom:activeTab==="todos"?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Todos los vendedores"),
+      ce("button",{onClick:function(){setActiveTab("buscar-carta");},style:{padding:"12px 24px",border:"none",background:"none",fontSize:14,fontWeight:activeTab==="buscar-carta"?700:400,color:activeTab==="buscar-carta"?"#3b82f6":"#6b7280",borderBottom:activeTab==="buscar-carta"?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},"🔍 Buscar carta"),
       ce("button",{onClick:function(){setActiveTab("favoritos");},style:{padding:"12px 24px",border:"none",background:"none",fontSize:14,fontWeight:activeTab==="favoritos"?700:400,color:activeTab==="favoritos"?"#3b82f6":"#6b7280",borderBottom:activeTab==="favoritos"?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Mis favoritos ("+favCards.reduce(function(a,p){return a+p.cardIds.length;},0)+")")
     ),
     ce("div",{style:{maxWidth:900,margin:"0 auto",padding:24}},
+      activeTab==="buscar-carta"?ce("div",null,
+        cardResults.length===0?ce("div",{style:{textAlign:"center",color:"#6b7280",padding:40}},search?"No se encontró ninguna carta":"🔍 Escribe el nombre de una carta para buscarla entre todos los vendedores"):
+        ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:12}},
+          cardResults.map(function(r,i){
+            return ce("a",{key:i,href:"/?p="+r.seller.slug,target:"_blank",style:{background:"#fff",borderRadius:12,border:"1px solid #e8eaed",overflow:"hidden",textDecoration:"none",color:"inherit",display:"block"}},
+              r.card.imageUrl?ce("img",{src:r.card.imageUrl,style:{width:"100%",height:120,objectFit:"cover"}}):ce("div",{style:{height:80,background:"linear-gradient(135deg,#eff6ff,#f0fdf4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}},"🎴"),
+              ce("div",{style:{padding:"10px 12px"}},
+                ce("div",{style:{fontWeight:600,fontSize:13,marginBottom:2}},r.card.name),
+                r.card.series?ce("div",{style:{fontSize:11,color:"#6b7280",marginBottom:4}},r.card.series):null,
+                ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
+                  ce("div",{style:{fontWeight:700,color:"#3b82f6",fontSize:14}},r.card.targetPrice?"EUR "+parseFloat(r.card.targetPrice).toFixed(2):""),
+                  ce("div",{style:{fontSize:11,color:"#6b7280"}},"👤 @"+r.seller.slug)
+                )
+              )
+            );
+          })
+        )
+      ):
       activeTab==="todos"?ce("div",null,
-        ce("input",{value:search,onChange:function(e){setSearch(e.target.value);},placeholder:"Buscar vendedor...",style:{width:"100%",padding:"12px 16px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,marginBottom:20,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
+        ce("input",{value:search,onChange:function(e){setSearch(e.target.value);},placeholder:activeTab==="buscar-carta"?"🔍 Buscar carta (nombre, set, jugador...)":"Buscar vendedor...",style:{width:"100%",padding:"12px 16px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,marginBottom:20,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
         filtered.length===0?ce("div",{style:{textAlign:"center",color:"#6b7280",padding:40}},"No hay vendedores"):
         ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(250px,1fr))",gap:16}},
           filtered.map(function(p,i){
@@ -19838,12 +19959,18 @@ function initFirebase() {
             if (!window._appMounted && window._mountApp) {
               window._mountApp();
               window._appMounted = true;
+            } else if (window._appMounted && window._resetApp) {
+              window._resetApp();
             }
           });
       } else {
         document.getElementById('root').style.display = 'none';
         document.getElementById('cv-login').style.display = 'flex';
         window._appMounted = false;
+        // Clear all user data from localStorage on logout
+        Object.keys(localStorage).forEach(function(k) {
+          if (k.indexOf('cv10') === 0) localStorage.removeItem(k);
+        });
       }
     });
   }
@@ -19858,4 +19985,4 @@ function initFirebase() {
 
 
 </body>
-</html>
+</>
