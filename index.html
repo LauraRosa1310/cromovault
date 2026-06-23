@@ -19221,7 +19221,7 @@ function MessagesTab(props){
         })
       ),
       ce("div",{style:{padding:"8px 12px 0",background:"#fff",display:"flex",flexWrap:"wrap",gap:6}},
-        (data.quickReplies&&data.quickReplies.length>0?data.quickReplies:[]).map(function(qr,i){
+        (JSON.parse(localStorage.getItem("cv10_qr")||"[]")).map(function(qr,i){
           return ce("button",{key:i,onClick:function(){setNewMsg(qr);},style:{padding:"5px 12px",background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:20,fontSize:12,cursor:"pointer",fontFamily:"Inter,sans-serif",color:"#374151"}},qr);
         })
       ),
