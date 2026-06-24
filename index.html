@@ -19482,7 +19482,13 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
       )
     ),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "PERFIL"),
-    React.createElement("button", { onClick: function() { setShowSettings(false); setShowPublicProfile(true); }, style: { width: "100%", padding: "12px 14px", background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#fff", textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 16, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "space-between" } },
+    React.createElement("button", { onClick: function() { setShowSettings(false);
+              if(quickReplies.length===0){
+                var defaults=["📦 Envío en 24h","👍 ¡Te la reservo!","💬 ¿Me haces oferta?"];
+                setQuickReplies(defaults);
+                localStorage.setItem("cv10_qr",JSON.stringify(defaults));
+              }
+              setShowPublicProfile(true); }, style: { width: "100%", padding: "12px 14px", background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#fff", textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 16, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "space-between" } },
       React.createElement("span", null, "\uD83D\uDC64 Mi perfil p\u00FAblico"),
       publicSlug ? React.createElement("span", { style: { fontSize: 11, opacity: 0.85 } }, "@" + publicSlug + " \u2192") : React.createElement("span", { style: { fontSize: 11, opacity: 0.75 } }, "Configurar \u2192")
     ),
