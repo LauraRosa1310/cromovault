@@ -19750,6 +19750,7 @@ var ts=useState("venta"),at=ts[0],sat=ts[1];
   },[slug]);
   function toggleFollow(){
     if(!window._currentUser){alert("Inicia sesión para seguir a este vendedor");return;}
+    if(!window._db){alert("Error de conexión. Recarga la página.");return;}
     var uid=window._currentUser.uid;
     var ref=window._db.ref("followers/"+slug+"/"+uid);
     if(isFollowing){
@@ -20011,6 +20012,7 @@ function Directory(){
       ce("button",{onClick:function(){setActiveTab("favoritos");},style:{padding:"12px 24px",border:"none",background:"none",fontSize:14,fontWeight:activeTab==="favoritos"?700:400,color:activeTab==="favoritos"?"#3b82f6":"#6b7280",borderBottom:activeTab==="favoritos"?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Mis favoritos ("+favCards.reduce(function(a,p){return a+p.cardIds.length;},0)+")")
     ),
     ce("div",{style:{maxWidth:900,margin:"0 auto",padding:24}},
+      showSearchTab?ce("input",{value:search,onChange:function(e){setSearch(e.target.value);},placeholder:activeTab==="buscar-carta"?"🔍 Buscar carta (nombre, set, jugador...)":"Buscar vendedor...",style:{width:"100%",padding:"12px 16px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,marginBottom:16,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}):null,
       activeTab==="siguiendo"?ce("div",{style:{padding:10}},
         following.length===0?
           ce("div",{style:{textAlign:"center",color:"#6b7280",padding:60}},
@@ -20085,7 +20087,6 @@ function Directory(){
         )
       ):
       showSearchTab?ce("div",null,
-        ce("input",{value:search,onChange:function(e){setSearch(e.target.value);},placeholder:activeTab==="buscar-carta"?"🔍 Buscar carta (nombre, set, jugador...)":"Buscar vendedor...",style:{width:"100%",padding:"12px 16px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,marginBottom:20,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
         filtered.length===0?ce("div",{style:{textAlign:"center",color:"#6b7280",padding:40}},"No hay vendedores"):
         ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(250px,1fr))",gap:16}},
           filtered.map(function(p,i){
