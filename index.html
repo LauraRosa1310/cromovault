@@ -17479,7 +17479,9 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                                     " \u00B7 quedar\u00E1n ",
                                     React.createElement("b", { style: { color: BLUE } }, (f.quantity || 1) - (f.sellQty || 1)))))))),
                     f.mode === "inventory" && f.status === "listed" && (React.createElement("div", { style: { marginBottom: 12 } },
-                    f.mode === "inventory" && f.status === "listed" && React.createElement("div", { style: { marginBottom: 12, padding: "10px 14px", background: BGS, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "space-between" } }, React.createElement("label", { style: { fontSize: 12, color: SUB } }, "Mostrar en perfil publico"), React.createElement("button", { onClick: function() { var newVal=!f.publicVisible; sf("publicVisible", newVal); setTimeout(function(){ var slug=localStorage.getItem("cv10_slug"); if(slug&&window._db&&window._currentUser){ var cards=JSON.parse(localStorage.getItem("cv10")||"[]"); var updated=cards.map(function(c){return c.id===f.id?Object.assign({},c,{publicVisible:newVal}):c;}); var listed=updated.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";}); window._db.ref("public/"+slug+"/cards").set(listed); } }, 800); }, style: { padding: "4px 12px", background: f.publicVisible ? "#16a34a" : BGS, border: "1px solid " + BDR, borderRadius: 20, cursor: "pointer", fontSize: 12, color: f.publicVisible ? "#fff" : SUB, fontFamily: "Inter,sans-serif" } }, f.publicVisible ? "SI" : "NO")),
+                    f.mode === "inventory" && f.status === "listed" && React.createElement("div", { style: { marginBottom: 12, padding: "10px 14px", background: BGS, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "space-between" } }, React.createElement("label", { style: { fontSize: 12, color: SUB } }, "Mostrar en perfil publico"), React.createElement("button", { onClick: function() { var newVal=!f.publicVisible; sf("publicVisible", newVal); setTimeout(function(){ var slug=localStorage.getItem("cv10_slug"); if(slug&&window._db&&window._currentUser){ var cards=JSON.parse(localStorage.getItem("cv10")||"[]"); var updated=cards.map(function(c){return c.id===f.id?Object.assign({},c,{publicVisible:newVal}):c;}); var listed=updated.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";}); window._db.ref("public/"+slug+"/cards").set(listed);
+                    if(newVal && f.name) window._db.ref("feed/"+slug).push({type:"new_card",cardName:f.name,slug:slug,ts:Date.now()});
+                  } }, 800); }, style: { padding: "4px 12px", background: f.publicVisible ? "#16a34a" : BGS, border: "1px solid " + BDR, borderRadius: 20, cursor: "pointer", fontSize: 12, color: f.publicVisible ? "#fff" : SUB, fontFamily: "Inter,sans-serif" } }, f.publicVisible ? "SI" : "NO")),
                         React.createElement("label", { style: LS }, "\uD83D\uDCC5 Fecha en que la pusiste en venta"),
                         React.createElement("input", { type: "date", value: f.listingDate || "", onChange: e => sf("listingDate", e.target.value), style: IS }))),
                                         React.createElement("div", { style: { marginBottom: 12 } },
@@ -17615,6 +17617,9 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                                 onSave(Object.assign(Object.assign({}, base), { status: "holding", quantity: remaining, sellPrice: 0, sellDate: "", id: (editCard === null || editCard === void 0 ? void 0 : editCard.id) || uid() }));
                                 // Save sold units as new record
                                 onSave(Object.assign(Object.assign({}, base), { id: uid(), quantity: sellQty, status: "sold" }));
+                                // Feed entry
+                                var sSlug=localStorage.getItem("cv10_slug");
+                                if(sSlug&&window._db&&base.name) window._db.ref("feed/"+sSlug).push({type:"sold",cardName:base.name,price:base.sellPrice||0,slug:sSlug,ts:Date.now()});
                             }
                             else {
                                 onSave(base);
@@ -19084,8 +19089,10 @@ function MessagesTab(props){
         var msgs=d[uid]; var keys=Object.keys(msgs||{});
         var nonSystem=keys.filter(function(k){return !msgs[k].isSystem;});
         var last=nonSystem.length>0?msgs[nonSystem[nonSystem.length-1]]:keys.length>0?msgs[keys[keys.length-1]]:{};
-        var firstName=nonSystem.length>0?msgs[nonSystem[0]].name:null;
-        return {uid:uid,name:firstName||last.name||"Usuario",lastMsg:last.isSystem?"":last.text||"",lastTs:last.ts||0,msgs:msgs,prefix:prefix||s};
+        // Use the name from the buyer (uid matches the conversation uid key)
+        var buyerMsg=nonSystem.map(function(k){return msgs[k];}).find(function(m){return m.uid===uid;});
+        var convName=buyerMsg?buyerMsg.name:(nonSystem.length>0?msgs[nonSystem[0]].name:null)||last.name||"Usuario";
+        return {uid:uid,name:convName,lastMsg:last.isSystem?"":last.text||"",lastTs:last.ts||0,msgs:msgs,prefix:prefix||s};
       });
     }
     window._db.ref("chats/"+s).on("value",function(snap){
@@ -19276,6 +19283,7 @@ function App() {
     const [showSettings, setShowSettings] = useState(false);
     const [unreadChats, setUnreadChats] = useState(0);
     const [showPublicProfile, setShowPublicProfile] = useState(false);
+    const [showQR, setShowQR] = useState(false);
     const [darkMode, setDarkMode] = useState(() => localStorage.getItem("cv10_dark") === "1");
     const [currency, setCurrency] = useState(() => localStorage.getItem("cv10_currency") || "EUR");
     const [publicSlug, setPublicSlug] = useState(() => localStorage.getItem("cv10_slug")||"");
@@ -19349,7 +19357,26 @@ function App() {
         ), React.createElement("button", { onClick: () => setShowSettings(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\u2699\uFE0F")))),
                 tooltip && React.createElement("div", { onClick: function(){ setTooltip(null); }, style: { position: "fixed", inset: 0, zIndex: 998 } }),
         tooltip && React.createElement("div", { style: { position: "fixed", background: "#1e293b", color: "#fff", borderRadius: 10, padding: "10px 14px", fontSize: 12, maxWidth: 220, zIndex: 999, top: tooltip.y, left: tooltip.x, lineHeight: 1.5 } }, tooltip.text),
-        showChecklist && React.createElement("div", { style: { position: "fixed", bottom: 80, right: 12, zIndex: 999, background: BG, borderRadius: 20, padding: "20px 20px 16px", width: 320, boxShadow: "0 16px 48px rgba(0,0,0,0.22)", border: "1px solid " + BDR, maxHeight: "80vh", overflowY: "auto" } },
+        showQR && React.createElement("div", { onClick: function() { setShowQR(false); }, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1002, display: "flex", alignItems: "center", justifyContent: "center" } },
+  React.createElement("div", { onClick: function(e) { e.stopPropagation(); }, style: { background: BG, borderRadius: 24, padding: "32px 28px", maxWidth: 320, width: "90%", textAlign: "center", boxShadow: "0 24px 80px rgba(0,0,0,0.3)" } },
+    React.createElement("div", { style: { fontSize: 20, fontWeight: 700, marginBottom: 8 } }, "\uD83D\uDCF1 C\u00F3digo QR"),
+    React.createElement("div", { style: { fontSize: 13, color: SUB, marginBottom: 20 } }, "Comp\u00E1rtelo para que los compradores encuentren tu perfil"),
+    React.createElement("div", { style: { background: "#fff", padding: 16, borderRadius: 16, display: "inline-block", marginBottom: 16, boxShadow: "0 4px 16px rgba(0,0,0,0.1)" } },
+      React.createElement("img", { src: "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent("https://laurarosa1310.github.io/cromovault/?p=" + publicSlug) + "&color=1e293b&bgcolor=ffffff&margin=10", width: 180, height: 180, alt: "QR code", style: { display: "block", borderRadius: 8 } })
+    ),
+    React.createElement("div", { style: { fontSize: 12, color: SUB, marginBottom: 20, fontWeight: 500 } }, "cromovault/?p=" + publicSlug),
+    React.createElement("div", { style: { display: "flex", gap: 8 } },
+      React.createElement("button", { onClick: function() {
+        var url = "https://laurarosa1310.github.io/cromovault/?p=" + publicSlug;
+        if(navigator.share) { navigator.share({ title: "Mi tienda en CromoVault", url: url }); }
+        else if(navigator.clipboard) { navigator.clipboard.writeText(url).then(function(){ alert("\u2705 Enlace copiado!"); }); }
+        else { prompt("Copia tu enlace:", url); }
+      }, style: { flex: 1, padding: "11px", background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#fff", fontFamily: "Inter,sans-serif", fontWeight: 600 } }, "\uD83D\uDD17 Compartir"),
+      React.createElement("button", { onClick: function() { setShowQR(false); }, style: { flex: 1, padding: "11px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 13, color: TXT, fontFamily: "Inter,sans-serif" } }, "Cerrar")
+    )
+  )
+),
+showChecklist && React.createElement("div", { style: { position: "fixed", bottom: 80, right: 12, zIndex: 999, background: BG, borderRadius: 20, padding: "20px 20px 16px", width: 320, boxShadow: "0 16px 48px rgba(0,0,0,0.22)", border: "1px solid " + BDR, maxHeight: "80vh", overflowY: "auto" } },
           React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
             React.createElement("div", { style: { fontWeight: 700, fontSize: 16, display: "flex", alignItems: "center", gap: 8 } },
               React.createElement("span", { style: { fontSize: 22 } }, "🚀"),
@@ -19470,6 +19497,10 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
       publicSlug ? React.createElement("a", { href: "?p=" + publicSlug, target: "_blank", style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "linear-gradient(135deg,#eff6ff,#f0fdf4)", border: "1px solid #bfdbfe", borderRadius: 10, marginBottom: 20, textDecoration: "none" } },
         React.createElement("span", { style: { fontSize: 13, color: "#1d4ed8", fontWeight: 600 } }, "\uD83D\uDD17 cromovault.github.io/?p=" + publicSlug),
         React.createElement("span", { style: { fontSize: 16, color: "#3b82f6" } }, "\u2197\uFE0F")
+      ) : null,
+      publicSlug ? React.createElement("button", { onClick: function() { setShowQR(true); }, style: { width: "100%", padding: "10px", background: BG, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 13, color: TXT, fontFamily: "Inter,sans-serif", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 } },
+        React.createElement("span", null, "\uD83D\uDCF1"),
+        React.createElement("span", null, "Ver c\u00F3digo QR de mi perfil")
       ) : React.createElement("div", { style: { padding: "10px 14px", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 10, fontSize: 12, color: "#92400e", marginBottom: 16 } }, "Configura tu nombre p\u00FAblico (slug) y pulsa Guardar para activar tu perfil."),
       React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 6 } }, "NOMBRE P\u00DABLICO (slug)"),
       React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 16 } },
@@ -19706,6 +19737,30 @@ var ts=useState("venta"),at=ts[0],sat=ts[1];
   var of=useState(""),oferta=of[0],setOferta=of[1];
   var ms=useState([]),msgs=ms[0],setMsgs=ms[1];
   var ni=useState(""),newMsg=ni[0],setNewMsg=ni[1];
+  var fw=useState(false),isFollowing=fw[0],setIsFollowing=fw[1];
+  var fc=useState(0),followerCount=fc[0],setFollowerCount=fc[1];
+  React.useEffect(function(){
+    if(!window._db||!slug)return;
+    window._db.ref("followers/"+slug).on("value",function(snap){
+      var d=snap.val()||{};
+      setFollowerCount(Object.keys(d).length);
+      if(window._currentUser) setIsFollowing(!!d[window._currentUser.uid]);
+    });
+    return function(){window._db.ref("followers/"+slug).off();};
+  },[slug]);
+  function toggleFollow(){
+    if(!window._currentUser){alert("Inicia sesión para seguir a este vendedor");return;}
+    var uid=window._currentUser.uid;
+    var ref=window._db.ref("followers/"+slug+"/"+uid);
+    if(isFollowing){
+      ref.remove();
+      window._db.ref("following/"+uid+"/"+slug).remove();
+    } else {
+      ref.set({name:window._currentUser.displayName||window._currentUser.email||"Usuario",followedAt:Date.now()});
+      window._db.ref("following/"+uid+"/"+slug).set({followedAt:Date.now()});
+      window._db.ref("feed/"+slug).push({type:"follow",uid:uid,name:window._currentUser.displayName||"Usuario",ts:Date.now()});
+    }
+  }
   React.useEffect(function(){if(!window._db||!window._currentUser)return;var uid=window._currentUser.uid;var ref=window._db.ref("chats/"+slug+"/"+uid);ref.on("value",function(snap){var d=snap.val();if(d){setMsgs(Object.keys(d).map(function(k){return d[k];}).sort(function(a,b){return a.ts-b.ts;}));}else{setMsgs([]);}});return function(){ref.off();};});
 var fs=useState(""),sr=fs[0],ssr=fs[1];var vc=useState(null),visitCount=vc[0],setVisitCount=vc[1];React.useEffect(function(){
     if(!window._db||!slug)return;
@@ -19744,8 +19799,12 @@ var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",padd
       data.payment?ce("span",null,"Pago: "+data.payment):null,
       data.instagram?ce("a",{href:"https://instagram.com/"+data.instagram,target:"_blank",style:{color:"#e1306c",textDecoration:"none",fontSize:13}},"📸 @"+data.instagram):null,
       data.twitter?ce("a",{href:"https://x.com/"+data.twitter,target:"_blank",style:{color:"#1da1f2",textDecoration:"none",fontSize:13}},"🐦 @"+data.twitter):null,
-      visitCount?ce("span",{style:{color:"#9ca3af"}},visitCount+" visitas"):null
+      visitCount?ce("span",{style:{color:"#9ca3af"}},visitCount+" visitas"):null,
+      followerCount>0?ce("span",{style:{color:"#9ca3af"}},followerCount+" seguidores"):null
     ),
+    window._currentUser?ce("button",{onClick:toggleFollow,style:{marginTop:8,padding:"8px 20px",background:isFollowing?"#f1f5f9":"linear-gradient(135deg,#3b82f6,#8b5cf6)",border:isFollowing?"1px solid #e2e8f0":"none",borderRadius:20,cursor:"pointer",fontSize:13,color:isFollowing?"#374151":"#fff",fontFamily:"Inter,sans-serif",fontWeight:600,display:"inline-flex",alignItems:"center",gap:6}},
+      ce("span",null,isFollowing?"✓ Siguiendo":"➕ Seguir")
+    ):null,
     data.contact?ce("a",{href:data.contact.indexOf("@")>=0?"mailto:"+data.contact:"https://wa.me/"+data.contact,target:"_blank",style:{display:"inline-block",marginTop:8,padding:"8px 18px",background:"#3b82f6",color:"#fff",borderRadius:20,textDecoration:"none",fontSize:13,fontWeight:600}},"Contactar"):null
   ),
   data.vacaciones?ce("div",{style:{background:"linear-gradient(135deg,#fef9c3,#fde68a)",borderLeft:"4px solid #f59e0b",padding:"14px 20px",fontSize:13,color:"#78350f",display:"flex",alignItems:"center",gap:10,fontWeight:500}},ce("span",{style:{fontSize:18}},"\uD83C\uDFD6\uFE0F"),ce("span",null,data.vacaciones)):null,  data.offerBanner?ce("div",{style:{background:"linear-gradient(135deg,#dc2626,#f97316)",padding:"12px 20px",fontSize:13,color:"#fff",display:"flex",alignItems:"center",gap:10,fontWeight:600}},ce("span",{style:{fontSize:18}},"\uD83C\uDFF7\uFE0F"),ce("span",null,data.offerBanner)):null
@@ -19875,6 +19934,35 @@ function Directory(){
   var ls=useState(""),search=ls[0],setSearch=ls[1];
   var ts=useState("todos"),activeTab=ts[0],setActiveTab=ts[1];
   var favState=useState([]),favCards=favState[0],setFavCards=favState[1];
+  var fwState=useState([]),following=fwState[0],setFollowing=fwState[1];
+  var feedState=useState([]),feedItems=feedState[0],setFeedItems=feedState[1];
+  React.useEffect(function(){
+    if(!window._db||!window._currentUser)return;
+    var uid=window._currentUser.uid;
+    // Load slugs this user follows
+    window._db.ref("following/"+uid).once("value").then(function(snap){
+      var d=snap.val()||{};
+      setFollowing(Object.keys(d));
+      // Load feed items from followed profiles
+      var slugs=Object.keys(d);
+      if(slugs.length===0)return;
+      var allFeed=[];
+      var done=0;
+      slugs.forEach(function(slug){
+        window._db.ref("feed/"+slug).limitToLast(10).once("value").then(function(fsnap){
+          var fd=fsnap.val();
+          if(fd) Object.keys(fd).forEach(function(k){
+            allFeed.push(Object.assign({},fd[k],{slug:slug,id:k}));
+          });
+          done++;
+          if(done===slugs.length){
+            allFeed.sort(function(a,b){return b.ts-a.ts;});
+            setFeedItems(allFeed.slice(0,30));
+          }
+        });
+      });
+    });
+  },[]);
   React.useEffect(function(){
     if(!window._db)return;
     window._db.ref("public").once("value").then(function(snap){
@@ -19907,6 +19995,7 @@ function Directory(){
     return acc;
   },[]):[];
   var ce=React.createElement;
+  var showSearchTab=activeTab==="todos"||activeTab==="buscar-carta";
   return ce("div",{style:{minHeight:"100vh",background:"#f7f8fa",fontFamily:"Inter,sans-serif",fontSize:14}},
     ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",padding:"16px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}},
       ce("div",{style:{fontWeight:700,fontSize:20}},"CromoVault - Directorio"),
@@ -19915,9 +20004,68 @@ function Directory(){
     ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",display:"flex"}},
       ce("button",{onClick:function(){setActiveTab("todos");},style:{padding:"12px 24px",border:"none",background:"none",fontSize:14,fontWeight:activeTab==="todos"?700:400,color:activeTab==="todos"?"#3b82f6":"#6b7280",borderBottom:activeTab==="todos"?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Todos los vendedores"),
       ce("button",{onClick:function(){setActiveTab("buscar-carta");},style:{padding:"12px 24px",border:"none",background:"none",fontSize:14,fontWeight:activeTab==="buscar-carta"?700:400,color:activeTab==="buscar-carta"?"#3b82f6":"#6b7280",borderBottom:activeTab==="buscar-carta"?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},"🔍 Buscar carta"),
+      ce("button",{onClick:function(){setActiveTab("siguiendo");},style:{padding:"12px 24px",border:"none",background:"none",fontSize:14,fontWeight:activeTab==="siguiendo"?700:400,color:activeTab==="siguiendo"?"#3b82f6":"#6b7280",borderBottom:activeTab==="siguiendo"?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},
+        following.length>0?"👥 Siguiendo ("+following.length+")":"👥 Siguiendo"      ),
+      ce("button",{onClick:function(){setActiveTab("feed");},style:{padding:"12px 24px",border:"none",background:"none",fontSize:14,fontWeight:activeTab==="feed"?700:400,color:activeTab==="feed"?"#3b82f6":"#6b7280",borderBottom:activeTab==="feed"?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},
+        "📰 Feed"+(feedItems.length>0?" ("+feedItems.length+")":"")      ),
       ce("button",{onClick:function(){setActiveTab("favoritos");},style:{padding:"12px 24px",border:"none",background:"none",fontSize:14,fontWeight:activeTab==="favoritos"?700:400,color:activeTab==="favoritos"?"#3b82f6":"#6b7280",borderBottom:activeTab==="favoritos"?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Mis favoritos ("+favCards.reduce(function(a,p){return a+p.cardIds.length;},0)+")")
     ),
     ce("div",{style:{maxWidth:900,margin:"0 auto",padding:24}},
+      activeTab==="siguiendo"?ce("div",{style:{padding:10}},
+        following.length===0?
+          ce("div",{style:{textAlign:"center",color:"#6b7280",padding:60}},
+            ce("div",{style:{fontSize:40,marginBottom:12}},"👥"),
+            ce("div",{style:{fontSize:16,fontWeight:600,marginBottom:8}},"No sigues a nadie"),
+            ce("div",{style:{fontSize:13}},"Visita el perfil de un vendedor y pulsa Seguir")
+          ):
+          ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(250px,1fr))",gap:16}},
+            following.map(function(slug2,i){
+              var p=profiles.find(function(pr){return pr.slug===slug2;});
+              if(!p)return null;
+              var rat=p.ratings||[],avg=rat.length>0?(rat.reduce(function(a,r){return a+(r.stars||0);},0)/rat.length).toFixed(1):null;
+              var lst=(p.cards||[]).filter(function(c){return c.status==="listed";}).length;
+              return ce("a",{key:i,href:"https://laurarosa1310.github.io/cromovault/?p="+p.slug,style:{display:"block",textDecoration:"none",color:"inherit"}},
+                ce("div",{style:{background:"#fff",borderRadius:12,border:"1px solid #e8eaed",overflow:"hidden"}},
+                  p.banner?ce("div",{style:{height:60,backgroundImage:"url("+p.banner+")",backgroundSize:"cover"}}):ce("div",{style:{height:60,background:"linear-gradient(135deg,#3b82f6,#8b5cf6)"}}),
+                  ce("div",{style:{padding:"12px 16px"}},
+                    ce("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:4}},
+                      ce("div",{style:{fontWeight:700,fontSize:15}},p.slug),
+                      p.verified?ce("div",{title:"Verificado",style:{background:"#3b82f6",color:"#fff",borderRadius:"50%",width:16,height:16,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700}},"✔"):null
+                    ),
+                    avg?ce("div",{style:{color:"#f59e0b",fontSize:12}},"⭐ "+avg+" ("+rat.length+")"):null,
+                    ce("div",{style:{fontSize:12,color:"#6b7280",marginTop:4}},lst+" en venta")
+                  )
+                )
+              );
+            })
+          )
+      ):
+      activeTab==="feed"?ce("div",{style:{maxWidth:600,margin:"0 auto",padding:10}},
+        feedItems.length===0?
+          ce("div",{style:{textAlign:"center",color:"#6b7280",padding:60}},
+            ce("div",{style:{fontSize:40,marginBottom:12}},"📰"),
+            ce("div",{style:{fontSize:16,fontWeight:600,marginBottom:8}},"Tu feed está vacío"),
+            ce("div",{style:{fontSize:13}},"Sigue a vendedores para ver su actividad")
+          ):
+          ce("div",{style:{display:"flex",flexDirection:"column",gap:10}},
+            feedItems.map(function(item,i){
+              var icon=item.type==="new_card"?"🎴":item.type==="sold"?"💰":item.type==="follow"?"👥":"🔔";
+              var text=item.type==="new_card"?"añadió: "+(item.cardName||""):item.type==="sold"?"vendió: "+(item.cardName||""):item.type==="follow"?"empezó a seguirte":"actividad";
+              return ce("div",{key:i,style:{background:"#fff",borderRadius:12,padding:"14px 16px",border:"1px solid #e8eaed",display:"flex",gap:12,alignItems:"flex-start"}},
+                ce("div",{style:{fontSize:24,flexShrink:0}},icon),
+                ce("div",{style:{flex:1}},
+                  ce("div",{style:{fontSize:13}},
+                    ce("a",{href:"https://laurarosa1310.github.io/cromovault/?p="+item.slug,style:{fontWeight:700,color:"#3b82f6",textDecoration:"none"}},item.slug),
+                    ce("span",{style:{color:"#374151"}}," "+text)
+                  ),
+                  ce("div",{style:{fontSize:11,color:"#9ca3af",marginTop:4}},
+                    new Date(item.ts).toLocaleDateString("es-ES",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})
+                  )
+                )
+              );
+            })
+          )
+      ):
       activeTab==="buscar-carta"?ce("div",null,
         cardResults.length===0?ce("div",{style:{textAlign:"center",color:"#6b7280",padding:40}},search?"No se encontró ninguna carta":"🔍 Escribe el nombre de una carta para buscarla entre todos los vendedores"):
         ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:12}},
@@ -19936,7 +20084,7 @@ function Directory(){
           })
         )
       ):
-      (activeTab==="todos"||activeTab==="buscar-carta")?ce("div",null,
+      showSearchTab?ce("div",null,
         ce("input",{value:search,onChange:function(e){setSearch(e.target.value);},placeholder:activeTab==="buscar-carta"?"🔍 Buscar carta (nombre, set, jugador...)":"Buscar vendedor...",style:{width:"100%",padding:"12px 16px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,marginBottom:20,boxSizing:"border-box",fontFamily:"Inter,sans-serif"}}),
         filtered.length===0?ce("div",{style:{textAlign:"center",color:"#6b7280",padding:40}},"No hay vendedores"):
         ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(250px,1fr))",gap:16}},
@@ -19988,6 +20136,7 @@ function Directory(){
     )
   );
 }
+
 </script>
 <script>
 (function() {
