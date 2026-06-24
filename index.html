@@ -25,12 +25,40 @@
     #cv-bottom-nav button span.icon{font-size:18px;}
     #cv-bottom-nav button span.label{font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
     @media(max-width:768px){
+      /* Nav */
       #cv-bottom-nav{display:block;}
       #cv-top-nav{display:none!important;}
       #cv-root{padding-bottom:calc(56px + env(safe-area-inset-bottom));}
-      input,select{font-size:16px!important;}
-      table{display:block;overflow-x:auto;}
+
+      /* Top bar */
+      #cv-top-bar > div { padding: 0 12px !important; height: 48px !important; }
+      /* Hide "Nueva carta", "Venta multiple", "Comprar" buttons in top bar on mobile */
+      .nav-label { display: none !important; }
+      /* Hide "Nueva carta" and "Venta multiple" buttons on mobile (available via FAB) */
+      #cv-top-bar .cv-hide-mobile { display: none !important; }
+
+      /* Forms */
+      input,select,textarea{font-size:16px!important;}
+
+      /* Tables */
+      table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
+      /* Cards/grids */
+      [class*="grid"]{grid-template-columns:1fr!important;}
+
+      /* Modals */
+      .cv-modal{max-height:95vh!important;width:100%!important;max-width:100%!important;border-radius:16px 16px 0 0!important;position:fixed!important;bottom:0!important;top:auto!important;}
+
+      /* DashTab stats - 2 cols on mobile */
+      .cv-stats-grid{grid-template-columns:1fr 1fr!important;}
+
+      /* Content padding */
+      .cv-content{padding:12px!important;}
     }
+
+    /* FAB button for new card on mobile */
+    #cv-fab{display:none;position:fixed;bottom:calc(64px + env(safe-area-inset-bottom));right:16px;width:52px;height:52px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border:none;border-radius:50%;color:#fff;font-size:24px;cursor:pointer;z-index:99;box-shadow:0 4px 20px rgba(59,130,246,0.4);align-items:center;justify-content:center;}
+    @media(max-width:768px){#cv-fab-container{display:flex!important;}}
   </style>
 </head>
 <body>
@@ -19369,14 +19397,24 @@ function App() {
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
-                    React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta"),
-                    React.createElement(Btn, { sm: true, v: "outline", onClick: () => setShowLot(true) }, "Venta m\u00FAltiple"),
+                    React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
+                    React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, v: "outline", onClick: () => setShowLot(true) }, "Venta m\u00FAltiple")),
                     React.createElement("a", { href: "?directorio", target: "_blank", style: { background: "transparent", border: "1.5px solid " + BDR, borderRadius: 8, fontSize: 12, padding: "6px 12px", color: SUB, fontWeight: 600, textDecoration: "none", marginRight: 4, fontFamily: "Inter,sans-serif" } }, "\uD83D\uDED2 ", React.createElement("span", { className: "nav-label" }, "Comprar")), React.createElement("button", { onClick: function(){ setShowChats(true); localStorage.setItem("cv10_last_seen_chats",String(Date.now())); setUnreadChats(0); }, style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB, marginRight: 4, position: "relative" } },
             "\uD83D\uDCAC",
             unreadChats > 0 ? React.createElement("span", { style: { position: "absolute", top: -4, right: -4, background: "#ef4444", color: "#fff", borderRadius: "50%", fontSize: 9, fontWeight: 700, width: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 } }, unreadChats > 9 ? "9+" : String(unreadChats)) : null
         ), React.createElement("button", { onClick: () => setShowSettings(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\u2699\uFE0F")))),
                 tooltip && React.createElement("div", { onClick: function(){ setTooltip(null); }, style: { position: "fixed", inset: 0, zIndex: 998 } }),
         tooltip && React.createElement("div", { style: { position: "fixed", background: "#1e293b", color: "#fff", borderRadius: 10, padding: "10px 14px", fontSize: 12, maxWidth: 220, zIndex: 999, top: tooltip.y, left: tooltip.x, lineHeight: 1.5 } }, tooltip.text),
+        React.createElement("div", { id: "cv-fab-container", style: { display: "none", position: "fixed", bottom: "calc(64px + env(safe-area-inset-bottom))", right: 16, zIndex: 99, flexDirection: "column", alignItems: "flex-end", gap: 10 } },
+          React.createElement("div", { id: "cv-fab-menu", style: { display: "none", flexDirection: "column", alignItems: "flex-end", gap: 8, marginBottom: 8 } },
+            React.createElement("button", { onClick: function(){ document.getElementById("cv-fab-menu").style.display="none"; oa(tab === "collection" ? "collection" : "inventory"); }, style: { background: "#fff", border: "1px solid #e8eaed", borderRadius: 20, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif", boxShadow: "0 2px 8px rgba(0,0,0,0.15)", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 } }, "+ Nueva carta"),
+            React.createElement("button", { onClick: function(){ document.getElementById("cv-fab-menu").style.display="none"; setShowLot(true); }, style: { background: "#fff", border: "1px solid #e8eaed", borderRadius: 20, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif", boxShadow: "0 2px 8px rgba(0,0,0,0.15)", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 } }, "\uD83D\uDCE6 Venta m\u00FAltiple")
+          ),
+          React.createElement("button", { onClick: function(){
+            var menu = document.getElementById("cv-fab-menu");
+            menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+          }, style: { width: 52, height: 52, background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", border: "none", borderRadius: "50%", color: "#fff", fontSize: 24, cursor: "pointer", boxShadow: "0 4px 20px rgba(59,130,246,0.4)", display: "flex", alignItems: "center", justifyContent: "center" } }, "+")
+        ),
         showQR && React.createElement("div", { onClick: function() { setShowQR(false); }, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1002, display: "flex", alignItems: "center", justifyContent: "center" } },
   React.createElement("div", { onClick: function(e) { e.stopPropagation(); }, style: { background: BG, borderRadius: 24, padding: "32px 28px", maxWidth: 320, width: "90%", textAlign: "center", boxShadow: "0 24px 80px rgba(0,0,0,0.3)" } },
     React.createElement("div", { style: { fontSize: 20, fontWeight: 700, marginBottom: 8 } }, "\uD83D\uDCF1 C\u00F3digo QR"),
