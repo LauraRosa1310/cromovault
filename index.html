@@ -19786,13 +19786,7 @@ var ts=useState("venta"),at=ts[0],sat=ts[1];
     } else {
       ref.set({name:window._currentUser.displayName||window._currentUser.email||"Usuario",followedAt:Date.now()});
       window._db.ref("following/"+uid+"/"+slug).set({followedAt:Date.now()});
-      // Always look up follower slug by UID to avoid using the visited profile's slug
-      window._db.ref("public").orderByChild("uid").equalTo(uid).once("value").then(function(snap){
-        var d=snap.val();
-        var followerSlug=d?d[Object.keys(d)[0]].slug:null;
-        // Use slug if has public profile, otherwise use uid as identifier
-        window._db.ref("feed/"+slug).push({type:"follow",uid:uid,name:followerSlug||uid,ts:Date.now()});
-      });
+      // Follow events are private - not added to feed
     }
   }
   React.useEffect(function(){if(!window._db||!window._currentUser)return;var uid=window._currentUser.uid;var ref=window._db.ref("chats/"+slug+"/"+uid);ref.on("value",function(snap){var d=snap.val();if(d){setMsgs(Object.keys(d).map(function(k){return d[k];}).sort(function(a,b){return a.ts-b.ts;}));}else{setMsgs([]);}});return function(){ref.off();};});
@@ -20100,16 +20094,16 @@ function Directory(){
           ):
           ce("div",{style:{display:"flex",flexDirection:"column",gap:10}},
             feedItems.map(function(item,i){
-              var icon=item.type==="new_card"?"🎴":item.type==="sold"?"💰":item.type==="follow"?"👥":"🔔";
-              var actor=item.name?ce("strong",null,item.name):null;
-              var text=item.type==="new_card"?"añadió: "+(item.cardName||""):item.type==="sold"?"vendió: "+(item.cardName||""):item.type==="follow"?"empezó a seguirte":"actividad";
+              if(item.type==="follow") return null; // Follow events are private
+              var icon=item.type==="new_card"?"🎴":item.type==="sold"?"💰":"🔔";
+              var text=item.type==="new_card"?"ha añadido una carta: "+(item.cardName||""):item.type==="sold"?"ha vendido: "+(item.cardName||""):"ha tenido actividad";
               return ce("div",{key:i,style:{background:"#fff",borderRadius:12,padding:"14px 16px",border:"1px solid #e8eaed",display:"flex",gap:12,alignItems:"flex-start"}},
                 ce("div",{style:{fontSize:24,flexShrink:0}},icon),
                 ce("div",{style:{flex:1}},
                   ce("div",{style:{fontSize:13}},
                     ce("a",{href:"https://laurarosa1310.github.io/cromovault/?p="+item.slug,style:{fontWeight:700,color:"#3b82f6",textDecoration:"none"}},item.slug),
                     ce("span",{style:{color:"#374151"}}," "+text),
-                    item.type==="follow"&&item.name?ce("span",{style:{color:"#6b7280",fontSize:12}}," — ",ce("a",{href:"https://laurarosa1310.github.io/cromovault/?p="+item.name,style:{color:"#3b82f6",textDecoration:"none"}},item.name)):null
+                    null /* follow events hidden */
                   ),
                   ce("div",{style:{fontSize:11,color:"#9ca3af",marginTop:4}},
                     new Date(item.ts).toLocaleDateString("es-ES",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})
