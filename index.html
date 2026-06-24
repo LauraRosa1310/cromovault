@@ -19910,33 +19910,37 @@ var fl=listed.filter(function(c){
 var ce=React.createElement;
 var sty={background:"#fff",borderRadius:12,padding:14,border:"1px solid #e8eaed"};
 var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed"}},
-  ce("div",{style:{padding:"8px 16px",borderBottom:"1px solid #f1f5f9",display:"flex",alignItems:"center",gap:8}},
-    ce("a",{href:"https://laurarosa1310.github.io/cromovault/",style:{background:"none",border:"none",fontSize:14,cursor:"pointer",color:"#6b7280",padding:"4px 8px",fontFamily:"Inter,sans-serif",display:"inline-flex",alignItems:"center",gap:4,textDecoration:"none"}},
-      ce("span",null,"←"),
-      ce("span",null,"CromoVault")
+  ce("div",{style:{padding:"8px 12px",borderBottom:"1px solid #f1f5f9",display:"flex",alignItems:"center"}},
+    ce("a",{href:"https://laurarosa1310.github.io/cromovault/",style:{color:"#6b7280",textDecoration:"none",display:"inline-flex",alignItems:"center",gap:4,fontSize:13}},
+      ce("span",null,"←"),ce("span",null,"CromoVault")
     )
   ),
-  ce("div",{style:{padding:"16px",display:"flex",gap:12,alignItems:"flex-start"}},
-  data.avatar?ce("img",{src:data.avatar,style:{width:64,height:64,borderRadius:"50%",objectFit:"cover",flexShrink:0}}):ce("div",{style:{width:64,height:64,borderRadius:"50%",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,color:"#fff",fontWeight:700}},slug.substring(0,2).toUpperCase()),
-  ce("div",{style:{flex:1,minWidth:0}},
-    ce("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:2,flexWrap:"wrap"}},ce("div",{style:{fontWeight:700,fontSize:18,wordBreak:"break-word"}},slug),data.verified?ce("div",{title:"Vendedor verificado",style:{background:"#3b82f6",color:"#fff",borderRadius:"50%",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,flexShrink:0}},"✓"):null),
-    avg?ce("div",{style:{color:"#f59e0b",fontSize:13,marginBottom:6}},"*".repeat(Math.round(parseFloat(avg)))+" "+avg+" ("+ratings.length+")"):ce("div",{style:{color:"#9ca3af",fontSize:13,marginBottom:6}},"Sin valoraciones"),
-    ce("div",{style:{display:"flex",gap:8,fontSize:12,color:"#6b7280",flexWrap:"wrap",marginTop:2}},
-      data.shipping?ce("span",null,"Envíos: "+data.shipping):null,
-      data.payment?ce("span",null,"Pago: "+data.payment):null,
-      data.instagram?ce("a",{href:"https://instagram.com/"+data.instagram.replace(/^@/,"").replace(/.*instagram\.com\//,"").replace(/[\/\?#].*/,""),target:"_blank",style:{color:"#e1306c",textDecoration:"none",fontSize:13}},"📸 @"+data.instagram):null,
-      data.twitter?ce("a",{href:"https://x.com/"+data.twitter.replace(/^@/,"").replace(/.*(?:twitter|x)\.com\//,"").replace(/[\/\?#].*/,""),target:"_blank",style:{color:"#1da1f2",textDecoration:"none",fontSize:13}},"🐦 @"+data.twitter):null,
-      visitCount?ce("span",{style:{color:"#9ca3af",fontSize:11}},visitCount+" visitas"):null,
-      followerCount>0?ce("span",{style:{color:"#3b82f6",fontSize:11,fontWeight:600}},followerCount+" seguidores"):null
+  data.banner?ce("div",{style:{width:"100%",height:140,backgroundImage:"url("+data.banner+")",backgroundSize:"cover",backgroundPosition:"center "+(data.bannerPos||50)+"%"}}):null,
+  ce("div",{style:{padding:"12px 16px 0",display:"flex",alignItems:"center",gap:12}},
+    data.avatar?ce("img",{src:data.avatar,style:{width:56,height:56,borderRadius:"50%",objectFit:"cover",border:"3px solid #fff",flexShrink:0,marginTop:data.banner?-28:0,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}):ce("div",{style:{width:56,height:56,borderRadius:"50%",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,color:"#fff",fontWeight:700,flexShrink:0,border:"3px solid #fff",marginTop:data.banner?-28:0}},slug.substring(0,2).toUpperCase()),
+    ce("div",{style:{flex:1,minWidth:0}},
+      ce("div",{style:{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}},
+        ce("span",{style:{fontWeight:700,fontSize:17}},slug),
+        data.verified?ce("span",{title:"Verificado",style:{background:"#3b82f6",color:"#fff",borderRadius:"50%",width:16,height:16,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700}},"\u2714"):null
+      ),
+      avg?ce("div",{style:{color:"#f59e0b",fontSize:12}},"⭐ "+avg+" ("+ratings.length+" valoraciones)"):ce("div",{style:{color:"#9ca3af",fontSize:12}},"Sin valoraciones")
     ),
-    window._currentUser?ce("button",{onClick:toggleFollow,style:{marginTop:6,padding:"7px 14px",background:isFollowing?"#f1f5f9":"linear-gradient(135deg,#3b82f6,#8b5cf6)",border:isFollowing?"1px solid #e2e8f0":"none",borderRadius:20,cursor:"pointer",fontSize:13,color:isFollowing?"#374151":"#fff",fontFamily:"Inter,sans-serif",fontWeight:600,display:"inline-flex",alignItems:"center",gap:6}},
-      ce("span",null,isFollowing?"✓ Siguiendo":"➕ Seguir")
-    ):null,
-    data.contact?ce("a",{href:data.contact.indexOf("@")>=0?"mailto:"+data.contact:"https://wa.me/"+data.contact,target:"_blank",style:{display:"inline-block",marginTop:8,padding:"8px 18px",background:"#3b82f6",color:"#fff",borderRadius:20,textDecoration:"none",fontSize:13,fontWeight:600}},"Contactar"):null
-  )
-),
-  data.vacaciones?ce("div",{style:{background:"linear-gradient(135deg,#fef9c3,#fde68a)",borderLeft:"4px solid #f59e0b",padding:"14px 20px",fontSize:13,color:"#78350f",display:"flex",alignItems:"center",gap:10,fontWeight:500}},ce("span",{style:{fontSize:18}},"\uD83C\uDFD6\uFE0F"),ce("span",null,data.vacaciones)):null,  data.offerBanner?ce("div",{style:{background:"linear-gradient(135deg,#dc2626,#f97316)",padding:"12px 20px",fontSize:13,color:"#fff",display:"flex",alignItems:"center",gap:10,fontWeight:600}},ce("span",{style:{fontSize:18}},"\uD83C\uDFF7\uFE0F"),ce("span",null,data.offerBanner)):null
-);
+    ce("div",{style:{display:"flex",gap:6,flexShrink:0}},
+      window._currentUser?ce("button",{onClick:toggleFollow,style:{padding:"6px 12px",background:isFollowing?"#f1f5f9":"linear-gradient(135deg,#3b82f6,#8b5cf6)",border:isFollowing?"1px solid #e2e8f0":"none",borderRadius:20,cursor:"pointer",fontSize:12,color:isFollowing?"#374151":"#fff",fontFamily:"Inter,sans-serif",fontWeight:600,whiteSpace:"nowrap"}},isFollowing?"\u2713 Siguiendo":"+ Seguir"):null,
+      data.contact?ce("a",{href:data.contact.indexOf("@")>=0?"mailto:"+data.contact:"https://wa.me/"+data.contact,target:"_blank",style:{padding:"6px 12px",background:"#3b82f6",color:"#fff",borderRadius:20,textDecoration:"none",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}},"Contactar"):null
+    )
+  ),
+  ce("div",{style:{padding:"8px 16px 12px",display:"flex",gap:12,flexWrap:"wrap",alignItems:"center",fontSize:12,color:"#6b7280"}},
+    followerCount>0?ce("span",{style:{color:"#3b82f6",fontWeight:600}},followerCount+" seguidores"):null,
+    visitCount?ce("span",null,visitCount+" visitas"):null,
+    data.shipping?ce("span",null,"🚚 "+data.shipping):null,
+    data.payment?ce("span",null,"💳 "+data.payment):null,
+    data.instagram?ce("a",{href:"https://instagram.com/"+data.instagram.replace(/^@/,"").replace(/.*instagram\.com\//,"").replace(/[\/\?#].*/,""),target:"_blank",style:{color:"#e1306c",textDecoration:"none"}},"📸 @"+data.instagram):null,
+    data.twitter?ce("a",{href:"https://x.com/"+data.twitter.replace(/^@/,"").replace(/.*(?:twitter|x)\.com\//,"").replace(/[\/\?#].*/,""),target:"_blank",style:{color:"#1da1f2",textDecoration:"none"}},"🐦 @"+data.twitter):null
+  ),
+  data.vacaciones?ce("div",{style:{background:"linear-gradient(135deg,#fef9c3,#fde68a)",borderLeft:"4px solid #f59e0b",padding:"10px 16px",fontSize:12,color:"#78350f",display:"flex",alignItems:"center",gap:8,fontWeight:500}},ce("span",{style:{fontSize:16}},"🏖️"),ce("span",null,data.vacaciones)):null,
+  data.offerBanner?ce("div",{style:{background:"linear-gradient(135deg,#dc2626,#f97316)",padding:"10px 16px",fontSize:12,color:"#fff",display:"flex",alignItems:"center",gap:8,fontWeight:600}},ce("span",{style:{fontSize:16}},"🏷️"),ce("span",null,data.offerBanner)):null
+)
 var tabs=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",display:"flex",overflowX:"auto",WebkitOverflowScrolling:"touch"}},
   (data.profileMode==="collection"?["coleccion","valoraciones"]:["venta","coleccion","valoraciones","vendidas","chat"]).map(function(t){
     return ce("button",{key:t,onClick:function(){sat(t);},style:{padding:"10px 10px",border:"none",background:"none",fontSize:12,fontWeight:at===t?700:400,color:at===t?"#3b82f6":"#6b7280",borderBottom:at===t?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},
