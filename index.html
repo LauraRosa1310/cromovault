@@ -54,6 +54,16 @@
 
       /* Content padding */
       .cv-content{padding:12px!important;}
+      /* Main content area */
+      div[style*="maxWidth: 1100"][style*="padding: \"24px\""],
+      div[style*="max-width: 1100"]{padding:12px!important;}
+      /* Stats grids - 2 cols on mobile */
+      div[style*="repeat(4,1fr)"]{grid-template-columns:repeat(2,1fr)!important;}
+      div[style*="repeat(3,1fr)"]{grid-template-columns:repeat(2,1fr)!important;}
+      /* Card form modal full width */
+      div[style*="maxWidth: 480"]{width:100%!important;max-width:100%!important;border-radius:0!important;height:100vh!important;margin:0!important;}
+      /* Tab labels in public profile - scrollable */
+      nav[style*="overflow"]{overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;}
     }
 
     /* FAB button for new card on mobile */
@@ -17907,7 +17917,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
     
         const fiSorted=sortBy?[...fi].sort(function(a,b){var roi=function(c){var bp=c.buyPrice||0;var tp=c.targetPrice||0;return bp>0?(tp-bp)/bp*100:0;};var v=sortBy==="roi"?[roi(a),roi(b)]:sortBy==="price"?[a.buyPrice||0,b.buyPrice||0]:[(a.name||"").toLowerCase(),(b.name||"").toLowerCase()];return typeof v[0]==="string"?(v[0]<v[1]?-1:1)*sortDir:(v[0]-v[1])*sortDir;}):fi;
         return (React.createElement("div", null,
-        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 } }, [{ l: "Total", v: inv.length }, { l: "Invertido", v: eu(inv.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0)) }, { l: "En venta", v: inv.filter(c => c.status === "listed").length, a: AMBER }, { l: "Vendidas", v: inv.filter(c => c.status === "sold").length, a: GREEN }].map(({ l, v, a }) => (React.createElement(Card, { key: l, style: { padding: "13px 15px" } },
+        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(100px,1fr))", gap: 10, marginBottom: 16 } }, [{ l: "Total", v: inv.length }, { l: "Invertido", v: eu(inv.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0)) }, { l: "En venta", v: inv.filter(c => c.status === "listed").length, a: AMBER }, { l: "Vendidas", v: inv.filter(c => c.status === "sold").length, a: GREEN }].map(({ l, v, a }) => (React.createElement(Card, { key: l, style: { padding: "13px 15px" } },
             React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 3 } }, l),
             React.createElement("div", { style: { fontSize: 20, fontWeight: 700, color: a || TXT } }, v))))),
         React.createElement(Card, null,
@@ -19701,7 +19711,7 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
     )
   )
 ),
-        React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "24px" } },
+        React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "clamp(12px, 4vw, 24px)" } },
             tab === "dashboard" && React.createElement(DashTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
             tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
             tab === "collection" && React.createElement(ColTab, { cards: cards, onEdit: oe, onDelete: del, onDuplicate: dup }),
