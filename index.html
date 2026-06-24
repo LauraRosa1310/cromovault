@@ -19052,7 +19052,7 @@ function LotModal({ cards, onSell, onClose }) {
 }
 function dlPriceList(cards){var listed=cards.filter(function(c){return c.status==="listed"&&c.mode==="inventory";});if(!listed.length){alert("No tienes cartas en venta");return;}var sym=getCurrencySymbol();var minRoi=parseFloat(localStorage.getItem("cv10_minroi")||"40");var rows=listed.map(function(c){var precio=parseFloat(c.targetPrice)||parseFloat(c.sellPrice)||parseFloat(c.buyPrice)||0;var compra=(parseFloat(c.buyPrice)||0)*(parseFloat(c.quantity)||1);var minVenta=compra>0?(compra*(1+minRoi/100)).toFixed(2):"-";return "<tr><td>"+c.name+"</td><td>"+(c.series||"-")+"</td><td>"+(c.rarity||"-")+"</td><td>"+(c.condition||"-")+"</td><td align=right>"+sym+precio.toFixed(2)+"</td><td align=right style=color:#16a34a>"+(minVenta!=="-"?sym+minVenta:"-")+"</td></tr>";}).join("");var html="<!DOCTYPE html><html><head><meta charset=utf-8><title>Lista precios</title></head><body><h1>Lista de precios</h1><p>"+listed.length+" cartas</p><table><thead><tr><th>Carta</th><th>Set</th><th>Rareza</th><th>Condicion</th><th>Precio</th><th>Min "+minRoi+"%</th></tr></thead><tbody>"+rows+"</tbody></table></body></html>";var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));a.download="lista-precios.html";document.body.appendChild(a);a.click();document.body.removeChild(a);}
 function savePublicProfile(cards,slug,contact,payment,shipping,avatar,banner){if(!slug){alert("Falta el nombre p\u00FAblico");return;}var user=window._currentUser||(typeof firebase!=="undefined"&&firebase.apps.length>0?firebase.auth().currentUser:null);if(!user){alert("Error: no hay sesi\u00F3n activa. Cierra sesi\u00F3n y vuelve a entrar.");return;}if(!window._db){alert("Error: base de datos no disponible. Recarga la p\u00E1gina.");return;}var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";});var sold=cards.filter(function(c){return c.status==="sold";});var validCodes=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;});var vac=localStorage.getItem("cv10_vac")||"";var offer=localStorage.getItem("cv10_offer")||"";
-  var pub={slug:slug,uid:user.uid,cards:listed,sold:sold,validCodes:validCodes,updatedAt:Date.now(),contact:contact||"",payment:payment||"",shipping:shipping||"",avatar:avatar||"",banner:banner||"",vacaciones:vac,offerBanner:offer||null,instagram:localStorage.getItem("cv10_ig")||"",twitter:localStorage.getItem("cv10_tw")||"",profileMode:localStorage.getItem("cv10_mode")||"seller",minRoi:parseFloat(localStorage.getItem("cv10_minroi")||"40"),quickReplies:JSON.parse(localStorage.getItem("cv10_qr")||"[]")};window._db.ref("public/"+slug).set(pub).then(function(){var profData={publicSlug:slug,publicContact:contact||"",publicPayment:payment||"",publicShipping:shipping||"",publicAvatar:avatar||"",publicBanner:banner||""};if(typeof db!=="undefined")db.collection("users").doc(user.uid).collection("data").doc("main").set(profData,{merge:true});window._currentSlug=slug;alert("\u2705 Perfil guardado! Ya puedes verlo en /?p="+slug);}).catch(function(e){console.error("Save error:",e);alert("Error al guardar: "+e.message);});}
+  var pub={slug:slug,uid:user.uid,cards:listed,sold:sold,validCodes:validCodes,updatedAt:Date.now(),contact:contact||"",payment:payment||"",shipping:shipping||"",avatar:avatar||"",banner:banner||"",bannerPos:parseInt(localStorage.getItem("cv10_banner_pos")||"50"),vacaciones:vac,offerBanner:offer||null,instagram:localStorage.getItem("cv10_ig")||"",twitter:localStorage.getItem("cv10_tw")||"",profileMode:localStorage.getItem("cv10_mode")||"seller",minRoi:parseFloat(localStorage.getItem("cv10_minroi")||"40"),quickReplies:JSON.parse(localStorage.getItem("cv10_qr")||"[]")};window._db.ref("public/"+slug).set(pub).then(function(){var profData={publicSlug:slug,publicContact:contact||"",publicPayment:payment||"",publicShipping:shipping||"",publicAvatar:avatar||"",publicBanner:banner||""};if(typeof db!=="undefined")db.collection("users").doc(user.uid).collection("data").doc("main").set(profData,{merge:true});window._currentSlug=slug;alert("\u2705 Perfil guardado! Ya puedes verlo en /?p="+slug);}).catch(function(e){console.error("Save error:",e);alert("Error al guardar: "+e.message);});}
 function MessagesTab(props){
   var state=useState([]),convs=state[0],setConvs=state[1];
   var sel=useState(null),selected=sel[0],setSelected=sel[1];
@@ -19260,6 +19260,7 @@ function App() {
         setPublicShipping(localStorage.getItem("cv10_shipping")||"");
         setPublicAvatar(localStorage.getItem("cv10_avatar")||"");
         setPublicBanner(localStorage.getItem("cv10_banner")||"");
+        setBannerPos(parseInt(localStorage.getItem("cv10_banner_pos")||"50"));
         setPublicInstagram(localStorage.getItem("cv10_ig")||"");
         setPublicTwitter(localStorage.getItem("cv10_tw")||"");
         setCards(function() { try { return JSON.parse(localStorage.getItem("cv10")||"[]"); } catch(e) { return []; } });
@@ -19292,6 +19293,7 @@ function App() {
     const [publicPayment, setPublicPayment] = useState(() => localStorage.getItem("cv10_payment")||"");
     const [publicAvatar, setPublicAvatar] = useState(() => localStorage.getItem("cv10_avatar")||"");
     const [publicBanner, setPublicBanner] = useState(() => localStorage.getItem("cv10_banner")||"");
+    const [bannerPos, setBannerPos] = useState(() => parseInt(localStorage.getItem("cv10_banner_pos")||"50"));
     const [publicInstagram, setPublicInstagram] = useState(() => localStorage.getItem("cv10_ig")||"");
     const [publicTwitter, setPublicTwitter] = useState(() => localStorage.getItem("cv10_tw")||"");
     const [publicMode, setPublicMode] = useState(() => localStorage.getItem("cv10_mode")||"seller");
@@ -19540,6 +19542,7 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
           localStorage.setItem("cv10_payment",publicPayment);
           localStorage.setItem("cv10_avatar",publicAvatar);
           localStorage.setItem("cv10_banner",publicBanner);
+          localStorage.setItem("cv10_banner_pos",String(bannerPos));
           localStorage.setItem("cv10_vac",vacaciones);
           localStorage.setItem("cv10_offer",offerBanner);
           localStorage.setItem("cv10_minroi",minRoi);
@@ -19554,7 +19557,28 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
       publicBanner && publicBanner.startsWith("http") ? React.createElement("div", { style: { width: "100%", height: 80, backgroundImage: "url("+publicBanner+")", backgroundSize: "cover", backgroundPosition: "center", borderRadius: 8, marginBottom: 8, border: "1px solid "+BDR } }) : null,
       React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 6 } }, "IMAGEN DE PERFIL Y BANNER"),
       React.createElement("input", { defaultValue: publicAvatar, onBlur: function(e){ setPublicAvatar(e.target.value.trim()); }, placeholder: "URL foto de perfil", style: { width: "100%", padding: "9px 12px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif", marginBottom: 8, boxSizing: "border-box" } }),
-      React.createElement("input", { defaultValue: publicBanner, onBlur: function(e){ setPublicBanner(e.target.value.trim()); }, onKeyDown: function(e){ if(e.key==="Enter"){ setPublicBanner(e.target.value.trim()); e.target.blur(); } }, placeholder: "URL banner de cabecera", style: { width: "100%", padding: "9px 12px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif", marginBottom: 16, boxSizing: "border-box" } }),
+      React.createElement("input", { defaultValue: publicBanner, onBlur: function(e){ setPublicBanner(e.target.value.trim()); }, onKeyDown: function(e){ if(e.key==="Enter"){ setPublicBanner(e.target.value.trim()); e.target.blur(); } }, placeholder: "URL banner de cabecera (Cloudinary, Imgur...)", style: { width: "100%", padding: "9px 12px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif", marginBottom: 8, boxSizing: "border-box" } }),
+      publicBanner && publicBanner.startsWith("http") ? React.createElement("div", { style: { marginBottom: 12 } },
+        React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 6 } }, "🖱 Arrastra arriba/abajo para encuadrar"),
+        React.createElement("div", {
+          style: { width: "100%", height: 100, overflow: "hidden", borderRadius: 8, border: "2px dashed "+BDR, cursor: "ns-resize", position: "relative", userSelect: "none", WebkitUserSelect: "none" },
+          onMouseDown: function(e) {
+            var startY=e.clientY, startPos=bannerPos;
+            function onMove(ev) { var newPos=Math.max(0,Math.min(100,startPos-(ev.clientY-startY)*0.5)); setBannerPos(Math.round(newPos)); localStorage.setItem("cv10_banner_pos",String(Math.round(newPos))); }
+            function onUp() { document.removeEventListener("mousemove",onMove); document.removeEventListener("mouseup",onUp); }
+            document.addEventListener("mousemove",onMove); document.addEventListener("mouseup",onUp);
+          },
+          onTouchStart: function(e) {
+            var startY=e.touches[0].clientY, startPos=bannerPos;
+            function onMove(ev) { var newPos=Math.max(0,Math.min(100,startPos-(ev.touches[0].clientY-startY)*0.5)); setBannerPos(Math.round(newPos)); localStorage.setItem("cv10_banner_pos",String(Math.round(newPos))); }
+            function onEnd() { document.removeEventListener("touchmove",onMove); document.removeEventListener("touchend",onEnd); }
+            document.addEventListener("touchmove",onMove,{passive:true}); document.addEventListener("touchend",onEnd);
+          }
+        },
+          React.createElement("div", { style: { width:"100%",height:"100%",backgroundImage:"url("+publicBanner+")",backgroundSize:"cover",backgroundPosition:"center "+bannerPos+"%",backgroundRepeat:"no-repeat",transition:"background-position 0.1s",pointerEvents:"none" } }),
+          React.createElement("div", { style: { position:"absolute",bottom:4,right:6,background:"rgba(0,0,0,0.5)",color:"#fff",fontSize:10,borderRadius:4,padding:"2px 6px",pointerEvents:"none" } }, bannerPos+"%")
+        )
+      ) : null,
       React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 6 } }, "\uD83C\uDFD6\uFE0F MODO VACACIONES"),
       React.createElement("input", { value: vacaciones, onChange: function(e){ setVacaciones(e.target.value); localStorage.setItem("cv10_vac", e.target.value); }, placeholder: "Ej: De vacaciones hasta el 1 de agosto", style: { width: "100%", padding: "9px 12px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif", marginBottom: 16, boxSizing: "border-box" } }),
       React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 6 } }, "\uD83C\uDFF7\uFE0F BANNER DE OFERTA"),
@@ -19604,7 +19628,7 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
           localStorage.setItem("cv10_vac",vacaciones);
           localStorage.setItem("cv10_offer",offerBanner);
           localStorage.setItem("cv10_minroi",minRoi);
-          localStorage.setItem("cv10_ig", publicInstagram.replace(/^@/,"").replace(/.*instagram\.com\//,"").trim());
+          localStorage.setItem("cv10_ig", publicInstagram.replace(/^@/,"").replace(/.*instagram\.com\//,"").replace(/[\/\?#].*/,"").trim());
           localStorage.setItem("cv10_tw", publicTwitter);
           localStorage.setItem("cv10_mode", publicMode);
           savePublicProfile(JSON.parse(localStorage.getItem("cv10")||"[]"),publicSlug,publicContact,publicPayment,publicShipping,publicAvatar,publicBanner);
@@ -19835,8 +19859,8 @@ var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed"}},
     ce("div",{style:{display:"flex",gap:12,fontSize:13,color:"#6b7280"}},
       data.shipping?ce("span",null,"Envíos: "+data.shipping):null,
       data.payment?ce("span",null,"Pago: "+data.payment):null,
-      data.instagram?ce("a",{href:"https://instagram.com/"+data.instagram.replace(/^@/,"").replace(/.*instagram\.com\//,""),target:"_blank",style:{color:"#e1306c",textDecoration:"none",fontSize:13}},"📸 @"+data.instagram):null,
-      data.twitter?ce("a",{href:"https://x.com/"+data.twitter.replace(/^@/,"").replace(/.*(?:twitter|x)\.com\//,""),target:"_blank",style:{color:"#1da1f2",textDecoration:"none",fontSize:13}},"🐦 @"+data.twitter):null,
+      data.instagram?ce("a",{href:"https://instagram.com/"+data.instagram.replace(/^@/,"").replace(/.*instagram\.com\//,"").replace(/[\/\?#].*/,""),target:"_blank",style:{color:"#e1306c",textDecoration:"none",fontSize:13}},"📸 @"+data.instagram):null,
+      data.twitter?ce("a",{href:"https://x.com/"+data.twitter.replace(/^@/,"").replace(/.*(?:twitter|x)\.com\//,"").replace(/[\/\?#].*/,""),target:"_blank",style:{color:"#1da1f2",textDecoration:"none",fontSize:13}},"🐦 @"+data.twitter):null,
       visitCount?ce("span",{style:{color:"#9ca3af"}},visitCount+" visitas"):null,
       followerCount>0?ce("span",{style:{color:"#9ca3af"}},followerCount+" seguidores"):null
     ),
@@ -19969,7 +19993,7 @@ return ce("div",{style:{minHeight:"100vh",background:"#f7f8fa",fontFamily:"Inter
       ),
       ce("button",{onClick:function(){setSelCard(null);sat("chat");},style:{width:"100%",padding:"10px",background:"none",border:"none",color:"#6b7280",fontSize:13,cursor:"pointer",fontFamily:"Inter,sans-serif",marginTop:8}},"O escribe un mensaje →")
     ))),
-  data.banner?ce("div",{style:{width:"100%",height:180,backgroundImage:"url("+data.banner+")",backgroundSize:"cover",backgroundPosition:"center"}}):null,
+  data.banner?ce("div",{style:{width:"100%",height:180,backgroundImage:"url("+data.banner+")",backgroundSize:"cover",backgroundPosition:"center "+(data.bannerPos||50)+"%"}}):null,
   hdr,tabs,
   ce("div",{style:{maxWidth:1000,margin:"0 auto",padding:24}},body)
 );
