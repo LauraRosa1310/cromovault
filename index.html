@@ -19238,7 +19238,7 @@ function MessagesTab(props){
             })
           ),
           ce("div",{style:{padding:"8px 12px 0",background:"#fff",display:"flex",flexWrap:"wrap",gap:6,flexShrink:0}},
-            (JSON.parse(localStorage.getItem("cv10_qr")||"[]")).map(function(qr,i){
+            ((props.quickReplies&&props.quickReplies.length>0)?props.quickReplies:JSON.parse(localStorage.getItem("cv10_qr")||"[]")).map(function(qr,i){
               return ce("button",{key:i,onClick:function(){setNewMsg(qr);},style:{padding:"5px 12px",background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:20,fontSize:12,cursor:"pointer",fontFamily:"Inter,sans-serif",color:"#374151"}},qr);
             })
           ),
@@ -19246,7 +19246,7 @@ function MessagesTab(props){
             ce("input",{value:newMsg,onChange:function(e){setNewMsg(e.target.value);},onKeyDown:function(e){if(e.key==="Enter"){sendReply();}},placeholder:"Responder...",style:{flex:1,padding:"10px 14px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,fontFamily:"Inter,sans-serif"}}),
             ce("div",{style:{position:"relative"}},
               ce("button",{onClick:function(){
-                var qrs=JSON.parse(localStorage.getItem("cv10_qr")||"[]");
+                var qrs=(props.quickReplies&&props.quickReplies.length>0)?props.quickReplies:JSON.parse(localStorage.getItem("cv10_qr")||"[]");
                 if(qrs.length===0){alert("No tienes respuestas r\u00E1pidas configuradas. Ve a Ajustes \u2192 Mi perfil p\u00FAblico.");return;}
                 var menu=document.getElementById("cv-qr-menu");
                 if(menu)menu.style.display=menu.style.display==="none"?"block":"none";
@@ -19281,6 +19281,7 @@ function App() {
         setPublicInstagram(localStorage.getItem("cv10_ig")||"");
         setPublicTwitter(localStorage.getItem("cv10_tw")||"");
         setCards(function() { try { return JSON.parse(localStorage.getItem("cv10")||"[]"); } catch(e) { return []; } });
+        try { var qr=JSON.parse(localStorage.getItem("cv10_qr")||"[]"); if(qr.length>0) setQuickReplies(qr); } catch(e){}
       }
       window.addEventListener("cv10-data-loaded", onDataLoaded);
       return function() { window.removeEventListener("cv10-data-loaded", onDataLoaded); };
@@ -19447,7 +19448,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
             );
           })()
         ),
-        showChats && React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 1000, display: "flex", justifyContent: "flex-end" } }, React.createElement("div", { onClick: function(){ setShowChats(false); }, style: { position: "absolute", inset: 0, background: "#00000055" } }), React.createElement("div", { style: { position: "relative", width: "380px", maxWidth: "95%", height: "100vh", background: BG, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px #00000026" } }, React.createElement(MessagesTab, { onClose: function(){ setShowChats(false); }, slug: publicSlug || window._currentSlug || localStorage.getItem("cv10_slug") }))),
+        showChats && React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 1000, display: "flex", justifyContent: "flex-end" } }, React.createElement("div", { onClick: function(){ setShowChats(false); }, style: { position: "absolute", inset: 0, background: "#00000055" } }), React.createElement("div", { style: { position: "relative", width: "380px", maxWidth: "95%", height: "100vh", background: BG, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px #00000026" } }, React.createElement(MessagesTab, { onClose: function(){ setShowChats(false); }, slug: publicSlug || window._currentSlug || localStorage.getItem("cv10_slug"), quickReplies: quickReplies }))),
         showSettings && React.createElement("div", { onClick: function() { setShowSettings(false); }, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" } },
   React.createElement("div", { onClick: function(e) { e.stopPropagation(); }, style: { background: BG, borderRadius: 16, padding: 28, minWidth: 300, maxWidth: 380, width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)", maxHeight: "90vh", overflowY: "auto" } },
     React.createElement("div", { style: { fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between" } },
