@@ -19766,8 +19766,20 @@ var ts=useState("venta"),at=ts[0],sat=ts[1];
     } else {
       ref.set({name:window._currentUser.displayName||window._currentUser.email||"Usuario",followedAt:Date.now()});
       window._db.ref("following/"+uid+"/"+slug).set({followedAt:Date.now()});
-      var mySlug=window._currentSlug||localStorage.getItem("cv10_slug")||window._currentUser.displayName||"Usuario";
-      window._db.ref("feed/"+slug).push({type:"follow",uid:uid,name:mySlug,ts:Date.now()});
+      function pushFollowFeed(mySlug){
+      window._db.ref("feed/"+slug).push({type:"follow",uid:uid,name:mySlug||"usuario",ts:Date.now()});
+    }
+    var mySlug=window._currentSlug||localStorage.getItem("cv10_slug");
+    if(mySlug){
+      pushFollowFeed(mySlug);
+    } else {
+      window._db.ref("public").orderByChild("uid").equalTo(uid).once("value").then(function(snap){
+        var d=snap.val();
+        var foundSlug=d?d[Object.keys(d)[0]].slug:null;
+        if(foundSlug){ window._currentSlug=foundSlug; localStorage.setItem("cv10_slug",foundSlug); }
+        pushFollowFeed(foundSlug||uid);
+      });
+    }
     }
   }
   React.useEffect(function(){if(!window._db||!window._currentUser)return;var uid=window._currentUser.uid;var ref=window._db.ref("chats/"+slug+"/"+uid);ref.on("value",function(snap){var d=snap.val();if(d){setMsgs(Object.keys(d).map(function(k){return d[k];}).sort(function(a,b){return a.ts-b.ts;}));}else{setMsgs([]);}});return function(){ref.off();};});
@@ -19801,11 +19813,10 @@ var ce=React.createElement;
 var sty={background:"#fff",borderRadius:12,padding:14,border:"1px solid #e8eaed"};
 var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed"}},
   ce("div",{style:{padding:"8px 16px",borderBottom:"1px solid #f1f5f9",display:"flex",alignItems:"center",gap:8}},
-    ce("button",{onClick:function(){window.history.back();},style:{background:"none",border:"none",fontSize:18,cursor:"pointer",color:"#6b7280",padding:"4px 8px",fontFamily:"Inter,sans-serif",display:"flex",alignItems:"center",gap:4}},
+    ce("a",{href:"https://laurarosa1310.github.io/cromovault/",style:{background:"none",border:"none",fontSize:14,cursor:"pointer",color:"#6b7280",padding:"4px 8px",fontFamily:"Inter,sans-serif",display:"inline-flex",alignItems:"center",gap:4,textDecoration:"none"}},
       ce("span",null,"←"),
-      ce("span",{style:{fontSize:13,color:"#6b7280"}},"Volver")
-    ),
-    ce("a",{href:"https://laurarosa1310.github.io/cromovault/",style:{fontSize:13,color:"#3b82f6",textDecoration:"none",marginLeft:"auto"}},"🏠 CromoVault")
+      ce("span",null,"CromoVault")
+    )
   ),
   ce("div",{style:{padding:"24px",display:"flex",gap:16,flexWrap:"wrap"}},
   data.avatar?ce("img",{src:data.avatar,style:{width:80,height:80,borderRadius:"50%",objectFit:"cover"}}):ce("div",{style:{width:80,height:80,borderRadius:"50%",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,color:"#fff",fontWeight:700}},slug.substring(0,2).toUpperCase()),
