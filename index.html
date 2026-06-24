@@ -19619,6 +19619,8 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
       React.createElement("p", { style: { fontSize: 11, color: SUB, marginBottom: 20 } }, "Aparecerán como botones en tu chat público."),
       React.createElement("button", { onClick: function() {
           if(!publicSlug){alert("Escribe un nombre p\u00FAblico primero");return;}
+          if(!window._currentUser){alert("Error: no hay sesi\u00F3n activa. Recarga la p\u00E1gina.");return;}
+          if(!window._db){alert("Error: base de datos no disponible. Recarga la p\u00E1gina.");return;}
           localStorage.setItem("cv10_slug",publicSlug);
           localStorage.setItem("cv10_contact",publicContact);
           localStorage.setItem("cv10_shipping",publicShipping);
