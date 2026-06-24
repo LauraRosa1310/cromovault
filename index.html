@@ -19244,6 +19244,23 @@ function MessagesTab(props){
           ),
           ce("div",{style:{padding:12,borderTop:"1px solid #e8eaed",display:"flex",gap:8,background:"#fff",flexShrink:0}},
             ce("input",{value:newMsg,onChange:function(e){setNewMsg(e.target.value);},onKeyDown:function(e){if(e.key==="Enter"){sendReply();}},placeholder:"Responder...",style:{flex:1,padding:"10px 14px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,fontFamily:"Inter,sans-serif"}}),
+            ce("div",{style:{position:"relative"}},
+              ce("button",{onClick:function(){
+                var qrs=JSON.parse(localStorage.getItem("cv10_qr")||"[]");
+                if(qrs.length===0){alert("No tienes respuestas r\u00E1pidas configuradas. Ve a Ajustes \u2192 Mi perfil p\u00FAblico.");return;}
+                var menu=document.getElementById("cv-qr-menu");
+                if(menu)menu.style.display=menu.style.display==="none"?"block":"none";
+              },style:{padding:"10px 12px",background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:10,color:"#374151",fontSize:16,cursor:"pointer",whiteSpace:"nowrap"}},"⚡"),
+              ce("div",{id:"cv-qr-menu",style:{display:"none",position:"absolute",bottom:"100%",right:0,background:"#fff",border:"1px solid #e8eaed",borderRadius:10,boxShadow:"0 4px 20px rgba(0,0,0,0.15)",padding:8,minWidth:200,zIndex:100,marginBottom:4}},
+                (JSON.parse(localStorage.getItem("cv10_qr")||"[]")).map(function(qr,i){
+                  return ce("div",{key:i,onClick:function(){
+                    setNewMsg(qr);
+                    var menu=document.getElementById("cv-qr-menu");
+                    if(menu)menu.style.display="none";
+                  },style:{padding:"8px 12px",cursor:"pointer",borderRadius:6,fontSize:13,fontFamily:"Inter,sans-serif",color:"#374151"}},qr);
+                })
+              )
+            ),
             ce("button",{onClick:sendReply,style:{padding:"10px 20px",background:"#3b82f6",border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Enviar")
           )
         )
@@ -19977,7 +19994,23 @@ var chatTab=!window._currentUser?ce("div",{style:{textAlign:"center",padding:60}
         )
       ):null;
     })(),
-    ce("div",{style:{padding:16,borderTop:"1px solid #e8eaed",display:"flex",gap:8}},ce("input",{value:newMsg,onChange:function(e){setNewMsg(e.target.value);},onKeyDown:function(e){if(e.key==="Enter"&&newMsg.trim()){sendMsg();}},placeholder:"Escribe un mensaje...",style:{flex:1,padding:"10px 14px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,fontFamily:"Inter,sans-serif"}}),ce("button",{onClick:function(){sendMsg();},style:{padding:"10px 20px",background:"#3b82f6",border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Enviar")));
+    ce("div",{style:{padding:16,borderTop:"1px solid #e8eaed",display:"flex",gap:8}},ce("input",{value:newMsg,onChange:function(e){setNewMsg(e.target.value);},onKeyDown:function(e){if(e.key==="Enter"&&newMsg.trim()){sendMsg();}},placeholder:"Escribe un mensaje...",style:{flex:1,padding:"10px 14px",border:"1px solid #e8eaed",borderRadius:10,fontSize:14,fontFamily:"Inter,sans-serif"}}),
+    data.quickReplies&&data.quickReplies.length>0?ce("div",{style:{position:"relative"}},
+      ce("button",{onClick:function(){
+        var menu=document.getElementById("cv-pp-qr-menu");
+        if(menu)menu.style.display=menu.style.display==="none"?"block":"none";
+      },style:{padding:"10px 12px",background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:10,color:"#374151",fontSize:16,cursor:"pointer"}},"⚡"),
+      ce("div",{id:"cv-pp-qr-menu",style:{display:"none",position:"absolute",bottom:"100%",right:0,background:"#fff",border:"1px solid #e8eaed",borderRadius:10,boxShadow:"0 4px 20px rgba(0,0,0,0.15)",padding:8,minWidth:200,zIndex:100,marginBottom:4}},
+        data.quickReplies.map(function(qr,i){
+          return ce("div",{key:i,onClick:function(){
+            setNewMsg(qr);
+            var menu=document.getElementById("cv-pp-qr-menu");
+            if(menu)menu.style.display="none";
+          },style:{padding:"8px 12px",cursor:"pointer",borderRadius:6,fontSize:13,fontFamily:"Inter,sans-serif",color:"#374151"}},qr);
+        })
+      )
+    ):null,
+    ce("button",{onClick:function(){sendMsg();},style:{padding:"10px 20px",background:"#3b82f6",border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Enviar")));
 function sendMsg(){if(!newMsg.trim()||!window._db)return;if(!window._currentUser){alert("Inicia sesión para chatear");return;}var user=window._currentUser;var msgData={name:user.displayName||user.email||"Usuario",uid:user.uid,text:newMsg.trim(),ts:Date.now(),sellerSlug:slug};window._db.ref("chats/"+slug+"/"+user.uid).push(msgData);var buyerSlug=window._currentSlug||localStorage.getItem("cv10_slug");if(buyerSlug&&buyerSlug!==slug){window._db.ref("chats/"+buyerSlug+"/_as_buyer_/"+slug).push(msgData);}setNewMsg("");}
 var soldSorted=sold.slice().sort(function(a,b){return (b.sellDate||"").localeCompare(a.sellDate||"");});
 var vendidasTab=ce("div",null,soldSorted.length===0?ce("div",{style:{textAlign:"center",color:"#6b7280",padding:40}},"Sin ventas aun"):ce("div",{style:{display:"flex",flexDirection:"column",gap:10}},soldSorted.map(function(c,i){return ce("div",{key:i,style:{background:"#fff",borderRadius:10,padding:"12px 16px",border:"1px solid #e8eaed",display:"flex",justifyContent:"space-between",alignItems:"center"}},ce("div",null,ce("div",{style:{fontWeight:600,fontSize:14}},c.name),ce("div",{style:{fontSize:12,color:"#6b7280"}},[c.series,c.rarity].filter(Boolean).join(" - ")),c.sellDate?ce("div",{style:{fontSize:11,color:"#9ca3af",marginTop:2}},new Date(c.sellDate).toLocaleDateString("es-ES")):null),c.sellPrice?ce("div",{style:{fontWeight:700,color:"#16a34a",fontSize:15}},"EUR "+parseFloat(c.sellPrice).toFixed(2)):null);})));
