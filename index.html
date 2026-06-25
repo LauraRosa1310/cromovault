@@ -19091,7 +19091,7 @@ function LotModal({ cards, onSell, onClose }) {
 }
 function dlPriceList(cards){var listed=cards.filter(function(c){return c.status==="listed"&&c.mode==="inventory";});if(!listed.length){alert("No tienes cartas en venta");return;}var sym=getCurrencySymbol();var minRoi=parseFloat(localStorage.getItem("cv10_minroi")||"40");var rows=listed.map(function(c){var precio=parseFloat(c.targetPrice)||parseFloat(c.sellPrice)||parseFloat(c.buyPrice)||0;var compra=(parseFloat(c.buyPrice)||0)*(parseFloat(c.quantity)||1);var minVenta=compra>0?(compra*(1+minRoi/100)).toFixed(2):"-";return "<tr><td>"+c.name+"</td><td>"+(c.series||"-")+"</td><td>"+(c.rarity||"-")+"</td><td>"+(c.condition||"-")+"</td><td align=right>"+sym+precio.toFixed(2)+"</td><td align=right style=color:#16a34a>"+(minVenta!=="-"?sym+minVenta:"-")+"</td></tr>";}).join("");var html="<!DOCTYPE html><html><head><meta charset=utf-8><title>Lista precios</title></head><body><h1>Lista de precios</h1><p>"+listed.length+" cartas</p><table><thead><tr><th>Carta</th><th>Set</th><th>Rareza</th><th>Condicion</th><th>Precio</th><th>Min "+minRoi+"%</th></tr></thead><tbody>"+rows+"</tbody></table></body></html>";var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));a.download="lista-precios.html";document.body.appendChild(a);a.click();document.body.removeChild(a);}
 function savePublicProfile(cards,slug,contact,payment,shipping,avatar,banner){if(!slug){alert("Falta el nombre p\u00FAblico");return;}var user=window._currentUser||(typeof firebase!=="undefined"&&firebase.apps.length>0?firebase.auth().currentUser:null);if(!user){alert("Error: no hay sesi\u00F3n activa. Cierra sesi\u00F3n y vuelve a entrar.");return;}if(!window._db){alert("Error: base de datos no disponible. Recarga la p\u00E1gina.");return;}var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";});var sold=cards.filter(function(c){return c.status==="sold";});var validCodes=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;});var vac=localStorage.getItem("cv10_vac")||"";var offer=localStorage.getItem("cv10_offer")||"";
-  var pub={slug:slug,uid:user.uid,cards:listed,sold:sold,validCodes:validCodes,updatedAt:Date.now(),contact:contact||"",payment:payment||"",shipping:shipping||"",avatar:avatar||"",banner:banner||"",bannerPos:parseInt(localStorage.getItem("cv10_banner_pos")||"50"),vacaciones:vac,offerBanner:offer||null,instagram:localStorage.getItem("cv10_ig")||"",twitter:localStorage.getItem("cv10_tw")||"",profileMode:localStorage.getItem("cv10_mode")||"seller",minRoi:parseFloat(localStorage.getItem("cv10_minroi")||"40"),quickReplies:JSON.parse(localStorage.getItem("cv10_qr")||"[]")};window._db.ref("public/"+slug).set(pub).then(function(){var profData={publicSlug:slug,publicContact:contact||"",publicPayment:payment||"",publicShipping:shipping||"",publicAvatar:avatar||"",publicBanner:banner||"",quickReplies:JSON.parse(localStorage.getItem("cv10_qr")||"[]"),publicMode:localStorage.getItem("cv10_mode")||"seller",publicInstagram:localStorage.getItem("cv10_ig")||"",publicTwitter:localStorage.getItem("cv10_tw")||""};if(typeof db!=="undefined")db.collection("users").doc(user.uid).collection("data").doc("main").set(profData,{merge:true});window._currentSlug=slug;alert("\u2705 Perfil guardado! Ya puedes verlo en /?p="+slug);}).catch(function(e){console.error("Save error:",e);alert("Error al guardar: "+e.message);});}
+  var pub={slug:slug,uid:user.uid,cards:listed,sold:sold,validCodes:validCodes,updatedAt:Date.now(),contact:contact||"",payment:payment||"",shipping:shipping||"",avatar:avatar||"",banner:banner||"",bannerPos:parseInt(localStorage.getItem("cv10_banner_pos")||"50"),vacaciones:vac,offerBanner:offer||null,instagram:localStorage.getItem("cv10_ig")||"",twitter:localStorage.getItem("cv10_tw")||"",profileMode:localStorage.getItem("cv10_mode")||"seller",minRoi:parseFloat(localStorage.getItem("cv10_minroi")||"40"),quickReplies:JSON.parse(localStorage.getItem("cv10_qr")||"[]"),wishlist:JSON.parse(localStorage.getItem("cv10_wl")||"[]")};window._db.ref("public/"+slug).set(pub).then(function(){var profData={publicSlug:slug,publicContact:contact||"",publicPayment:payment||"",publicShipping:shipping||"",publicAvatar:avatar||"",publicBanner:banner||"",quickReplies:JSON.parse(localStorage.getItem("cv10_qr")||"[]"),wishlist:JSON.parse(localStorage.getItem("cv10_wl")||"[]"),publicMode:localStorage.getItem("cv10_mode")||"seller",publicInstagram:localStorage.getItem("cv10_ig")||"",publicTwitter:localStorage.getItem("cv10_tw")||""};if(typeof db!=="undefined")db.collection("users").doc(user.uid).collection("data").doc("main").set(profData,{merge:true});window._currentSlug=slug;alert("\u2705 Perfil guardado! Ya puedes verlo en /?p="+slug);}).catch(function(e){console.error("Save error:",e);alert("Error al guardar: "+e.message);});}
 function MessagesTab(props){
   var state=useState([]),convs=state[0],setConvs=state[1];
   var sel=useState(null),selected=sel[0],setSelected=sel[1];
@@ -19321,6 +19321,7 @@ function App() {
         setPublicTwitter(localStorage.getItem("cv10_tw")||"");
         setCards(function() { try { return JSON.parse(localStorage.getItem("cv10")||"[]"); } catch(e) { return []; } });
         try { var qr=JSON.parse(localStorage.getItem("cv10_qr")||"[]"); if(qr.length>0) setQuickReplies(qr); } catch(e){}
+        try { var wl=JSON.parse(localStorage.getItem("cv10_wl")||"[]"); if(wl.length>0) setWishlist(wl); } catch(e){}
       }
       window.addEventListener("cv10-data-loaded", onDataLoaded);
       return function() { window.removeEventListener("cv10-data-loaded", onDataLoaded); };
@@ -19355,6 +19356,7 @@ function App() {
     const [publicTwitter, setPublicTwitter] = useState(() => localStorage.getItem("cv10_tw")||"");
     const [publicMode, setPublicMode] = useState(() => localStorage.getItem("cv10_mode")||"seller");
     const [quickReplies, setQuickReplies] = useState(() => { try { return JSON.parse(localStorage.getItem("cv10_qr")||"[]"); } catch(e) { return []; } });
+    const [wishlist, setWishlist] = useState(() => { try { return JSON.parse(localStorage.getItem("cv10_wl")||"[]"); } catch(e) { return []; } });
     const [showLot, setShowLot] = useState(false);
     const [showChats, setShowChats] = useState(false);
     const [tooltip, setTooltip] = useState(null);
@@ -19620,6 +19622,7 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
           localStorage.setItem("cv10_offer",offerBanner);
           localStorage.setItem("cv10_minroi",minRoi);
           localStorage.setItem("cv10_qr",JSON.stringify(quickReplies));
+          localStorage.setItem("cv10_wl",JSON.stringify(wishlist));
           savePublicProfile(JSON.parse(localStorage.getItem("cv10")||"[]"),publicSlug,publicContact,publicPayment,publicShipping,publicAvatar,publicBanner);
         }, style: { padding: "9px 14px", background: BLUE, border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#fff", fontFamily: "Inter,sans-serif", fontWeight: 600 } }, "Guardar")
       ),
@@ -19690,6 +19693,28 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
         })
       ),
       React.createElement("p", { style: { fontSize: 11, color: SUB, marginBottom: 20 } }, "Aparecerán como botones en tu chat público."),
+    React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8, marginTop: 4 } }, "\uD83D\uDD0D BUSCO ESTAS CARTAS (WISHLIST)"),
+    React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 8 } }, "Los visitantes ver\u00E1n qu\u00E9 cartas buscas y podr\u00E1n contactarte."),
+    React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 6 } },
+      (wishlist.length === 0 ? [""] : wishlist).map(function(item, i) {
+        return React.createElement("div", { key: i, style: { display: "flex", gap: 6 } },
+          React.createElement("input", { value: item, onChange: function(e) {
+            var arr = (wishlist.length === 0 ? [""] : wishlist).slice();
+            arr[i] = e.target.value;
+            var clean = arr.map(function(x){ return x; });
+            setWishlist(clean); localStorage.setItem("cv10_wl", JSON.stringify(clean));
+          }, placeholder: "Ej: Messi #1 Topps Chrome 2022", style: { flex: 1, padding: "7px 10px", border: "1px solid " + BDR, borderRadius: 8, fontSize: 12, background: BG, color: TXT, fontFamily: "Inter,sans-serif" } }),
+          i > 0 ? React.createElement("button", { onClick: function() {
+            var arr = wishlist.slice(); arr.splice(i, 1);
+            setWishlist(arr); localStorage.setItem("cv10_wl", JSON.stringify(arr));
+          }, style: { padding: "4px 8px", border: "1px solid #fecaca", borderRadius: 6, background: "#fff5f5", color: "#ef4444", cursor: "pointer", fontSize: 12 } }, "\u2715") : null
+        );
+      })
+    ),
+    React.createElement("button", { onClick: function() {
+      var arr = wishlist.concat([""]);
+      setWishlist(arr); localStorage.setItem("cv10_wl", JSON.stringify(arr));
+    }, style: { padding: "6px 12px", border: "1px dashed " + BDR, borderRadius: 8, background: "transparent", color: SUB, cursor: "pointer", fontSize: 12, fontFamily: "Inter,sans-serif", marginBottom: 12 } }, "+ A\u00F1adir carta"),
       React.createElement("button", { onClick: function() {
           if(!publicSlug){alert("Escribe un nombre p\u00FAblico primero");return;}
           if(!window._currentUser){alert("Error: no hay sesi\u00F3n activa. Recarga la p\u00E1gina.");return;}
@@ -19707,6 +19732,7 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
           localStorage.setItem("cv10_tw", publicTwitter);
           localStorage.setItem("cv10_mode", publicMode);
           localStorage.setItem("cv10_qr",JSON.stringify(quickReplies));
+          localStorage.setItem("cv10_wl",JSON.stringify(wishlist));
           savePublicProfile(JSON.parse(localStorage.getItem("cv10")||"[]"),publicSlug,publicContact,publicPayment,publicShipping,publicAvatar,publicBanner);
       }, style: { width: "100%", padding: "13px", background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 14, color: "#fff", fontFamily: "Inter,sans-serif", fontWeight: 700 } }, "Guardar perfil")
     )
@@ -19955,7 +19981,7 @@ var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed"}},
 var tabs=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",display:"flex",overflowX:"auto",WebkitOverflowScrolling:"touch"}},
   (data.profileMode==="collection"?["coleccion","valoraciones"]:["venta","coleccion","valoraciones","vendidas","chat"]).map(function(t){
     return ce("button",{key:t,onClick:function(){sat(t);},style:{padding:"10px 10px",border:"none",background:"none",fontSize:12,fontWeight:at===t?700:400,color:at===t?"#3b82f6":"#6b7280",borderBottom:at===t?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},
-      t==="venta"?"En venta ("+listed.length+")":t==="coleccion"?"Coleccion ("+col.length+")":t==="valoraciones"?"Valoraciones ("+ratings.length+")":t==="vendidas"?"Vendidas ("+sold.length+")":"Chat"
+      t==="venta"?"En venta ("+listed.length+")":t==="coleccion"?"Colección ("+col.length+")":t==="valoraciones"?"Valoraciones ("+ratings.length+")":t==="vendidas"?"Vendidas ("+sold.length+")":t==="wishlist"?"🔍 Busco":"Chat"
     );
   })
 );
@@ -20074,7 +20100,29 @@ var chatTab=!window._currentUser?ce("div",{style:{textAlign:"center",padding:60}
 function sendMsg(){if(!newMsg.trim()||!window._db)return;if(!window._currentUser){alert("Inicia sesión para chatear");return;}var user=window._currentUser;var msgData={name:user.displayName||user.email||"Usuario",uid:user.uid,text:newMsg.trim(),ts:Date.now(),sellerSlug:slug};window._db.ref("chats/"+slug+"/"+user.uid).push(msgData);var buyerSlug=window._currentSlug||localStorage.getItem("cv10_slug");if(buyerSlug&&buyerSlug!==slug){window._db.ref("chats/"+buyerSlug+"/_as_buyer_/"+slug).push(msgData);}setNewMsg("");}
 var soldSorted=sold.slice().sort(function(a,b){return (b.sellDate||"").localeCompare(a.sellDate||"");});
 var vendidasTab=ce("div",null,soldSorted.length===0?ce("div",{style:{textAlign:"center",color:"#6b7280",padding:40}},"Sin ventas aun"):ce("div",{style:{display:"flex",flexDirection:"column",gap:10}},soldSorted.map(function(c,i){return ce("div",{key:i,style:{background:"#fff",borderRadius:10,padding:"12px 16px",border:"1px solid #e8eaed",display:"flex",justifyContent:"space-between",alignItems:"center"}},ce("div",null,ce("div",{style:{fontWeight:600,fontSize:14}},c.name),ce("div",{style:{fontSize:12,color:"#6b7280"}},[c.series,c.rarity].filter(Boolean).join(" - ")),c.sellDate?ce("div",{style:{fontSize:11,color:"#9ca3af",marginTop:2}},new Date(c.sellDate).toLocaleDateString("es-ES")):null),c.sellPrice?ce("div",{style:{fontWeight:700,color:"#16a34a",fontSize:15}},"EUR "+parseFloat(c.sellPrice).toFixed(2)):null);})));
-var body=at==="venta"?ventaTab:at==="coleccion"?colTab:at==="valoraciones"?valTab:at==="vendidas"?vendidasTab:chatTab;
+var wishlistTab=ce("div",{style:{padding:"20px 16px"}},
+  data.wishlist&&data.wishlist.filter(function(x){return x.trim();}).length>0?
+    ce("div",null,
+      ce("div",{style:{fontWeight:600,fontSize:15,marginBottom:4}},"🔍 Cartas que busca "+slug),
+      ce("div",{style:{color:"#6b7280",fontSize:13,marginBottom:16}},"Si tienes alguna, ponte en contacto."),
+      ce("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+        data.wishlist.filter(function(x){return x.trim();}).map(function(item,i){
+          return ce("div",{key:i,style:{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#f8fafc",border:"1px solid #e8eaed",borderRadius:10,padding:"12px 14px",gap:8}},
+            ce("div",{style:{fontSize:14,fontWeight:500,color:"#111",flex:1}},item),
+            window._currentUser&&!isCurrentUser?ce("button",{onClick:function(){
+              setSat("chat");
+              setNewMsg("Hola! Tengo la carta que buscas: "+item);
+            },style:{padding:"6px 14px",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",border:"none",borderRadius:20,color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif",whiteSpace:"nowrap",flexShrink:0}},"Tengo esta 🃏"):null
+          );
+        })
+      )
+    ):
+    ce("div",{style:{textAlign:"center",padding:"40px 20px",color:"#9ca3af"}},
+      ce("div",{style:{fontSize:32,marginBottom:8}},"🔍"),
+      ce("div",{style:{fontSize:14}},slug+" no tiene wishlist activa")
+    )
+);
+var body=at==="venta"?ventaTab:at==="coleccion"?colTab:at==="valoraciones"?valTab:at==="vendidas"?vendidasTab:at==="wishlist"?wishlistTab:chatTab;
 return ce("div",{style:{minHeight:"100vh",background:"#f7f8fa",fontFamily:"Inter,sans-serif",fontSize:14,color:"#111"}},selCard&&ce("div",{onClick:function(){setSelCard(null);},style:{position:"fixed",inset:0,background:"#00000066",zIndex:2000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}},ce("div",{onClick:function(e){e.stopPropagation();},style:{background:"#fff",borderRadius:16,padding:24,maxWidth:380,width:"100%"}},ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}},ce("div",{style:{fontWeight:700,fontSize:18}},selCard.name),ce("button",{onClick:function(){setSelCard(null);},style:{background:"none",border:"none",fontSize:22,cursor:"pointer",color:"#6b7280",lineHeight:1}},"×")),selCard.imageUrl?ce("img",{src:selCard.imageUrl,style:{width:"100%",height:200,objectFit:"cover",borderRadius:10,marginBottom:16}}):null,ce("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginBottom:12}},selCard.series?ce("span",{style:{background:"#eff6ff",color:"#3b82f6",padding:"4px 10px",borderRadius:20,fontSize:12,fontWeight:600}},selCard.series):null,selCard.rarity?ce("span",{style:{background:"#f5f3ff",color:"#8b5cf6",padding:"4px 10px",borderRadius:20,fontSize:12,fontWeight:600}},selCard.rarity):null,selCard.condition?ce("span",{style:{background:"#f0fdf4",color:"#16a34a",padding:"4px 10px",borderRadius:20,fontSize:12,fontWeight:600}},selCard.condition):null),selCard.league||selCard.team?ce("div",{style:{fontSize:13,color:"#6b7280",marginBottom:12}},[selCard.league,selCard.team].filter(Boolean).join(" - ")):null,ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}},selCard.salePrice?ce("div",null,ce("span",{style:{textDecoration:"line-through",color:"#9ca3af",fontSize:13,marginRight:6}},"EUR "+parseFloat(selCard.targetPrice||0).toFixed(2)),ce("span",{style:{fontWeight:700,fontSize:22,color:"#ef4444"}},"EUR "+parseFloat(selCard.salePrice).toFixed(2))):selCard.targetPrice?ce("div",{style:{fontWeight:700,fontSize:22,color:"#3b82f6"}},"EUR "+parseFloat(selCard.targetPrice).toFixed(2)):ce("div",null),ce(FavButton,{slug:slug,cardId:selCard.id||selCard.name,price:parseFloat(selCard.salePrice||selCard.targetPrice)||0,cardName:selCard.name})),ce("div",{style:{borderTop:"1px solid #e8eaed",paddingTop:16,marginTop:4}},
       ce("div",{style:{fontSize:13,fontWeight:600,marginBottom:8,color:"#374151"}},"Hacer una oferta"),
       ce("div",{style:{display:"flex",gap:8}},
@@ -20412,6 +20460,7 @@ function initFirebase() {
               if (d.publicAvatar) localStorage.setItem('cv10_avatar', d.publicAvatar);
               if (d.publicBanner) localStorage.setItem('cv10_banner', d.publicBanner);
               if (d.quickReplies && d.quickReplies.length > 0) localStorage.setItem('cv10_qr', JSON.stringify(d.quickReplies));
+              if (d.wishlist && d.wishlist.length > 0) localStorage.setItem('cv10_wl', JSON.stringify(d.wishlist));
               if (d.publicMode) localStorage.setItem('cv10_mode', d.publicMode);
               if (d.publicInstagram) localStorage.setItem('cv10_ig', d.publicInstagram);
               if (d.publicTwitter) localStorage.setItem('cv10_tw', d.publicTwitter);
