@@ -19979,7 +19979,7 @@ var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed"}},
   data.offerBanner?ce("div",{style:{background:"linear-gradient(135deg,#dc2626,#f97316)",padding:"10px 16px",fontSize:12,color:"#fff",display:"flex",alignItems:"center",gap:8,fontWeight:600}},ce("span",{style:{fontSize:16}},"🏷️"),ce("span",null,data.offerBanner)):null
 )
 var tabs=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed",display:"flex",overflowX:"auto",WebkitOverflowScrolling:"touch"}},
-  (data.profileMode==="collection"?["coleccion","valoraciones"]:["venta","coleccion","valoraciones","vendidas","chat"]).map(function(t){
+  (data.profileMode==="collection"?["coleccion","valoraciones","wishlist"]:["venta","coleccion","valoraciones","vendidas","wishlist","chat"]).map(function(t){
     return ce("button",{key:t,onClick:function(){sat(t);},style:{padding:"10px 10px",border:"none",background:"none",fontSize:12,fontWeight:at===t?700:400,color:at===t?"#3b82f6":"#6b7280",borderBottom:at===t?"2px solid #3b82f6":"2px solid transparent",cursor:"pointer",fontFamily:"Inter,sans-serif"}},
       t==="venta"?"En venta ("+listed.length+")":t==="coleccion"?"Colección ("+col.length+")":t==="valoraciones"?"Valoraciones ("+ratings.length+")":t==="vendidas"?"Vendidas ("+sold.length+")":t==="wishlist"?"🔍 Busco":"Chat"
     );
