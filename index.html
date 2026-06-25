@@ -20110,7 +20110,7 @@ var wishlistTab=ce("div",{style:{padding:"20px 16px"}},
           return ce("div",{key:i,style:{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#f8fafc",border:"1px solid #e8eaed",borderRadius:10,padding:"12px 14px",gap:8}},
             ce("div",{style:{fontSize:14,fontWeight:500,color:"#111",flex:1}},item),
             window._currentUser&&!isCurrentUser?ce("button",{onClick:function(){
-              setSat("chat");
+              sat("chat");
               setNewMsg("Hola! Tengo la carta que buscas: "+item);
             },style:{padding:"6px 14px",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",border:"none",borderRadius:20,color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif",whiteSpace:"nowrap",flexShrink:0}},"Tengo esta 🃏"):null
           );
