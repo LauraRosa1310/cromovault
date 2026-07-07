@@ -17619,6 +17619,7 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                     React.createElement(Btn, { full: true, onClick: () => {
                             if (!f.name.trim())
                                 return;
+                            delete f._lotSearch;
                             const base = Object.assign(Object.assign({}, f), { id: (editCard === null || editCard === void 0 ? void 0 : editCard.id) || uid(), buyPrice: parseFloat(f.buyPrice) || 0, sellPrice: parseFloat(f.sellPrice) || 0, platformFee: parseFloat(f.platformFee) || 0, shippingCost: parseFloat(f.shippingCost) || 0, targetPrice: parseFloat(f.targetPrice) || 0, images: imgs });
                             const sellQty = f.sellQty || 1;
                             const remaining = (f.quantity || 1) - sellQty;
