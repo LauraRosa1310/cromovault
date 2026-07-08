@@ -17391,7 +17391,7 @@ function LstModal({ card, onClose }) {
 }
 function SellModal({ card, onSave, onClose }) {
     const maxQty = card.quantity || 1;
-    const [qty, setQty] = useState("1"), [pr, setPr] = useState(""), [dt, setDt] = useState(new Date().toISOString().slice(0, 10)), [fe, setFe] = useState(String(card.platformFee || "")), [sh, setSh] = useState(String(card.shippingCost || "")), [pl, setPl] = useState(card.platform || "eBay");
+    const [qty, setQty] = useState("1"), [pr, setPr] = useState(""), [dt, setDt] = useState(new Date().toISOString().slice(0, 10)), [fe, setFe] = useState(String(card.platformFee || "")), [sh, setSh] = useState(String(card.shippingCost || "")), [pl, setPl] = useState(card.platform || "eBay"), [directo, setDirecto] = useState(card.directo || "");
     const sellQty = Math.min(parseInt(qty) || 1, maxQty);
     const buy = (card.buyPrice || 0) * sellQty;
     const sell = (parseFloat(pr) || 0) * sellQty;
@@ -17407,11 +17407,11 @@ function SellModal({ card, onSave, onClose }) {
             // Update original card with remaining units
             onSave(Object.assign(Object.assign({}, card), { quantity: remaining }));
             // Create a new sold record
-            onSave(Object.assign(Object.assign({}, card), { id: uid(), quantity: sellQty, status: "sold", sellPrice: parseFloat(pr) || 0, sellDate: dt, platformFee: parseFloat(fe) || 0, shippingCost: parseFloat(sh) || 0, platform: pl }));
+            onSave(Object.assign(Object.assign({}, card), { id: uid(), quantity: sellQty, status: "sold", sellPrice: parseFloat(pr) || 0, sellDate: dt, platformFee: parseFloat(fe) || 0, shippingCost: parseFloat(sh) || 0, platform: pl, directo: directo }));
         }
         else {
             // All units sold
-            var reviewCode="CV-"+Math.random().toString(36).substr(2,4).toUpperCase();onSave(Object.assign(Object.assign({},card),{status:"sold",sellPrice:parseFloat(pr)||0,sellDate:dt,platformFee:parseFloat(fe)||0,shippingCost:parseFloat(sh)||0,platform:pl,reviewCode:reviewCode}));setTimeout(function(){alert("Codigo CV: "+reviewCode+"\n\nEste codigo es de un solo uso. Compartelo con el comprador tras enviar la carta. Al introducirlo en tu perfil publico podra dejarte una valoracion.");},100);
+            var reviewCode="CV-"+Math.random().toString(36).substr(2,4).toUpperCase();onSave(Object.assign(Object.assign({},card),{status:"sold",sellPrice:parseFloat(pr)||0,sellDate:dt,directo:directo,platformFee:parseFloat(fe)||0,shippingCost:parseFloat(sh)||0,platform:pl,reviewCode:reviewCode}));setTimeout(function(){alert("Codigo CV: "+reviewCode+"\n\nEste codigo es de un solo uso. Compartelo con el comprador tras enviar la carta. Al introducirlo en tu perfil publico podra dejarte una valoracion.");},100);
         }
         onClose();
     }
@@ -17452,6 +17452,13 @@ function SellModal({ card, onSave, onClose }) {
                     React.createElement("div", null,
                         React.createElement("label", { style: LS }, "Plataforma"),
                         React.createElement("select", { value: pl, onChange: e => setPl(e.target.value), style: IS }, PLATS.map(p => React.createElement("option", { key: p, value: p }, p))))),
+                React.createElement("div", null,
+                  React.createElement("label", { style: LS }, "\uD83C\uDFA5 Directo (opcional)"),
+                  React.createElement("select", { value: directo, onChange: function(e){ setDirecto(e.target.value); }, style: IS },
+                    React.createElement("option", { value: "" }, "Sin directo"),
+                    (JSON.parse(localStorage.getItem("cv10_directos")||"[]")).map(function(d){ return React.createElement("option", { key: d.id, value: d.id }, d.nombre); })
+                  )
+                ),
                 pr && React.createElement("div", { style: { background: n >= 0 ? "#f0fdf8" : "#fff5f5", borderRadius: 10, padding: "12px 14px", marginBottom: 10 } }, [["Ingresos", eu(sell), TXT], ["Comisión", "-" + eu(fa), RED], ["Envío", "-" + eu(sa), RED], ["Coste", "-" + eu(buy), SUB], ["Beneficio neto", (n >= 0 ? "+" : "") + eu(n), cl(n)]].map(([l, v, c]) => (React.createElement("div", { key: l, style: { display: "flex", justifyContent: "space-between", marginBottom: 4 } },
                     React.createElement("span", { style: { fontSize: 12, color: SUB } }, l),
                     React.createElement("span", { style: { fontSize: 13, fontWeight: l === "Beneficio neto" ? 700 : 500, color: c } }, v))))),
@@ -19457,6 +19464,8 @@ function App() {
         return [];
     } });
     function saveLots(l) { setLots(l); localStorage.setItem("cv10_lots", JSON.stringify(l)); if(window._saveToFirestore) window._saveToFirestore({ lotsData: l }); }
+    const [directos, setDirectos] = React.useState(function(){ try { return JSON.parse(localStorage.getItem("cv10_directos")||"[]"); } catch(e){ return []; } });
+    function saveDirectos(d) { setDirectos(d); localStorage.setItem("cv10_directos", JSON.stringify(d)); if(window._saveToFirestore) window._saveToFirestore({ directosData: d }); }
     const [showSettings, setShowSettings] = useState(false);
     const [showPrefs, setShowPrefs] = useState(false);
     const [unreadChats, setUnreadChats] = useState(0);
@@ -19518,7 +19527,7 @@ function App() {
     function oa(m) { setDm(m); setEc(null); setSF(true); }
     function oe(c) { setEc(c); setDm(c.mode); setSF(true); }
     function dup(c) { setDupCard(c); }
-    const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Finanzas"], ["lots", "Lotes"], ["psa", "PSA/BGS"]];
+    const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Finanzas"], ["lots", "Lotes"], ["directos", "Directos"], ["psa", "PSA/BGS"]];
     return (React.createElement("div", { style: { minHeight: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14 } },
         React.createElement("style", null, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');"),
         React.createElement("div", { id: "cv-top-bar", style: { background: BG, borderBottom: "3px solid #3b82f6", position: "sticky", top: 0, zIndex: 50, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" } },
@@ -19911,6 +19920,7 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
             tab === "analytics" && false,
             tab === "lots" && React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards }),
             
+            tab === "directos" && React.createElement(DirectosTab, { directos: directos, saveDirectos: saveDirectos, cards: cards }),
             tab === "psa" && (isPremium() ? React.createElement(PSATab, null) : React.createElement("div",{style:{maxWidth:500,margin:"80px auto",textAlign:"center",padding:40}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"\uD83D\uDD12"),React.createElement("div",{style:{fontSize:20,fontWeight:700,marginBottom:8}},"Función Premium"),React.createElement("div",{style:{color:SUB,marginBottom:24}},"PSA/BGS es una función Premium"),React.createElement("button",{onClick:function(){setShowSettings(true);},style:{padding:"12px 24px",background:BLUE,border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B50 Hazte Premium")))),
         sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); }, editCard: ec, defMode: dm, lots: lots }),
         showLot && React.createElement(LotModal, { cards: cards, onSell: ups, onClose: () => setShowLot(false) }),
@@ -20041,6 +20051,177 @@ return ce("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.65)",z
 window._TutorialModal=TutorialModal;
 
 function FavButton(props){var slug=props.slug,cardId=props.cardId,price=props.price,cardName=props.cardName;var safeId=cardId.split("").filter(function(c){return (c>="a"&&c<="z")||(c>="A"&&c<="Z")||(c>="0"&&c<="9");}).join("");var key="favs_"+slug+"_"+safeId;var fs=useState(function(){try{return JSON.parse(localStorage.getItem(key)||"false");}catch(e){return false;}}),isFav=fs[0],setIsFav=fs[1];function toggle(){var newVal=!isFav;setIsFav(newVal);localStorage.setItem(key,JSON.stringify(newVal));if(window._db){var ref=window._db.ref("favorites/"+slug+"/"+safeId);if(newVal){ref.set({cardId:cardId,cardName:cardName,price:price,priceAtSave:price,savedAt:Date.now()});}else{ref.remove();}}}return React.createElement("button",{onClick:function(e){e.stopPropagation();toggle();},title:isFav?"Quitar":"Favorito",style:{background:"rgba(255,255,255,0.9)",border:"none",cursor:"pointer",fontSize:18,padding:"4px",lineHeight:1,borderRadius:"50%",color:isFav?"#ef4444":"#9ca3af"}},isFav?"♥":"♡");}
+
+function DirectosTab({ directos, saveDirectos, cards }) {
+  var ce = React.createElement;
+  var [showForm, setShowForm] = React.useState(false);
+  var [editIdx, setEditIdx] = React.useState(null);
+  var [form, setForm] = React.useState({ id: "", nombre: "", fecha: "", plataforma: "Geek", notas: "" });
+  var blank = { id: "", nombre: "", fecha: new Date().toISOString().slice(0,10), plataforma: "Geek", notas: "" };
+
+  function uid2(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+  function sf(k,v){ setForm(function(p){ return Object.assign({},p,{[k]:v}); }); }
+
+  function save(){
+    if(!form.nombre.trim()){ alert("Escribe un nombre para el directo"); return; }
+    var arr = directos.slice();
+    if(editIdx !== null){ arr[editIdx] = Object.assign({},form); }
+    else { arr.push(Object.assign({},form,{id:uid2()})); }
+    saveDirectos(arr);
+    setShowForm(false);
+    setEditIdx(null);
+    setForm(blank);
+  }
+
+  function del(idx){
+    if(!confirm("\u00BFEliminar este directo?")) return;
+    saveDirectos(directos.filter(function(_,i){ return i!==idx; }));
+  }
+
+  function openEdit(idx){
+    setForm(Object.assign({},directos[idx]));
+    setEditIdx(idx);
+    setShowForm(true);
+  }
+
+  function exportCSV(){
+    var soldCards = cards.filter(function(c){ return c.status==="sold"; });
+    var rows = ["Carta,Lote,Directo,Fecha venta,Precio compra,Precio venta,Comisi\u00F3n,Env\u00EDo,Beneficio,ROI%"];
+    soldCards.forEach(function(c){
+      var lotName = "";
+      var lots = JSON.parse(localStorage.getItem("cv10_lots")||"[]");
+      var lot = lots.find(function(l){ return l.id===c.lotId; });
+      if(lot) lotName = lot.nombre||lot.name||"";
+      var dirName = "";
+      var dir = directos.find(function(d){ return d.id===c.directo; });
+      if(dir) dirName = dir.nombre||"";
+      var buy = (c.buyPrice||0)*(c.quantity||1);
+      var fee = (c.sellPrice||0)*(c.platformFee||0)/100;
+      var ship = c.shippingCost||0;
+      var net = (c.sellPrice||0) - fee - ship;
+      var benefit = net - buy;
+      var roi = buy>0 ? (benefit/buy*100).toFixed(1) : "N/A";
+      rows.push([
+        "\""+((c.name||"").replace(/"/g,"'"))+"\"",
+        "\""+lotName+"\"",
+        "\""+dirName+"\"",
+        c.sellDate||"",
+        buy.toFixed(2),
+        (c.sellPrice||0).toFixed(2),
+        fee.toFixed(2),
+        ship.toFixed(2),
+        benefit.toFixed(2),
+        roi
+      ].join(","));
+    });
+    var blob = new Blob([rows.join("\n")],{type:"text/csv;charset=utf-8;"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href=url; a.download="ventas-cromovault.csv"; a.click(); URL.revokeObjectURL(url);
+  }
+
+  return ce("div",null,
+    ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}},
+      ce("div",{style:{fontSize:20,fontWeight:700}},"\uD83C\uDFA5 Directos"),
+      ce("div",{style:{display:"flex",gap:8}},
+        ce("button",{onClick:exportCSV,style:{padding:"7px 14px",background:"#10b981",border:"none",borderRadius:8,color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\uD83D\uDCE5 Exportar CSV ventas"),
+        ce("button",{onClick:function(){ setForm(blank); setEditIdx(null); setShowForm(true); },style:{padding:"7px 14px",background:"#3b82f6",border:"none",borderRadius:8,color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"+ Nuevo directo")
+      )
+    ),
+    ce("div",{style:{fontSize:12,color:"#6b7280",marginBottom:16}},"Registra tus directos de streaming. Al vender una carta puedes asignarla a un directo."),
+    directos.length===0?ce("div",{style:{textAlign:"center",padding:60,color:"#9ca3af"}},
+      ce("div",{style:{fontSize:40,marginBottom:12}},"\uD83C\uDFA5"),
+      ce("div",{style:{fontSize:16,fontWeight:600,marginBottom:8}},"Sin directos"),
+      ce("div",{style:{fontSize:13}},"Crea tu primer directo para empezar a organizar tus ventas")
+    ):
+    ce("div",{style:{display:"flex",flexDirection:"column",gap:12}},
+      directos.map(function(d,idx){
+        var dCards = cards.filter(function(c){ return c.status==="sold" && c.directo===d.id; });
+        var totalVenta = dCards.reduce(function(a,c){ return a+(c.sellPrice||0); },0);
+        var totalCoste = dCards.reduce(function(a,c){ return a+(c.buyPrice||0)*(c.quantity||1); },0);
+        var totalFee = dCards.reduce(function(a,c){ return a+(c.sellPrice||0)*(c.platformFee||0)/100+(c.shippingCost||0); },0);
+        var beneficio = totalVenta - totalFee - totalCoste;
+        var roi = totalCoste>0?(beneficio/totalCoste*100).toFixed(1):"N/A";
+        return ce("div",{key:d.id,style:{background:"#fff",borderRadius:12,border:"1px solid #e8eaed",overflow:"hidden"}},
+          ce("div",{style:{padding:"14px 16px",display:"flex",justifyContent:"space-between",alignItems:"flex-start"}},
+            ce("div",null,
+              ce("div",{style:{fontWeight:700,fontSize:16,marginBottom:2}},d.nombre),
+              ce("div",{style:{fontSize:12,color:"#6b7280"}},d.fecha?" \uD83D\uDCC5 "+d.fecha:"",d.plataforma?" \u00B7 "+d.plataforma:"")
+            ),
+            ce("div",{style:{display:"flex",gap:6}},
+              ce("button",{onClick:function(){ openEdit(idx); },style:{padding:"5px 10px",border:"1px solid #e8eaed",borderRadius:6,background:"#f9fafb",fontSize:12,cursor:"pointer"}},"\u270F\uFE0F"),
+              ce("button",{onClick:function(){ del(idx); },style:{padding:"5px 10px",border:"1px solid #fecaca",borderRadius:6,background:"#fff5f5",fontSize:12,cursor:"pointer",color:"#ef4444"}},"\u2715")
+            )
+          ),
+          ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))",gap:1,background:"#f1f5f9"}},
+            [
+              ["Cartas",dCards.length,"#111"],
+              ["Vendido",(totalVenta).toFixed(2)+"\u20AC","#111"],
+              ["Beneficio",(beneficio>=0?"+":"")+beneficio.toFixed(2)+"\u20AC",beneficio>=0?"#16a34a":"#dc2626"],
+              ["ROI",roi+"%",beneficio>=0?"#16a34a":"#dc2626"]
+            ].map(function(item){
+              return ce("div",{key:item[0],style:{background:"#fff",padding:"10px 14px",textAlign:"center"}},
+                ce("div",{style:{fontSize:11,color:"#6b7280",marginBottom:2}},item[0]),
+                ce("div",{style:{fontSize:15,fontWeight:700,color:item[2]}},item[1])
+              );
+            })
+          ),
+          dCards.length>0?ce("div",{style:{padding:"8px 16px 12px"}},
+            ce("div",{style:{fontSize:11,fontWeight:600,color:"#6b7280",marginBottom:6}},"CARTAS VENDIDAS EN ESTE DIRECTO"),
+            ce("div",{style:{display:"flex",flexDirection:"column",gap:4}},
+              dCards.map(function(c){
+                var lots = JSON.parse(localStorage.getItem("cv10_lots")||"[]");
+                var lot = lots.find(function(l){ return l.id===c.lotId; });
+                var b2 = (c.buyPrice||0)*(c.quantity||1);
+                var f2 = (c.sellPrice||0)*(c.platformFee||0)/100+(c.shippingCost||0);
+                var ben = (c.sellPrice||0)-f2-b2;
+                return ce("div",{key:c.id,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid #f1f5f9",fontSize:12}},
+                  ce("div",null,
+                    ce("div",{style:{fontWeight:500}},c.name||"Sin nombre"),
+                    ce("div",{style:{color:"#9ca3af",fontSize:11}},lot?(lot.nombre||lot.name||""):"Sin lote")
+                  ),
+                  ce("div",{style:{textAlign:"right"}},
+                    ce("div",{style:{color:ben>=0?"#16a34a":"#dc2626",fontWeight:600}},(ben>=0?"+":"")+ben.toFixed(2)+"\u20AC"),
+                    ce("div",{style:{color:"#9ca3af",fontSize:11}},"venta: "+(c.sellPrice||0).toFixed(2)+"\u20AC")
+                  )
+                );
+              })
+            )
+          ):null
+        );
+      })
+    ),
+    showForm&&ce("div",{onClick:function(){ setShowForm(false); },style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16}},
+      ce("div",{onClick:function(e){e.stopPropagation();},style:{background:"#fff",borderRadius:16,padding:24,maxWidth:400,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.2)"}},
+        ce("div",{style:{fontWeight:700,fontSize:16,marginBottom:16}},editIdx!==null?"Editar directo":"Nuevo directo"),
+        ce("div",{style:{marginBottom:12}},
+          ce("label",{style:{fontSize:12,fontWeight:600,color:"#6b7280",display:"block",marginBottom:4}},"NOMBRE *"),
+          ce("input",{value:form.nombre,onChange:function(e){sf("nombre",e.target.value);},placeholder:"Ej: Directo junio 2025",style:{width:"100%",padding:"9px 12px",border:"1px solid #e8eaed",borderRadius:8,fontSize:14,fontFamily:"Inter,sans-serif",boxSizing:"border-box"}})
+        ),
+        ce("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}},
+          ce("div",null,
+            ce("label",{style:{fontSize:12,fontWeight:600,color:"#6b7280",display:"block",marginBottom:4}},"FECHA"),
+            ce("input",{type:"date",value:form.fecha,onChange:function(e){sf("fecha",e.target.value);},style:{width:"100%",padding:"9px 12px",border:"1px solid #e8eaed",borderRadius:8,fontSize:14,fontFamily:"Inter,sans-serif",boxSizing:"border-box"}})
+          ),
+          ce("div",null,
+            ce("label",{style:{fontSize:12,fontWeight:600,color:"#6b7280",display:"block",marginBottom:4}},"PLATAFORMA"),
+            ce("select",{value:form.plataforma,onChange:function(e){sf("plataforma",e.target.value);},style:{width:"100%",padding:"9px 12px",border:"1px solid #e8eaed",borderRadius:8,fontSize:14,fontFamily:"Inter,sans-serif",boxSizing:"border-box"}},
+              ["Geek","Twitch","Instagram","YouTube","TikTok","Otra"].map(function(p){ return ce("option",{key:p,value:p},p); })
+            )
+          )
+        ),
+        ce("div",{style:{marginBottom:20}},
+          ce("label",{style:{fontSize:12,fontWeight:600,color:"#6b7280",display:"block",marginBottom:4}},"NOTAS"),
+          ce("textarea",{value:form.notas,onChange:function(e){sf("notas",e.target.value);},placeholder:"Notas opcionales...",rows:2,style:{width:"100%",padding:"9px 12px",border:"1px solid #e8eaed",borderRadius:8,fontSize:14,fontFamily:"Inter,sans-serif",boxSizing:"border-box",resize:"vertical"}})
+        ),
+        ce("div",{style:{display:"flex",gap:10}},
+          ce("button",{onClick:function(){ setShowForm(false); },style:{flex:1,padding:"10px",border:"1px solid #e8eaed",borderRadius:8,background:"#f9fafb",fontSize:14,cursor:"pointer"}},"Cancelar"),
+          ce("button",{onClick:save,style:{flex:1,padding:"10px",border:"none",borderRadius:8,background:"#3b82f6",color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer"}},"Guardar")
+        )
+      )
+    )
+  );
+}
 
 function PublicProfile(props){
 var data=props.data,slug=props.slug;
@@ -20581,6 +20762,7 @@ function initFirebase() {
         psaItems: JSON.parse(localStorage.getItem('cv10p')||'[]'),
         rainbows: JSON.parse(localStorage.getItem('cv10_rainbows')||'[]'),
         lotsData: JSON.parse(localStorage.getItem('cv10_lots')||'[]'),
+        directosData: JSON.parse(localStorage.getItem('cv10_directos')||'[]'),
         locs: localStorage.getItem('cv10_locs'),
         minRoi: localStorage.getItem('cv10_minroi'),
         bannerPos: parseInt(localStorage.getItem('cv10_banner_pos')||'50'),
@@ -20620,6 +20802,7 @@ function initFirebase() {
               if (d.psaItems) localStorage.setItem('cv10p', JSON.stringify(d.psaItems));
               if (d.rainbows) localStorage.setItem('cv10_rainbows', JSON.stringify(d.rainbows));
               if (d.lotsData) localStorage.setItem('cv10_lots', JSON.stringify(d.lotsData));
+              if (d.directosData) localStorage.setItem('cv10_directos', JSON.stringify(d.directosData));
               if (d.locs) localStorage.setItem('cv10_locs', d.locs);
               if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
               if (d.publicSlug) { localStorage.setItem('cv10_slug', d.publicSlug); window._currentSlug = d.publicSlug; }
