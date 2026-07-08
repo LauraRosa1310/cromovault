@@ -17483,7 +17483,7 @@ function SellModal({ card, onSave, onClose }) {
                 "📋 Copiar mensaje para el comprador"),
                 React.createElement(Btn, { v: "success", full: true, onClick: confirm, disabled: !pr }, "Confirmar venta")))));
 }
-function CardForm({ onSave, onClose, editCard, defMode }) {
+function CardForm({ onSave, onClose, editCard, defMode, lots }) {
     const blank = { name: "", category: "trading", series: "", rarity: "Común", condition: "Raw", quantity: 1, buyPrice: "", buyDate: new Date().toISOString().slice(0, 10), notes: "", tags: [], marketPrice: "", images: [], status: "holding", sellPrice: "", sellDate: "", platformFee: "", shippingCost: "", platform: "eBay", isFavorite: false, mode: defMode || "inventory", targetPrice: "", listingDate: "", location: "", imageUrl: "" };
     const init = editCard ? Object.assign(Object.assign({}, editCard), { buyPrice: String(editCard.buyPrice || ""), sellPrice: String(editCard.sellPrice || ""), platformFee: String(editCard.platformFee || ""), shippingCost: String(editCard.shippingCost || ""), targetPrice: String(editCard.targetPrice || ""), marketPrice: String(editCard.marketPrice || ""), tags: editCard.tags || [] }) : blank;
     const [f, setF] = useState(init), [imgs, setImgs] = useState((editCard === null || editCard === void 0 ? void 0 : editCard.images) || []), [tab, setTab] = useState("info");
@@ -17551,7 +17551,7 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                         React.createElement("label", { style: LS }, "Lote"),
                         React.createElement("div", { style: { position: "relative" } },
                             (function(){
-                              var allLots = (props.lots && props.lots.length > 0) ? props.lots : (JSON.parse(localStorage.getItem("cv10_lots")||"[]"));
+                              var allLots = (lots && lots.length > 0) ? lots : (JSON.parse(localStorage.getItem("cv10_lots")||"[]"));
                               var currentLotName = f.lotId ? ((allLots.find(function(l){return l.id===f.lotId;})||{name:""}).name) : "";
                               var displayVal = f._lotSearch !== undefined ? f._lotSearch : currentLotName;
                               return React.createElement("div", null,
@@ -17574,7 +17574,7 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                         React.createElement("select", { value: f.location || "", onChange: e => sf("location", e.target.value), style: IS },
                             React.createElement("option", { value: "" }, "Sin asignar"),
                             (JSON.parse(localStorage.getItem("cv10_locs") || "null") || DEFAULT_LOCATIONS).map(l => React.createElement("option", { key: l, value: l }, l)))))),
-                tab === "info" && (React.createElement("div", null,
+                React.createElement("div", null,
                     React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 } },
                         React.createElement("div", null,
                             React.createElement("label", { style: LS }, "Precio/ud (\u20AC)"),
@@ -17643,7 +17643,8 @@ function CardForm({ onSave, onClose, editCard, defMode }) {
                                 onSave(base);
                             }
                             onClose();
-                        } }, editCard ? "Guardar cambios" : "Añadir carta"))))));
+                        } }, editCard ? "Guardar cambios" : "Añadir carta")))));
+
 }
 function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl }) {
     var _a, _b;
