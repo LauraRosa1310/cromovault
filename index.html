@@ -19374,7 +19374,7 @@ function App() {
     catch (_a) {
         return [];
     } });
-    function saveLots(l) { setLots(l); localStorage.setItem("cv10_lots", JSON.stringify(l)); }
+    function saveLots(l) { setLots(l); localStorage.setItem("cv10_lots", JSON.stringify(l)); if(window._saveToFirestore) window._saveToFirestore({ lotsData: l }); }
     const [showSettings, setShowSettings] = useState(false);
     const [showPrefs, setShowPrefs] = useState(false);
     const [unreadChats, setUnreadChats] = useState(0);
@@ -19547,7 +19547,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
             React.createElement("div", { style: { padding: "16px 24px 24px" } },
               React.createElement("div", { style: { marginBottom: 20 } },
                 React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 6 } }, "\uD83D\uDCB0 DIVISA"),
-                React.createElement("select", { value: currency, onChange: function(e){ setCurrency(e.target.value); }, style: { width: "100%", border: "1px solid " + BDR, borderRadius: 6, padding: "8px 10px", fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif" } },
+                React.createElement("select", { value: currency, onChange: function(e){ var v=e.target.value; setCurrency(v); if(window._saveToFirestore) window._saveToFirestore({currency:v}); }, style: { width: "100%", border: "1px solid " + BDR, borderRadius: 6, padding: "8px 10px", fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif" } },
                   React.createElement("option", { value: "EUR" }, "\u20AC Euro"),
                   React.createElement("option", { value: "GBP" }, "\u00A3 Libra"),
                   React.createElement("option", { value: "USD" }, "$ D\u00F3lar"),
@@ -19566,7 +19566,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
                   React.createElement("div", { style: { fontSize: 13, fontWeight: 600 } }, "\uD83C\uDF19 Modo oscuro"),
                   React.createElement("div", { style: { fontSize: 11, color: SUB } }, "Cambia el tema visual")
                 ),
-                React.createElement("button", { onClick: function(){ var nd=!darkMode; setDarkMode(nd); localStorage.setItem("cv10_dark", nd?"1":"0"); }, style: { padding: "6px 16px", background: darkMode?"#3b82f6":"#f1f5f9", border: "none", borderRadius: 20, cursor: "pointer", fontSize: 13, color: darkMode?"#fff":"#374151", fontFamily: "Inter,sans-serif", fontWeight: 600 } }, darkMode?"ON":"OFF")
+                React.createElement("button", { onClick: function(){ var nd=!darkMode; setDarkMode(nd); localStorage.setItem("cv10_dark", nd?"1":"0"); if(window._saveToFirestore) window._saveToFirestore({darkMode:nd}); }, style: { padding: "6px 16px", background: darkMode?"#3b82f6":"#f1f5f9", border: "none", borderRadius: 20, cursor: "pointer", fontSize: 13, color: darkMode?"#fff":"#374151", fontFamily: "Inter,sans-serif", fontWeight: 600 } }, darkMode?"ON":"OFF")
               ),
               React.createElement("div", { style: { marginBottom: 8 } },
                 React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 6 } }, "\uD83D\uDCE6 UBICACIONES F\u00CDSICAS"),
@@ -19699,6 +19699,7 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
           localStorage.setItem("cv10_avatar",publicAvatar);
           localStorage.setItem("cv10_banner",publicBanner);
           localStorage.setItem("cv10_banner_pos",String(bannerPos));
+          if(window._saveToFirestore) window._saveToFirestore({bannerPos:bannerPos});
           localStorage.setItem("cv10_vac",vacaciones);
           localStorage.setItem("cv10_offer",offerBanner);
           localStorage.setItem("cv10_minroi",minRoi);
@@ -19721,13 +19722,13 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
           style: { width: "100%", height: 100, overflow: "hidden", borderRadius: 8, border: "2px dashed "+BDR, cursor: "ns-resize", position: "relative", userSelect: "none", WebkitUserSelect: "none" },
           onMouseDown: function(e) {
             var startY=e.clientY, startPos=bannerPos;
-            function onMove(ev) { var newPos=Math.max(0,Math.min(100,startPos-(ev.clientY-startY)*0.5)); setBannerPos(Math.round(newPos)); localStorage.setItem("cv10_banner_pos",String(Math.round(newPos))); }
+            function onMove(ev) { var newPos=Math.max(0,Math.min(100,startPos-(ev.clientY-startY)*0.5)); setBannerPos(Math.round(newPos)); localStorage.setItem("cv10_banner_pos",String(Math.round(newPos))); if(window._saveToFirestore) window._saveToFirestore({bannerPos:Math.round(newPos)}); }
             function onUp() { document.removeEventListener("mousemove",onMove); document.removeEventListener("mouseup",onUp); }
             document.addEventListener("mousemove",onMove); document.addEventListener("mouseup",onUp);
           },
           onTouchStart: function(e) {
             var startY=e.touches[0].clientY, startPos=bannerPos;
-            function onMove(ev) { var newPos=Math.max(0,Math.min(100,startPos-(ev.touches[0].clientY-startY)*0.5)); setBannerPos(Math.round(newPos)); localStorage.setItem("cv10_banner_pos",String(Math.round(newPos))); }
+            function onMove(ev) { var newPos=Math.max(0,Math.min(100,startPos-(ev.touches[0].clientY-startY)*0.5)); setBannerPos(Math.round(newPos)); localStorage.setItem("cv10_banner_pos",String(Math.round(newPos))); if(window._saveToFirestore) window._saveToFirestore({bannerPos:Math.round(newPos)}); }
             function onEnd() { document.removeEventListener("touchmove",onMove); document.removeEventListener("touchend",onEnd); }
             document.addEventListener("touchmove",onMove,{passive:true}); document.addEventListener("touchend",onEnd);
           }
@@ -20499,7 +20500,12 @@ function initFirebase() {
         rainbows: JSON.parse(localStorage.getItem('cv10_rainbows')||'[]'),
         lotsData: JSON.parse(localStorage.getItem('cv10_lots')||'[]'),
         locs: localStorage.getItem('cv10_locs'),
-        minRoi: localStorage.getItem('cv10_minroi')
+        minRoi: localStorage.getItem('cv10_minroi'),
+        bannerPos: parseInt(localStorage.getItem('cv10_banner_pos')||'50'),
+        vacaciones: localStorage.getItem('cv10_vac')||'',
+        offerBanner: localStorage.getItem('cv10_offer')||'',
+        currency: localStorage.getItem('cv10_currency')||'EUR',
+        darkMode: localStorage.getItem('cv10_dark')==='1'
       });
       setTimeout(function() {
         auth.signOut().then(function() {
@@ -20527,7 +20533,7 @@ function initFirebase() {
           .then(function(snap) {
             if (snap.exists) {
               var d = snap.data();
-              if (d.cards) localStorage.setItem('cv10', JSON.stringify(d.cards));
+              if (d.cards && d.cards.length > 0) localStorage.setItem('cv10', JSON.stringify(d.cards));
               if (d.invoices) localStorage.setItem('cv10i', JSON.stringify(d.invoices));
               if (d.psaItems) localStorage.setItem('cv10p', JSON.stringify(d.psaItems));
               if (d.rainbows) localStorage.setItem('cv10_rainbows', JSON.stringify(d.rainbows));
@@ -20546,6 +20552,11 @@ function initFirebase() {
               if (d.publicInstagram) localStorage.setItem('cv10_ig', d.publicInstagram);
               if (d.publicTwitter) localStorage.setItem('cv10_tw', d.publicTwitter);
               if (d.publicSlug && !wasSlug) window._needsReload = true;
+              if (d.bannerPos !== undefined) localStorage.setItem('cv10_banner_pos', String(d.bannerPos));
+              if (d.vacaciones !== undefined) localStorage.setItem('cv10_vac', d.vacaciones);
+              if (d.offerBanner !== undefined) localStorage.setItem('cv10_offer', d.offerBanner);
+              if (d.currency) localStorage.setItem('cv10_currency', d.currency);
+              if (d.darkMode !== undefined) localStorage.setItem('cv10_dark', d.darkMode ? '1' : '0');
             }
           })
           .finally(function() {
