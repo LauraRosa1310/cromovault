@@ -18660,6 +18660,10 @@ function RainbowSection({ rainbows, saveRainbows }) {
 function LotsTab({ lots, saveLots, cards, setCards }) {
     const [showForm, setShowForm] = useState(false);
     const [editIdx, setEditIdx] = useState(null);
+    const [showGeekModal, setShowGeekModal] = useState(false);
+    const [geekLotId, setGeekLotId] = useState("");
+    const [geekType, setGeekType] = useState("Subasta");
+    const [geekSel, setGeekSel] = useState({});
     const blank = { id: "", name: "", buyDate: "", notes: "" };
     const [form, setForm] = useState(blank);
     function sf(k, v) { setForm((p) => (Object.assign(Object.assign({}, p), { [k]: v }))); }
