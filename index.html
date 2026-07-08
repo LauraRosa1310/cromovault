@@ -18694,46 +18694,9 @@ function LotsTab({ lots, saveLots, cards, setCards }) {
     return (React.createElement("div", null,
         React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
         React.createElement("div", { style: { fontSize: 20, fontWeight: 700 } }, "\uD83D\uDCE6 Lotes de compra"),
-        lots.length > 0 ? React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
-          React.createElement("select", { id: "cv-lot-export-sel", style: { border: "1px solid #e5e7eb", borderRadius: 8, padding: "6px 10px", fontSize: 13, fontFamily: "Inter,sans-serif", cursor: "pointer" } },
-            React.createElement("option", { value: "all" }, "Todos los lotes"),
-            lots.map(function(lot){ return React.createElement("option", { key: lot.id, value: lot.id }, lot.name); })
-          ),
-          React.createElement("button", { onClick: function(){
-            var sel = document.getElementById("cv-lot-export-sel").value;
-            var lotsToExport = sel === "all" ? lots : lots.filter(function(l){ return l.id === sel; });
-            var rows = ["Lote,Carta,Cantidad,Invertido,Recuperado,Estado"];
-            lotsToExport.forEach(function(lot){
-              var lotCards = cards.filter(function(c){ return c.lotId === lot.id && c.mode === "inventory"; });
-              var invested = lotCards.reduce(function(a,c){ return a + (c.buyPrice||0)*(c.quantity||1); }, 0);
-              var recovered = lotCards.filter(function(c){ return c.status==="sold"; }).reduce(function(a,c){ return a + (c.sellPrice||0)*(c.quantity||1)*(1-(c.platformFee||0)/100)-(c.shippingCost||0); }, 0);
-              var benefit = recovered - invested;
-              var roi = invested > 0 ? (benefit/invested*100).toFixed(1) : "N/A";
-              rows.push(["\""+lot.name+"\"", "RESUMEN", lotCards.length, invested.toFixed(2), recovered.toFixed(2), "ROI: "+roi+"%"].join(","));
-              lotCards.forEach(function(c){
-                rows.push([
-                  "\""+lot.name+"\"",
-                  "\"" + (c.name||"") + "\"",
-                  c.quantity||1,
-                  ((c.buyPrice||0)*(c.quantity||1)).toFixed(2),
-                  c.status==="sold" ? ((c.sellPrice||0)*(c.quantity||1)*(1-(c.platformFee||0)/100)-(c.shippingCost||0)).toFixed(2) : "",
-                  c.status==="sold" ? "vendida" : c.status==="listed" ? "en venta" : "en cartera"
-                ].join(","));
-              });
-            });
-            var fname = sel === "all" ? "lotes-cromovault.csv" : "lote-"+(lotsToExport[0]&&lotsToExport[0].name||sel)+".csv";
-            var blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement("a");
-            a.href = url; a.download = fname;
-            a.click(); URL.revokeObjectURL(url);
-          }, style: { padding: "7px 14px", background: "#10b981", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, "\uD83D\uDCE5 Exportar CSV"),
-          React.createElement("button", { onClick: function(){
-              setGeekLotId("");
-              setGeekType("Subasta");
-              setGeekSel({});
-              setShowGeekModal(true);
-            }, style: { padding: "7px 14px", background: "#6366f1", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif", whiteSpace: "nowrap", marginTop: 8 } }, "\uD83D\uDE80 Exportar para Geek")
+        lots.length > 0 ? React.createElement("div", { style: { display: "flex", gap: 8 } },
+          React.createElement("button", { onClick: function(){ setShowGeekModal(true); setGeekLotId(""); setGeekType("Subasta"); setGeekSel({}); }, style: { padding: "7px 14px", background: "#6366f1", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, "\uD83D\uDE80 Exportar para Geek"),
+          React.createElement("button", { onClick: function(){ window._setShowImport&&window._setShowImport(true); }, style: { padding: "7px 14px", background: "#f59e0b", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, "\uD83D\uDCE4 Importar factura")
         ) : null,
         showGeekModal && React.createElement("div", { onClick: function(){ setShowGeekModal(false); }, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 } },
           React.createElement("div", { onClick: function(e){ e.stopPropagation(); }, style: { background: "#fff", borderRadius: 16, padding: 0, maxWidth: 520, width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" } },
@@ -19207,7 +19170,28 @@ function LotModal({ cards, onSell, onClose }) {
                         sel.length,
                         " cartas"))))));
 }
-function dlPriceList(cards){var listed=cards.filter(function(c){return c.status==="listed"&&c.mode==="inventory";});if(!listed.length){alert("No tienes cartas en venta");return;}var sym=getCurrencySymbol();var minRoi=parseFloat(localStorage.getItem("cv10_minroi")||"40");var rows=listed.map(function(c){var precio=parseFloat(c.targetPrice)||parseFloat(c.sellPrice)||parseFloat(c.buyPrice)||0;var compra=(parseFloat(c.buyPrice)||0)*(parseFloat(c.quantity)||1);var minVenta=compra>0?(compra*(1+minRoi/100)).toFixed(2):"-";return "<tr><td>"+c.name+"</td><td>"+(c.series||"-")+"</td><td>"+(c.rarity||"-")+"</td><td>"+(c.condition||"-")+"</td><td align=right>"+sym+precio.toFixed(2)+"</td><td align=right style=color:#16a34a>"+(minVenta!=="-"?sym+minVenta:"-")+"</td></tr>";}).join("");var html="<!DOCTYPE html><html><head><meta charset=utf-8><title>Lista precios</title></head><body><h1>Lista de precios</h1><p>"+listed.length+" cartas</p><table><thead><tr><th>Carta</th><th>Set</th><th>Rareza</th><th>Condicion</th><th>Precio</th><th>Min "+minRoi+"%</th></tr></thead><tbody>"+rows+"</tbody></table></body></html>";var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));a.download="lista-precios.html";document.body.appendChild(a);a.click();document.body.removeChild(a);}
+function dlPriceList(cards){
+  // Include listed AND holding (en cartera), exclude sold
+  var listed=cards.filter(function(c){ return (c.status==="listed"||c.status==="holding")&&c.mode==="inventory"; });
+  if(!listed.length){alert("No tienes cartas en venta o en cartera");return;}
+  // Sort by buyDate ascending
+  listed.sort(function(a,b){ return (a.buyDate||"").localeCompare(b.buyDate||""); });
+  var sym=getCurrencySymbol();
+  var minRoi=parseFloat(localStorage.getItem("cv10_minroi")||"40");
+  var rows=listed.map(function(c){
+    var precio=parseFloat(c.targetPrice)||parseFloat(c.sellPrice)||parseFloat(c.buyPrice)||0;
+    var compra=(parseFloat(c.buyPrice)||0)*(parseFloat(c.quantity)||1);
+    var minVenta=compra>0?(compra*(1+minRoi/100)).toFixed(2):"-";
+    var estado=c.status==="listed"?"En venta":"En cartera";
+    var colorEstado=c.status==="listed"?"#f59e0b":"#6b7280";
+    return "<tr><td>"+(c.buyDate||"-")+"</td><td>"+c.name+"</td><td>"+(c.series||"-")+"</td><td>"+(c.rarity||"-")+"</td><td>"+(c.condition||"-")+"</td><td align=right>"+sym+precio.toFixed(2)+"</td><td align=right style=color:#16a34a>"+(minVenta!=="-"?sym+minVenta:"-")+"</td><td style=color:"+colorEstado+">"+estado+"</td></tr>";
+  }).join("");
+  var html="<!DOCTYPE html><html><head><meta charset=utf-8><title>Lista precios</title><style>body{font-family:Inter,sans-serif;padding:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #e5e7eb;padding:8px 12px;text-align:left}th{background:#f9fafb;font-size:12px}td{font-size:13px}</style></head><body><h1>Lista de cartas</h1><p>"+listed.length+" cartas \u00B7 Ordenado por fecha de compra</p><table><thead><tr><th>Fecha compra</th><th>Carta</th><th>Set</th><th>Rareza</th><th>Condici\u00F3n</th><th>Precio</th><th>Min "+minRoi+"%</th><th>Estado</th></tr></thead><tbody>"+rows+"</tbody></table></body></html>";
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));
+  a.download="lista-precios.html";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
 function savePublicProfile(cards,slug,contact,payment,shipping,avatar,banner){if(!slug){alert("Falta el nombre p\u00FAblico");return;}var user=window._currentUser||(typeof firebase!=="undefined"&&firebase.apps.length>0?firebase.auth().currentUser:null);if(!user){alert("Error: no hay sesi\u00F3n activa. Cierra sesi\u00F3n y vuelve a entrar.");return;}if(!window._db){alert("Error: base de datos no disponible. Recarga la p\u00E1gina.");return;}var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";});var sold=cards.filter(function(c){return c.status==="sold";});var validCodes=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;});var vac=localStorage.getItem("cv10_vac")||"";var offer=localStorage.getItem("cv10_offer")||"";
   var pub={slug:slug,uid:user.uid,cards:listed,sold:sold,validCodes:validCodes,updatedAt:Date.now(),contact:contact||"",payment:payment||"",shipping:shipping||"",avatar:avatar||"",banner:banner||"",bannerPos:parseInt(localStorage.getItem("cv10_banner_pos")||"50"),vacaciones:vac,offerBanner:offer||null,instagram:localStorage.getItem("cv10_ig")||"",twitter:localStorage.getItem("cv10_tw")||"",profileMode:localStorage.getItem("cv10_mode")||"seller",minRoi:parseFloat(localStorage.getItem("cv10_minroi")||"40"),quickReplies:JSON.parse(localStorage.getItem("cv10_qr")||"[]"),wishlist:JSON.parse(localStorage.getItem("cv10_wl")||"[]")};window._db.ref("public/"+slug).set(pub).then(function(){var profData={publicSlug:slug,publicContact:contact||"",publicPayment:payment||"",publicShipping:shipping||"",publicAvatar:avatar||"",publicBanner:banner||"",quickReplies:JSON.parse(localStorage.getItem("cv10_qr")||"[]"),wishlist:JSON.parse(localStorage.getItem("cv10_wl")||"[]"),publicMode:localStorage.getItem("cv10_mode")||"seller",publicInstagram:localStorage.getItem("cv10_ig")||"",publicTwitter:localStorage.getItem("cv10_tw")||""};if(typeof db!=="undefined")db.collection("users").doc(user.uid).collection("data").doc("main").set(profData,{merge:true});window._currentSlug=slug;alert("\u2705 Perfil guardado! Ya puedes verlo en /?p="+slug);}).catch(function(e){console.error("Save error:",e);alert("Error al guardar: "+e.message);});}
 function MessagesTab(props){
@@ -19461,6 +19445,7 @@ function App() {
     const [showSettings, setShowSettings] = useState(false);
     const [showPrefs, setShowPrefs] = useState(false);
     const [showImport, setShowImport] = useState(false);
+    React.useEffect(function(){ window._setShowImport = setShowImport; return function(){ window._setShowImport = null; }; }, [setShowImport]);
     const [importData, setImportData] = useState([]);
     const [importLoading, setImportLoading] = useState(false);
     const [unreadChats, setUnreadChats] = useState(0);
@@ -19540,7 +19525,7 @@ function App() {
             unreadChats > 0 ? React.createElement("span", { style: { position: "absolute", top: -4, right: -4, background: "#ef4444", color: "#fff", borderRadius: "50%", fontSize: 9, fontWeight: 700, width: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 } }, unreadChats > 9 ? "9+" : String(unreadChats)) : null
         ), React.createElement("button", { onClick: () => setShowSettings(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\u2699\uFE0F"),
                     React.createElement("button", { onClick: () => setShowPrefs(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\uD83C\uDF9B\uFE0F"),
-                    React.createElement("button", { onClick: () => setShowImport(true), title: "Importar factura Geek", style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\uD83D\uDCE4")))),
+                    ))),
                 tooltip && React.createElement("div", { onClick: function(){ setTooltip(null); }, style: { position: "fixed", inset: 0, zIndex: 998 } }),
         tooltip && React.createElement("div", { style: { position: "fixed", background: "#1e293b", color: "#fff", borderRadius: 10, padding: "10px 14px", fontSize: 12, maxWidth: 220, zIndex: 999, top: tooltip.y, left: tooltip.x, lineHeight: 1.5 } }, tooltip.text),
         React.createElement("div", { id: "cv-fab-container", style: { display: "none", position: "fixed", bottom: "calc(64px + env(safe-area-inset-bottom))", right: 16, zIndex: 99, flexDirection: "column", alignItems: "flex-end", gap: 10 } },
@@ -19656,7 +19641,12 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
                 React.createElement("button", { onClick: function(){ var nd=!darkMode; setDarkMode(nd); localStorage.setItem("cv10_dark", nd?"1":"0"); if(window._saveToFirestore) window._saveToFirestore({darkMode:nd}); }, style: { padding: "6px 16px", background: darkMode?"#3b82f6":"#f1f5f9", border: "none", borderRadius: 20, cursor: "pointer", fontSize: 13, color: darkMode?"#fff":"#374151", fontFamily: "Inter,sans-serif", fontWeight: 600 } }, darkMode?"ON":"OFF")
               ),
               React.createElement("div", { style: { marginBottom: 8 } },
-                React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 6 } }, "\uD83D\uDCE6 UBICACIONES F\u00CDSICAS"),
+                React.createElement("div", { style: { marginBottom: 20 } },
+                React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 6 } }, "\uD83D\uDD11 API KEY ANTHROPIC"),
+                React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 8 } }, "Necesaria para importar facturas de Geek. Obt\u00E9nla en console.anthropic.com"),
+                React.createElement("input", { type: "password", defaultValue: localStorage.getItem("cv10_api_key")||"", onBlur: function(e){ localStorage.setItem("cv10_api_key", e.target.value.trim()); }, placeholder: "sk-ant-...", style: { width: "100%", border: "1px solid " + BDR, borderRadius: 6, padding: "8px 10px", fontSize: 13, background: BG, color: TXT, fontFamily: "Inter,sans-serif", boxSizing: "border-box" } })
+              ),
+              React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 6 } }, "\uD83D\uDCE6 UBICACIONES F\u00CDSICAS"),
                 React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 8 } }, "Lugares donde guardas tus cartas"),
                 React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 8 } },
                   (JSON.parse(localStorage.getItem("cv10_locs") || "null") || DEFAULT_LOCATIONS).map(function(loc, i) {
@@ -19704,13 +19694,20 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
                     inp.onchange = function(e){
                       var file = e.target.files[0];
                       if(!file) return;
+                      var apiKey = localStorage.getItem("cv10_api_key")||"";
+                      if(!apiKey){ alert("Necesitas una API key de Anthropic. Ve a Preferencias (\uD83C\uDF9B\uFE0F) y a\u00F1\u00E1dela."); return; }
                       setImportLoading(true);
                       var reader = new FileReader();
                       reader.onload = function(ev){
                         var base64 = ev.target.result.split(",")[1];
                         fetch("https://api.anthropic.com/v1/messages", {
                           method: "POST",
-                          headers: { "Content-Type": "application/json" },
+                          headers: { 
+                          "Content-Type": "application/json",
+                          "x-api-key": localStorage.getItem("cv10_api_key")||"",
+                          "anthropic-version": "2023-06-01",
+                          "anthropic-dangerous-direct-browser-access": "true"
+                        },
                           body: JSON.stringify({
                             model: "claude-sonnet-4-6",
                             max_tokens: 4000,
