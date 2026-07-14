@@ -19422,7 +19422,26 @@ function RedesTab({ cards, onOpenPost }) {
   var [dir, setDir] = React.useState({tema:"ABRIMOS SOBRES",tema2:"",dia:"",hora:"21:00H",donde:"Geek Live",extra:""});
   var [activeSection, setActiveSection] = React.useState("post");
   var [postSearch, setPostSearch] = React.useState("");
+  var [contenidoSub, setContenidoSub] = React.useState("top5list");
+  var [ctFields, setCtFields] = React.useState({name:"",price:"",precioActual:"",num:"",psa:"",img:"",countdown:"2H",hora:"21:00H"});
   var [calEvents, setCalEvents] = React.useState(function(){ try{ return JSON.parse(localStorage.getItem("cv10_cal_events")||"[]"); }catch(e){ return []; } });
+  var [redesLoaded, setRedesLoaded] = React.useState(false);
+  React.useEffect(function(){
+    if(redesLoaded) return;
+    if(window._loadRedesFromFirestore){
+      window._loadRedesFromFirestore(function(data){
+        if(!data) return;
+        if(data.calEvents) { setCalEvents(data.calEvents); localStorage.setItem("cv10_cal_events", JSON.stringify(data.calEvents)); }
+        if(data.top5) setTop5(data.top5);
+        if(data.top5titulo) setTop5titulo(data.top5titulo);
+        if(data.loteTitle) setLoteTitle(data.loteTitle);
+        setRedesLoaded(true);
+      });
+    } else { setRedesLoaded(true); }
+  }, []);
+  function saveRedesToFirestore(patch){
+    if(window._saveToFirestore) window._saveToFirestore({ redesData: patch });
+  }
   var [calForm, setCalForm] = React.useState({fecha:"",tipo:"post",carta:"",nota:""});
   var [captionCard, setCaptionCard] = React.useState(null);
   var [captionSearch, setCaptionSearch] = React.useState("");
@@ -19501,7 +19520,7 @@ function RedesTab({ cards, onOpenPost }) {
     ),
     ce("div",{style:{display:"flex",borderBottom:"1px solid #e5e7eb",marginBottom:24}},
       sectionBtn("post","\uD83D\uDCF8 Post"),
-      sectionBtn("top5","\uD83D\uDCCB Top 5"),
+      sectionBtn("top5","\uD83C\uDFAC Contenido"),
       sectionBtn("directo","\uD83C\uDFA5 Directo"),
       sectionBtn("lote","\uD83D\uDCE6 Lote directo"),
       sectionBtn("cal","\uD83D\uDCC5 Calendario")
@@ -19522,27 +19541,160 @@ function RedesTab({ cards, onOpenPost }) {
         })
       )
     ):null,
-    activeSection==="top5"?ce("div",{style:{display:"flex",gap:24,flexWrap:"wrap"}},
-      ce("div",{style:{flex:1,minWidth:200}},
-        ce("div",{style:{marginBottom:12}},
-          ce("label",{style:LBL},"T\u00CDTULO"),
-          ce("input",{value:top5titulo,onChange:function(e){setTop5titulo(e.target.value);},style:IS2})
-        ),
-        top5.map(function(item,i){
-          return ce("div",{key:i,style:{marginBottom:12}},
-            ce("label",{style:Object.assign({},LBL,{color:i%2===0?blue:red})},"0"+(i+1)),
-            ce("div",{style:{display:"flex",gap:6}},
-              ce("input",{value:item.n,placeholder:"Nombre carta",onChange:function(e){var v=e.target.value;setTop5(function(p){var a=p.slice();a[i]=Object.assign({},a[i],{n:v});return a;});},style:Object.assign({},IS2,{flex:2})}),
-              ce("input",{value:item.s,placeholder:"Detalle",onChange:function(e){var v=e.target.value;setTop5(function(p){var a=p.slice();a[i]=Object.assign({},a[i],{s:v});return a;});},style:Object.assign({},IS2,{flex:1})})
-            )
-          );
-        }),
-        ce("button",{onClick:function(){dlEl("redes-top5","top5");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:"#1a1a2e",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",marginTop:8}},"\u2B07 Descargar Top 5")
+    activeSection==="top5"?React.createElement("div",null,
+      React.createElement("div",{style:{display:"flex",gap:0,marginBottom:16,borderBottom:"1px solid #e5e7eb",overflowX:"auto"}},
+        ["top5list","cuanto","psa","nodebivender","comparativa","countdown"].map(function(sv){
+          var labels={"top5list":"\uD83D\uDCCB Top 5","cuanto":"\uD83E\uDD14 \u00BFCu\u00E1nto vale?","psa":"\uD83C\uDFC6 PSA","nodebivender":"\uD83D\uDE22 No deb\u00ED vender","comparativa":"\uD83D\uDCC8 Comparativa","countdown":"\u23F3 Countdown"};
+          var isActive=(contenidoSub||"top5list")===sv;
+          return React.createElement("button",{key:sv,onClick:function(){setContenidoSub(sv);},style:{padding:"6px 10px",border:"none",borderBottom:"2px solid "+(isActive?red:"transparent"),background:"transparent",color:isActive?red:sub,fontSize:11,fontWeight:isActive?700:500,cursor:"pointer",fontFamily:"Inter,sans-serif",whiteSpace:"nowrap",marginBottom:-1}},labels[sv]);
+        })
       ),
-      ce("div",null,
-        ce("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
-        top5Preview
-      )
+      (contenidoSub||"top5list")==="top5list"?React.createElement("div",{style:{display:"flex",gap:24,flexWrap:"wrap"}},
+        React.createElement("div",{style:{flex:1,minWidth:200}},
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"T\u00CDTULO"),React.createElement("input",{value:top5titulo,onChange:function(e){setTop5titulo(e.target.value);},style:IS2})),
+          top5.map(function(item,i){
+            return React.createElement("div",{key:i,style:{marginBottom:12}},
+              React.createElement("label",{style:Object.assign({},LBL,{color:i%2===0?blue:red})},"0"+(i+1)),
+              React.createElement("div",{style:{display:"flex",gap:6}},
+                React.createElement("input",{value:item.n,placeholder:"Nombre carta",onChange:function(e){var v=e.target.value;setTop5(function(p){var a=p.slice();a[i]=Object.assign({},a[i],{n:v});return a;});},style:Object.assign({},IS2,{flex:2})}),
+                React.createElement("input",{value:item.s,placeholder:"Detalle",onChange:function(e){var v=e.target.value;setTop5(function(p){var a=p.slice();a[i]=Object.assign({},a[i],{s:v});return a;});},style:Object.assign({},IS2,{flex:1})})
+              )
+            );
+          }),
+          React.createElement("button",{onClick:function(){saveRedesToFirestore({top5:top5,top5titulo:top5titulo});dlEl("redes-top5","top5");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",marginTop:8}},"\u2B07 Descargar Top 5")
+        ),
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
+          top5Preview
+        )
+      ):null,
+      (contenidoSub||"top5list")==="cuanto"?React.createElement("div",{style:{display:"flex",gap:24,flexWrap:"wrap"}},
+        React.createElement("div",{style:{flex:1,minWidth:200}},
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"JUGADOR / CARTA"),React.createElement("input",{value:ctFields.name,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{name:v});});},style:IS2})),
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"NUMERACI\u00D3N (ej: 49)"),React.createElement("input",{value:ctFields.num,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{num:v});});},style:IS2})),
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"PRECIO REAL (\u20AC)"),React.createElement("input",{type:"number",value:ctFields.price,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{price:v});});},style:IS2})),
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"FOTO (URL)"),React.createElement("input",{value:ctFields.img,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{img:v});});},placeholder:"https://...",style:IS2})),
+          React.createElement("button",{onClick:function(){dlEl("ct-preview","cuanto-vale");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 Descargar")
+        ),
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
+          React.createElement("div",{id:"ct-preview",style:{width:214,height:280,background:bg,borderRadius:4,overflow:"hidden",display:"flex",flexDirection:"column"}},
+            React.createElement("div",{style:{padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}},React.createElement("img",{src:logoUrl,style:{width:32,height:32,borderRadius:"50%",objectFit:"cover"}}),React.createElement("div",{style:{fontSize:8,fontWeight:800,color:"#fff",padding:"4px 10px",borderRadius:20,background:blue}},"\uD83E\uDD14 ADIVINA")),
+            React.createElement("div",{style:{flex:1,padding:"0 8px 6px",display:"flex",flexDirection:"column",overflow:"hidden"}},
+              React.createElement("div",{style:{fontSize:7,fontWeight:700,letterSpacing:"0.18em",textTransform:"uppercase",color:red,marginBottom:3}},"\u00BFCU\u00C1NTO CREES QUE VALE?"),
+              React.createElement("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center"}},
+                React.createElement("div",{style:{position:"relative",width:90}},
+                  ctFields.img?React.createElement("img",{src:ctFields.img,style:{width:"100%",height:115,objectFit:"cover",borderRadius:7,display:"block",filter:"blur(6px)"}}):React.createElement("div",{style:{background:"#d4d6e0",height:115,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:"#aaa"}},"?"),
+                  React.createElement("div",{style:{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,fontWeight:900,color:"#fff",textShadow:"0 2px 8px rgba(0,0,0,0.5)"}},ctFields.num?"/"+ctFields.num:"\uD83D\uDD0E")
+                )
+              ),
+              React.createElement("div",{style:{display:"flex",gap:4,marginTop:6}},
+                (function(){var p=parseFloat(ctFields.price)||100;return [Math.round(p*0.6),p,Math.round(p*1.5)].map(function(v,i){return React.createElement("div",{key:i,style:{flex:1,background:i===1?red:dark,color:"#fff",fontSize:9,fontWeight:800,padding:"6px 4px",borderRadius:5,textAlign:"center"}},["A","B","C"][i]+") "+v+"\u20AC");});})()
+              ),
+              React.createElement("div",{style:{marginTop:4,fontSize:7,fontWeight:700,color:sub,textTransform:"uppercase",letterSpacing:"0.1em",textAlign:"center"}},"VOTA EN LOS COMENTARIOS")
+            ),
+            React.createElement("div",{style:{flexShrink:0,height:26,padding:"0 10px",display:"flex",alignItems:"center",justifyContent:"space-between",borderTop:"3px solid transparent",background:"linear-gradient("+bg+","+bg+") padding-box, linear-gradient(to right,"+blue+" 50%,"+red+" 50%) border-box"}},React.createElement("span",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.06em"}},"@thecardgirl"),React.createElement("span",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.06em"}},"CARTAS \u00B7 COLECCIONISMO"))
+          )
+        )
+      ):null,
+      (contenidoSub||"top5list")==="psa"?React.createElement("div",{style:{display:"flex",gap:24,flexWrap:"wrap"}},
+        React.createElement("div",{style:{flex:1,minWidth:200}},
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"JUGADOR / CARTA"),React.createElement("input",{value:ctFields.name,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{name:v});});},style:IS2})),
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"GRADO PSA"),React.createElement("input",{value:ctFields.psa,placeholder:"10",onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{psa:v});});},style:IS2})),
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"FOTO (URL)"),React.createElement("input",{value:ctFields.img,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{img:v});});},placeholder:"https://...",style:IS2})),
+          React.createElement("button",{onClick:function(){dlEl("psa-preview","antes-despues-psa");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 Descargar")
+        ),
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
+          React.createElement("div",{id:"psa-preview",style:{width:280,height:280,background:bg,borderRadius:4,overflow:"hidden",display:"flex",flexDirection:"column"}},
+            React.createElement("div",{style:{padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}},React.createElement("img",{src:logoUrl,style:{width:36,height:36,borderRadius:"50%",objectFit:"cover"}}),React.createElement("div",{style:{fontSize:8,fontWeight:800,color:"#fff",padding:"4px 10px",borderRadius:20,background:"#7c3aed"}},"PSA GRADE")),
+            React.createElement("div",{style:{flex:1,padding:"0 10px 8px",display:"flex",flexDirection:"column",overflow:"hidden"}},
+              React.createElement("div",{style:{fontSize:7,fontWeight:700,letterSpacing:"0.18em",textTransform:"uppercase",color:"#7c3aed",marginBottom:3}},"ANTES / DESPU\u00C9S"),
+              React.createElement("div",{style:{fontSize:14,fontWeight:900,lineHeight:0.9,color:dark,marginBottom:8}},ctFields.name||"JUGADOR"),
+              React.createElement("div",{style:{flex:1,display:"flex",gap:8,alignItems:"center"}},
+                React.createElement("div",{style:{flex:1,textAlign:"center"}},React.createElement("div",{style:{fontSize:7,fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:3}},"RAW"),ctFields.img?React.createElement("img",{src:ctFields.img,style:{width:"100%",height:90,objectFit:"cover",borderRadius:6,display:"block",filter:"grayscale(40%)"}}):React.createElement("div",{style:{background:"#d4d6e0",height:90,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#aaa"}},"FOTO")),
+                React.createElement("div",{style:{fontSize:20,fontWeight:900,color:red}},"\u2192"),
+                React.createElement("div",{style:{flex:1,textAlign:"center"}},React.createElement("div",{style:{fontSize:7,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",marginBottom:3}},ctFields.psa?"PSA "+ctFields.psa:"PSA"),ctFields.img?React.createElement("img",{src:ctFields.img,style:{width:"100%",height:90,objectFit:"cover",borderRadius:6,display:"block",border:"2px solid #7c3aed"}}):React.createElement("div",{style:{background:"#d4d6e0",height:90,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#aaa",border:"2px solid #7c3aed"}},"FOTO"))
+              ),
+              ctFields.psa?React.createElement("div",{style:{background:"#7c3aed",color:"#fff",fontSize:12,fontWeight:900,padding:"4px 10px",borderRadius:6,textAlign:"center",marginTop:6}},"PSA "+ctFields.psa+" \uD83C\uDFC6"):null
+            ),
+            React.createElement("div",{style:{flexShrink:0,height:26,padding:"0 10px",display:"flex",alignItems:"center",justifyContent:"space-between",borderTop:"3px solid transparent",background:"linear-gradient("+bg+","+bg+") padding-box, linear-gradient(to right,"+blue+" 50%,"+red+" 50%) border-box"}},React.createElement("span",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.06em"}},"@thecardgirl"),React.createElement("span",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.06em"}},"CARTAS \u00B7 COLECCIONISMO"))
+          )
+        )
+      ):null,
+      (contenidoSub||"top5list")==="nodebivender"?React.createElement("div",{style:{display:"flex",gap:24,flexWrap:"wrap"}},
+        React.createElement("div",{style:{flex:1,minWidth:200}},
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"JUGADOR / CARTA"),React.createElement("input",{value:ctFields.name,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{name:v});});},style:IS2})),
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"PRECIO AL QUE LA VEND\u00CD (\u20AC)"),React.createElement("input",{type:"number",value:ctFields.price,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{price:v});});},style:IS2})),
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"FOTO (URL)"),React.createElement("input",{value:ctFields.img,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{img:v});});},placeholder:"https://...",style:IS2})),
+          React.createElement("button",{onClick:function(){dlEl("ndv-preview","no-debi-vender");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 Descargar")
+        ),
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
+          React.createElement("div",{id:"ndv-preview",style:{width:214,height:280,background:bg,borderRadius:4,overflow:"hidden",display:"flex",flexDirection:"column"}},
+            React.createElement("div",{style:{padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}},React.createElement("img",{src:logoUrl,style:{width:32,height:32,borderRadius:"50%",objectFit:"cover"}}),React.createElement("div",{style:{fontSize:8,fontWeight:800,color:"#fff",padding:"4px 10px",borderRadius:20,background:"#6b7280"}},"VENDIDA")),
+            React.createElement("div",{style:{flex:1,padding:"0 8px 6px",display:"flex",flexDirection:"column",overflow:"hidden"}},
+              React.createElement("div",{style:{fontSize:18,fontWeight:900,lineHeight:0.86,color:dark,marginBottom:8}},"LA CARTA",React.createElement("br"),React.createElement("span",{style:{color:red}},"QUE NO DEB\u00CD"),React.createElement("br"),"VENDER"),
+              React.createElement("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}},
+                ctFields.img?React.createElement("img",{src:ctFields.img,style:{width:90,height:116,objectFit:"cover",borderRadius:7,opacity:0.7}}):React.createElement("div",{style:{background:"#d4d6e0",width:90,height:116,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#aaa",opacity:0.7}},"FOTO"),
+                React.createElement("div",{style:{position:"absolute",fontSize:28,opacity:0.6}},"\uD83D\uDE22")
+              ),
+              ctFields.price?React.createElement("div",{style:{textAlign:"center",marginTop:4}},React.createElement("div",{style:{fontSize:8,color:sub,textTransform:"uppercase",letterSpacing:"0.1em"}},"La vend\u00ED a"),React.createElement("div",{style:{fontSize:14,fontWeight:900,color:"#6b7280"}},ctFields.price+"\u20AC")):null,
+              React.createElement("div",{style:{marginTop:6,background:dark,color:"#fff",fontSize:7,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",padding:"5px",borderRadius:5,textAlign:"center"}},"\u00BFT\u00FA tambi\u00E9n tienes una? \uD83D\uDC47")
+            ),
+            React.createElement("div",{style:{flexShrink:0,height:26,padding:"0 10px",display:"flex",alignItems:"center",justifyContent:"space-between",borderTop:"3px solid transparent",background:"linear-gradient("+bg+","+bg+") padding-box, linear-gradient(to right,"+blue+" 50%,"+red+" 50%) border-box"}},React.createElement("span",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.06em"}},"@thecardgirl"),React.createElement("span",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.06em"}},"CARTAS \u00B7 COLECCIONISMO"))
+          )
+        )
+      ):null,
+      (contenidoSub||"top5list")==="comparativa"?React.createElement("div",{style:{display:"flex",gap:24,flexWrap:"wrap"}},
+        React.createElement("div",{style:{flex:1,minWidth:200}},
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"JUGADOR / CARTA"),React.createElement("input",{value:ctFields.name,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{name:v});});},style:IS2})),
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"PRECIO COMPRA (\u20AC)"),React.createElement("input",{type:"number",value:ctFields.price,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{price:v});});},style:IS2})),
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"PRECIO ACTUAL (\u20AC)"),React.createElement("input",{type:"number",value:ctFields.precioActual,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{precioActual:v});});},style:IS2})),
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"FOTO (URL)"),React.createElement("input",{value:ctFields.img,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{img:v});});},placeholder:"https://...",style:IS2})),
+          React.createElement("button",{onClick:function(){dlEl("comp-preview","comparativa-precio");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 Descargar")
+        ),
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
+          React.createElement("div",{id:"comp-preview",style:{width:280,height:280,background:bg,borderRadius:4,overflow:"hidden",display:"flex",flexDirection:"column"}},
+            React.createElement("div",{style:{padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}},React.createElement("img",{src:logoUrl,style:{width:36,height:36,borderRadius:"50%",objectFit:"cover"}}),React.createElement("div",{style:{fontSize:8,fontWeight:800,color:"#fff",padding:"4px 10px",borderRadius:20,background:"#16a34a"}},"\uD83D\uDCC8 REVALORIZADA")),
+            React.createElement("div",{style:{flex:1,padding:"0 10px 8px",display:"flex",flexDirection:"column",overflow:"hidden"}},
+              React.createElement("div",{style:{fontSize:7,fontWeight:700,letterSpacing:"0.18em",textTransform:"uppercase",color:"#16a34a",marginBottom:3}},"INVERSI\u00D3N"),
+              React.createElement("div",{style:{fontSize:16,fontWeight:900,lineHeight:0.9,color:dark,marginBottom:6}},ctFields.name||"JUGADOR"),
+              React.createElement("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center"}},ctFields.img?React.createElement("img",{src:ctFields.img,style:{width:100,height:128,objectFit:"cover",borderRadius:7}}):React.createElement("div",{style:{background:"#d4d6e0",width:100,height:128,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#aaa"}},"FOTO")),
+              React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center",justifyContent:"center",marginTop:6}},
+                React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.08em"}},"Compr\u00E9 a"),React.createElement("div",{style:{fontSize:16,fontWeight:900,color:"#6b7280"}},ctFields.price?ctFields.price+"\u20AC":"?")),
+                React.createElement("div",{style:{fontSize:18,fontWeight:900,color:"#16a34a"}},"\u2192"),
+                React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.08em"}},"Ahora vale"),React.createElement("div",{style:{fontSize:16,fontWeight:900,color:"#16a34a"}},ctFields.precioActual?ctFields.precioActual+"\u20AC":"?"))
+              )
+            ),
+            React.createElement("div",{style:{flexShrink:0,height:26,padding:"0 10px",display:"flex",alignItems:"center",justifyContent:"space-between",borderTop:"3px solid transparent",background:"linear-gradient("+bg+","+bg+") padding-box, linear-gradient(to right,"+blue+" 50%,"+red+" 50%) border-box"}},React.createElement("span",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.06em"}},"@thecardgirl"),React.createElement("span",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.06em"}},"CARTAS \u00B7 COLECCIONISMO"))
+          )
+        )
+      ):null,
+      (contenidoSub||"top5list")==="countdown"?React.createElement("div",{style:{display:"flex",gap:24,flexWrap:"wrap"}},
+        React.createElement("div",{style:{flex:1,minWidth:200}},
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"T\u00CDTULO DIRECTO"),React.createElement("input",{value:ctFields.name,placeholder:"ABRIMOS SOBRES",onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{name:v});});},style:IS2})),
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"TIEMPO (ej: 2H)"),React.createElement("input",{value:ctFields.countdown,placeholder:"2H",onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{countdown:v});});},style:IS2})),
+          React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"HORA"),React.createElement("input",{value:ctFields.hora,placeholder:"21:00H",onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{hora:v});});},style:IS2})),
+          React.createElement("button",{onClick:function(){dlEl("cd-preview","countdown-directo");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 Descargar")
+        ),
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
+          React.createElement("div",{id:"cd-preview",style:{width:214,height:280,background:dark,borderRadius:4,overflow:"hidden",display:"flex",flexDirection:"column"}},
+            React.createElement("div",{style:{padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}},React.createElement("img",{src:logoUrl,style:{width:32,height:32,borderRadius:"50%",objectFit:"cover"}}),React.createElement("div",{style:{fontSize:8,fontWeight:800,color:"#fff",padding:"4px 10px",borderRadius:20,background:red,display:"flex",alignItems:"center",gap:3}},React.createElement("div",{style:{width:5,height:5,background:"#fff",borderRadius:"50%"}}),"EN DIRECTO")),
+            React.createElement("div",{style:{flex:1,padding:"0 10px 8px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center"}},
+              React.createElement("div",{style:{fontSize:7,fontWeight:700,letterSpacing:"0.2em",textTransform:"uppercase",color:"rgba(255,255,255,0.5)",marginBottom:4}},"EMPIEZA EN"),
+              React.createElement("div",{style:{fontSize:44,fontWeight:900,lineHeight:0.9,letterSpacing:"-0.02em",color:"#fff",marginBottom:4}},ctFields.countdown||"2H"),
+              React.createElement("div",{style:{width:30,height:2,background:red,margin:"6px auto"}}),
+              React.createElement("div",{style:{fontSize:16,fontWeight:900,color:"#fff",marginBottom:2}},ctFields.name||"DIRECTO"),
+              React.createElement("div",{style:{fontSize:10,color:"rgba(255,255,255,0.4)",marginBottom:10}},ctFields.hora||"21:00H"),
+              React.createElement("div",{style:{background:red,color:"#fff",fontSize:8,fontWeight:800,letterSpacing:"0.1em",textTransform:"uppercase",padding:"6px 14px",borderRadius:20}},"\uD83D\uDD14 Activa la notificaci\u00F3n")
+            ),
+            React.createElement("div",{style:{flexShrink:0,height:26,padding:"0 10px",display:"flex",alignItems:"center",justifyContent:"space-between",borderTop:"1px solid rgba(255,255,255,0.1)"}},React.createElement("span",{style:{fontSize:7,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.06em"}},"@thecardgirl"),React.createElement("span",{style:{fontSize:7,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.06em"}},"CARTAS \u00B7 COLECCIONISMO"))
+          )
+        )
+      ):null
     ):null,
     activeSection==="directo"?ce("div",{style:{display:"flex",gap:24,flexWrap:"wrap"}},
       ce("div",{style:{flex:1,minWidth:200}},
@@ -19622,6 +19774,7 @@ function RedesTab({ cards, onOpenPost }) {
             )
           ),
           ce("button",{onClick:function(){
+            saveRedesToFirestore({loteTitle:loteTitle});
             var el=document.getElementById("redes-lote");
             if(!el||!window.html2canvas){alert("Espera un momento");return;}
             window.html2canvas(el,{scale:4,useCORS:true,allowTaint:true,backgroundColor:null}).then(function(c){
@@ -19665,6 +19818,7 @@ function RedesTab({ cards, onOpenPost }) {
             var newEvents = calEvents.concat([ev]).sort(function(a,b){return a.fecha.localeCompare(b.fecha);});
             setCalEvents(newEvents);
             localStorage.setItem("cv10_cal_events",JSON.stringify(newEvents));
+            saveRedesToFirestore({calEvents:newEvents});
             setCalForm({fecha:"",tipo:"post",carta:"",nota:""});
           },style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"+ A\u00F1adir al calendario")
         ),
@@ -19690,6 +19844,7 @@ function RedesTab({ cards, onOpenPost }) {
                   var newEvents=calEvents.filter(function(e){return e.id!==ev.id;});
                   setCalEvents(newEvents);
                   localStorage.setItem("cv10_cal_events",JSON.stringify(newEvents));
+                  saveRedesToFirestore({calEvents:newEvents});
                 },style:{background:"none",border:"none",cursor:"pointer",color:"#d1d5db",fontSize:14,padding:0,flexShrink:0}},"\u00D7")
               );
             })
@@ -19816,10 +19971,11 @@ function PostModal({ card, onClose }) {
         ftrEl
       );},
       fields:["name","set","num","price","psa"]
-    }
+    },
+    // GRAIL COMPRADO
   ];
 
-  var fieldLabels = { name:"Nombre jugador", set:"Set/coleccion", num:"Numeracion (ej: 49)", price:"Precio (EUR)", cta:"Texto boton", label1:"Etiqueta superior", psa:"Grado PSA" };
+  var fieldLabels = { name:"Nombre jugador", set:"Set/coleccion", num:"Numeracion (ej: 49)", price:"Precio pagado/venta (EUR)", cta:"Texto boton", label1:"Etiqueta superior", psa:"Grado PSA", precioActual:"Precio actual mercado (EUR)", countdown:"Tiempo (ej: 2H, 30MIN)", hora:"Hora del directo" };
   var selDef = selTpl ? tplDefs.find(function(t){ return t.id===selTpl; }) : null;
   var isStory = selTpl && selTpl.startsWith("s-");
 
@@ -19876,7 +20032,18 @@ function PostModal({ card, onClose }) {
                         var num = ef.num||(player.match(/\/([0-9]+)/)?player.match(/\/([0-9]+)/)[1]:"");
                         var isAuto = player.toLowerCase().includes("auto");
                         var captions = [
-                          "\uD83D\uDD25 "+player+" disponible"+(num?" \u2014 /"+num:"")+"\n\n"+(set?set+"\n\n":"")+(price?price+"\u20AC \u00B7 Precio fijo\n":"")+"\n\uD83D\uDCE9 DM para reservar\n\n#TradingCards #CartasFutbol #TheCardGirl"+(isAuto?" #AutoCard":"")+(num?" #Numerada":"")
+                          "\uD83D\uDD25 "+player+" disponible"+(num?" \u2014 /"+num:"")+"\n\n"+(set?set+"\n\n":"")+(price?price+"\u20AC \u00B7 Precio fijo\n":"")+"\n\uD83D\uDCE9 DM para reservar\n\n#TradingCards #TheCardGirl"+(function(){
+                          var cat=c.category||"";
+                          var t="";
+                          if(cat==="nba"||cat==="basketball") t+=" #NBACards #Basketball #Panini";
+                          else if(cat==="futbol"||cat==="futbol_m"||cat==="futbol_f") t+=" #CartasFutbol #Football #Topps";
+                          else if(cat==="f1") t+=" #F1Cards #Formula1";
+                          else if(cat==="baseball") t+=" #BaseballCards #MLB";
+                          else t+=" #CartasDeportivas #Coleccionismo";
+                          if(isAuto) t+=" #AutoCard #Autografo";
+                          if(num) t+=" #Numerada";
+                          return t;
+                        })()
                         ];
                         return React.createElement("div", {style:{display:"flex",flexDirection:"column",gap:10}},
                           captions.map(function(cap, i){
@@ -21313,6 +21480,15 @@ function initFirebase() {
         .catch(function(e) { console.error('Save error:', e); });
     };
 
+    window._loadRedesFromFirestore = function(cb) {
+      if (!window._currentUser) { cb(null); return; }
+      db.collection('users').doc(window._currentUser.uid)
+        .collection('data').doc('main')
+        .get()
+        .then(function(doc) { if(doc.exists && doc.data().redesData) cb(doc.data().redesData); else cb(null); })
+        .catch(function(e) { console.error('Load redes error:', e); cb(null); });
+    };
+
     window._signIn = function() {
       var provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider).catch(function(e) {
@@ -21416,7 +21592,6 @@ function initFirebase() {
   }
 })();
 </script>
-
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </body>
 </>
