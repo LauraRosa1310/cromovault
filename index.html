@@ -19427,6 +19427,7 @@ function RedesTab({ cards, onOpenPost }) {
   var [ideas, setIdeas] = React.useState(function(){ try{ return JSON.parse(localStorage.getItem("cv10_ideas")||"[]"); }catch(e){ return []; } });
   var [ideaForm, setIdeaForm] = React.useState({texto:"",tipo:"post",urgencia:"normal"});
   var [faqItems, setFaqItems] = React.useState(function(){ try{ return JSON.parse(localStorage.getItem("cv10_faq")||"null"); }catch(e){ return null; } });
+  var [faqEdit,setFaqEdit]=React.useState(false);
   var [pcForm, setPcForm] = React.useState({coste:"",envio:"3",margen:"30",portes:"si"});
   function spc(k,v){ setPcForm(function(p){ return Object.assign({},p,{[k]:v}); }); }
   var [ctFields, setCtFields] = React.useState({name:"",price:"",precioActual:"",num:"",psa:"",img:"",countdown:"2H",hora:"21:00H"});
@@ -19449,6 +19450,7 @@ function RedesTab({ cards, onOpenPost }) {
     if(window._saveToFirestore) window._saveToFirestore({ redesData: patch });
   }
   var [calForm, setCalForm] = React.useState({fecha:"",tipo:"post",carta:"",nota:""});
+  var [calEditId, setCalEditId] = React.useState(null);
   var [captionCard, setCaptionCard] = React.useState(null);
   var [captionSearch, setCaptionSearch] = React.useState("");
   var [loteCards, setLoteCards] = React.useState([]);
@@ -19519,6 +19521,18 @@ function RedesTab({ cards, onOpenPost }) {
     ftrEl
   );
 
+  var FAQ_DEFAULT=[
+          {cat:"Env\u00EDos",q:"\u00BFC\u00F3mo env\u00EDas?",a:"Env\u00EDo con Correos/Envialia con seguimiento. 24-48h desde el pago. Todas las cartas van en top loader + sleeve + sobre acolchado. \uD83D\uDCE6"},
+          {cat:"Env\u00EDos",q:"\u00BFEnv\u00EDas fuera de Espa\u00F1a?",a:"S\u00ED, env\u00EDo a toda la UE. El coste internacional lo calculamos seg\u00FAn destino, esc\u00EDbeme con tu pa\u00EDs. \uD83C\uDF0D"},
+          {cat:"Pagos",q:"\u00BFC\u00F3mo se paga?",a:"Acepto Bizum, PayPal (F&F o con comisi\u00F3n) y transferencia. Pago antes del env\u00EDo. \uD83D\uDCB3"},
+          {cat:"Pagos",q:"\u00BFHaces reservas?",a:"S\u00ED, con se\u00F1al del 50% reservo hasta 48h. Pas\u00E1ndose ese tiempo la pongo a la venta de nuevo. \u23F0"},
+          {cat:"Cartas",q:"\u00BFEst\u00E1 en buen estado?",a:"S\u00ED, todas en perfecto estado NM/M salvo que se indique. Siempre env\u00EDo foto real antes de confirmar. \uD83D\uDC40"},
+          {cat:"Cartas",q:"\u00BFHaces descuento por varios?",a:"S\u00ED, comprando 2+ cartas hago descuento en env\u00EDo y miramos precio. Esc\u00EDbeme con lo que te interesa. \uD83D\uDECD\uFE0F"},
+          {cat:"Cambios",q:"\u00BFHaces cambios?",a:"Depende de la carta. Esc\u00EDbeme qu\u00E9 ofreces y qu\u00E9 quieres y lo valoramos. \uD83E\uDD1D"},
+          {cat:"PSA",q:"\u00BFLa env\u00EDas a gradar?",a:"Puedo gestionarlo con coste de gesti\u00F3n. Preg\u00FAntame por precios seg\u00FAn el tier (Economy, Regular, Express). \uD83C\uDFC6"}
+        ];
+  var faqData=(faqItems&&faqItems.length)?faqItems:FAQ_DEFAULT;
+  function saveFaq(a){setFaqItems(a);try{localStorage.setItem("cv10_faq",JSON.stringify(a));}catch(e){}saveRedesToFirestore({faq:a});}
   return ce("div",{style:{padding:"0 0 40px",minWidth:0,overflowX:"hidden"}},
     ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,gap:8,flexWrap:"wrap"}},
       ce("div",{style:{fontSize:20,fontWeight:700}},"\uD83D\uDCF1 Redes Sociales"),
@@ -19527,11 +19541,8 @@ function RedesTab({ cards, onOpenPost }) {
     ce("div",{style:{display:"flex",borderBottom:"1px solid #e5e7eb",marginBottom:24,overflowX:"auto",WebkitOverflowScrolling:"touch"}},
       sectionBtn("post","\uD83D\uDCF8 Post"),
       sectionBtn("top5","\uD83C\uDFAC Contenido"),
-      sectionBtn("directo","\uD83C\uDFA5 Directo"),
-      sectionBtn("lote","\uD83D\uDCE6 Lote directo"),
       sectionBtn("cal","\uD83D\uDCC5 Calendario"),
       sectionBtn("ideas","\uD83D\uDCA1 Ideas"),
-      sectionBtn("precios","\uD83D\uDCB0 Precios"),
       sectionBtn("faq","\uD83D\uDCAC FAQ")
     ),
     activeSection==="post"?ce("div",null,
@@ -19552,12 +19563,83 @@ function RedesTab({ cards, onOpenPost }) {
     ):null,
     activeSection==="top5"?React.createElement("div",null,
       React.createElement("div",{style:{display:"flex",gap:0,marginBottom:16,borderBottom:"1px solid #e5e7eb",overflowX:"auto"}},
-        ["top5list","cuanto","psa","nodebivender","comparativa","countdown"].map(function(sv){
-          var labels={"top5list":"\uD83D\uDCCB Top 5","cuanto":"\uD83E\uDD14 \u00BFCu\u00E1nto vale?","psa":"\uD83C\uDFC6 PSA","nodebivender":"\uD83D\uDE22 No deb\u00ED vender","comparativa":"\uD83D\uDCC8 Comparativa","countdown":"\u23F3 Countdown"};
+        ["top5list","lote","cuanto","psa","nodebivender","comparativa","countdown"].map(function(sv){
+          var labels={"top5list":"\uD83D\uDCCB Top 5","lote":"\uD83D\uDCE6 Lote directo","cuanto":"\uD83E\uDD14 \u00BFCu\u00E1nto vale?","psa":"\uD83C\uDFC6 PSA","nodebivender":"\uD83D\uDE22 No deb\u00ED vender","comparativa":"\uD83D\uDCC8 Comparativa","countdown":"\u23F3 Countdown"};
           var isActive=(contenidoSub||"top5list")===sv;
           return React.createElement("button",{key:sv,onClick:function(){setContenidoSub(sv);},style:{padding:"6px 10px",border:"none",borderBottom:"2px solid "+(isActive?red:"transparent"),background:"transparent",color:isActive?red:sub,fontSize:11,fontWeight:isActive?700:500,cursor:"pointer",fontFamily:"Inter,sans-serif",whiteSpace:"nowrap",marginBottom:-1}},labels[sv]);
         })
       ),
+      (contenidoSub||"top5list")==="lote"?ce("div",null,
+      ce("div",{style:{marginBottom:16}},
+        ce("div",{style:{fontSize:13,fontWeight:600,marginBottom:8}},"Selecciona las cartas que vas a vender en el directo y genera una story de previsualización."),
+        ce("div",{style:{display:"flex",gap:8,marginBottom:12}},
+          ce("input",{value:loteTitle,onChange:function(e){setLoteTitle(e.target.value);},placeholder:"Nombre del directo...",style:{flex:1,border:"1px solid #e5e7eb",borderRadius:8,padding:"8px 12px",fontSize:13,fontFamily:"Inter,sans-serif"}}),
+          ce("button",{onClick:function(){ setLoteCards([]); },style:{padding:"8px 12px",border:"1px solid #fecaca",borderRadius:8,background:"#fff5f5",color:"#ef4444",fontSize:12,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Limpiar")
+        ),
+        ce("input",{value:loteSearch,onChange:function(e){setLoteSearch(e.target.value);},placeholder:"\uD83D\uDD0D Buscar carta...",style:{width:"100%",border:"1px solid #e5e7eb",borderRadius:8,padding:"8px 12px",fontSize:13,fontFamily:"Inter,sans-serif",boxSizing:"border-box",marginBottom:10}})
+      ),
+      ce("div",{style:{display:"flex",gap:16,flexWrap:"wrap"}},
+        ce("div",{style:{flex:1,minWidth:200}},
+          ce("div",{style:{fontSize:10,fontWeight:700,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}},loteCards.length+" cartas seleccionadas"),
+          cards.filter(function(c){ return c.mode==="inventory"&&c.status!=="sold"&&(!loteSearch||(c.name||"").toLowerCase().includes(loteSearch.toLowerCase())); }).map(function(c){
+            var sel = loteCards.some(function(x){return x.id===c.id;});
+            return ce("div",{key:c.id,onClick:function(){
+              if(sel) setLoteCards(function(p){return p.filter(function(x){return x.id!==c.id;});});
+              else setLoteCards(function(p){return p.concat([c]);});
+            },style:{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:sel?"#eff6ff":"#fff",border:"1px solid "+(sel?"#3b82f6":"#e8eaed"),borderRadius:8,cursor:"pointer",marginBottom:6}},
+              ce("div",{style:{width:18,height:18,borderRadius:4,background:sel?"#3b82f6":"transparent",border:"2px solid "+(sel?"#3b82f6":"#d1d5db"),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}},
+                sel?ce("span",{style:{color:"#fff",fontSize:11,fontWeight:700}},"\u2713"):null
+              ),
+              ce("div",null,
+                ce("div",{style:{fontSize:12,fontWeight:600}},c.name||"Sin nombre"),
+                ce("div",{style:{fontSize:10,color:sub}},c.series||c.category||"")
+              )
+            );
+          })
+        ),
+        loteCards.length>0?ce("div",{style:{flexShrink:0}},
+          ce("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
+          ce("div",{id:"redes-lote",style:{width:200,background:bg,borderRadius:4,overflow:"hidden",display:"flex",flexDirection:"column"}},
+            ce("div",{style:{padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}},
+              ce("img",{src:logoUrl,style:{width:32,height:32,borderRadius:"50%",objectFit:"cover"}}),
+              ce("div",{style:{fontSize:8,fontWeight:800,color:"#fff",padding:"4px 10px",borderRadius:20,background:red,display:"flex",alignItems:"center",gap:3}},
+                ce("div",{style:{width:5,height:5,background:"#fff",borderRadius:"50%"}}),"EN DIRECTO"
+              )
+            ),
+            ce("div",{style:{flex:1,padding:"0 10px 10px"}},
+              ce("div",{style:{fontSize:7,fontWeight:700,letterSpacing:"0.15em",textTransform:"uppercase",color:red,marginBottom:3}},"HOY VENDEMOS"),
+              ce("div",{style:{fontSize:14,fontWeight:900,color:dark,lineHeight:0.9,marginBottom:10}},loteTitle.toUpperCase()),
+              ce("div",{style:{display:"flex",flexDirection:"column",gap:4}},
+                loteCards.slice(0,6).map(function(c,i){
+                  var img=c.imageUrl||c.cloudinaryUrl||"";
+                  return ce("div",{key:c.id,style:{display:"flex",alignItems:"center",gap:6,padding:"4px 0",borderBottom:i<5?"1px solid #d0d2da":"none"}},
+                    img?ce("img",{src:img,style:{width:28,height:38,objectFit:"cover",borderRadius:3,flexShrink:0,border:"1px solid #d0d2da"}}):
+                    ce("div",{style:{width:28,height:38,background:"#d4d6e0",borderRadius:3,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#aaa",fontWeight:700}},i+1),
+                    ce("div",{style:{flex:1,minWidth:0}},
+                      ce("div",{style:{fontSize:8,fontWeight:600,color:dark,lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},c.name||"")
+                    ),
+                    c.sellPrice||c.targetPrice?ce("div",{style:{fontSize:8,fontWeight:700,color:red,whiteSpace:"nowrap",flexShrink:0}},(c.sellPrice||c.targetPrice)+"\u20AC"):null
+                  );
+                }),
+                loteCards.length>5?ce("div",{style:{fontSize:9,color:sub,marginTop:4,textAlign:"center"}},"+"+( loteCards.length-5)+" m\u00E1s..."):null
+              )
+            ),
+            ce("div",{style:{flexShrink:0,height:28,padding:"0 10px",display:"flex",alignItems:"center",justifyContent:"space-between",borderTop:"3px solid transparent",background:"linear-gradient("+bg+","+bg+") padding-box, linear-gradient(to right,"+blue+" 50%,"+red+" 50%) border-box"}},
+              ce("span",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.06em"}},"@thecardgirl"),
+              ce("span",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.06em"}},"CARTAS \u00B7 COLECCIONISMO")
+            )
+          ),
+          ce("button",{onClick:function(){
+            saveRedesToFirestore({loteTitle:loteTitle});
+            var el=document.getElementById("redes-lote");
+            if(!el||!window.html2canvas){alert("Espera un momento");return;}
+            window.html2canvas(el,{scale:4,useCORS:true,allowTaint:true,backgroundColor:null}).then(function(c){
+              var a=document.createElement("a");a.download="lote-directo.png";a.href=c.toDataURL("image/png");a.click();
+            });
+          },style:{width:"100%",marginTop:8,padding:"8px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 Descargar story")
+        ):null
+      )
+    ):null,
       (contenidoSub||"top5list")==="top5list"?React.createElement("div",{style:{display:"flex",gap:24,flexWrap:"wrap"}},
         React.createElement("div",{style:{flex:1,minWidth:200}},
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"T\u00CDTULO"),React.createElement("input",{value:top5titulo,onChange:function(e){setTop5titulo(e.target.value);},style:IS2})),
@@ -19705,100 +19787,11 @@ function RedesTab({ cards, onOpenPost }) {
         )
       ):null
     ):null,
-    activeSection==="directo"?ce("div",{style:{display:"flex",gap:24,flexWrap:"wrap"}},
-      ce("div",{style:{flex:1,minWidth:200}},
-        [["TEMA PRINCIPAL","tema"],["SEGUNDA L\u00CDNEA (azul, opcional)","tema2"],["D\u00CDA","dia"],["HORA","hora"],["D\u00D3NDE","donde"],["EXTRA (opcional)","extra"]].map(function(f){
-          return ce("div",{key:f[1],style:{marginBottom:12}},
-            ce("label",{style:LBL},f[0]),
-            ce("input",{value:dir[f[1]],onChange:function(e){var k=f[1];sdir(k,e.target.value);},style:IS2})
-          );
-        }),
-        ce("button",{onClick:function(){dlEl("redes-dir","directo");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:"#1a1a2e",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",marginTop:8}},"\u2B07 Descargar Directo")
-      ),
-      ce("div",null,
-        ce("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
-        dirPreview
-      )
-    ):null,
-
-    // ── LOTE DEL DIRECTO ──
-    activeSection==="lote"?ce("div",null,
-      ce("div",{style:{marginBottom:16}},
-        ce("div",{style:{fontSize:13,fontWeight:600,marginBottom:8}},"Selecciona las cartas que vas a vender en el directo y genera una story de previsualización."),
-        ce("div",{style:{display:"flex",gap:8,marginBottom:12}},
-          ce("input",{value:loteTitle,onChange:function(e){setLoteTitle(e.target.value);},placeholder:"Nombre del directo...",style:{flex:1,border:"1px solid #e5e7eb",borderRadius:8,padding:"8px 12px",fontSize:13,fontFamily:"Inter,sans-serif"}}),
-          ce("button",{onClick:function(){ setLoteCards([]); },style:{padding:"8px 12px",border:"1px solid #fecaca",borderRadius:8,background:"#fff5f5",color:"#ef4444",fontSize:12,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Limpiar")
-        ),
-        ce("input",{value:loteSearch,onChange:function(e){setLoteSearch(e.target.value);},placeholder:"\uD83D\uDD0D Buscar carta...",style:{width:"100%",border:"1px solid #e5e7eb",borderRadius:8,padding:"8px 12px",fontSize:13,fontFamily:"Inter,sans-serif",boxSizing:"border-box",marginBottom:10}})
-      ),
-      ce("div",{style:{display:"flex",gap:16,flexWrap:"wrap"}},
-        ce("div",{style:{flex:1,minWidth:200}},
-          ce("div",{style:{fontSize:10,fontWeight:700,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}},loteCards.length+" cartas seleccionadas"),
-          cards.filter(function(c){ return c.mode==="inventory"&&c.status!=="sold"&&(!loteSearch||(c.name||"").toLowerCase().includes(loteSearch.toLowerCase())); }).map(function(c){
-            var sel = loteCards.some(function(x){return x.id===c.id;});
-            return ce("div",{key:c.id,onClick:function(){
-              if(sel) setLoteCards(function(p){return p.filter(function(x){return x.id!==c.id;});});
-              else setLoteCards(function(p){return p.concat([c]);});
-            },style:{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:sel?"#eff6ff":"#fff",border:"1px solid "+(sel?"#3b82f6":"#e8eaed"),borderRadius:8,cursor:"pointer",marginBottom:6}},
-              ce("div",{style:{width:18,height:18,borderRadius:4,background:sel?"#3b82f6":"transparent",border:"2px solid "+(sel?"#3b82f6":"#d1d5db"),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}},
-                sel?ce("span",{style:{color:"#fff",fontSize:11,fontWeight:700}},"\u2713"):null
-              ),
-              ce("div",null,
-                ce("div",{style:{fontSize:12,fontWeight:600}},c.name||"Sin nombre"),
-                ce("div",{style:{fontSize:10,color:sub}},c.series||c.category||"")
-              )
-            );
-          })
-        ),
-        loteCards.length>0?ce("div",{style:{flexShrink:0}},
-          ce("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
-          ce("div",{id:"redes-lote",style:{width:200,background:bg,borderRadius:4,overflow:"hidden",display:"flex",flexDirection:"column"}},
-            ce("div",{style:{padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}},
-              ce("img",{src:logoUrl,style:{width:32,height:32,borderRadius:"50%",objectFit:"cover"}}),
-              ce("div",{style:{fontSize:8,fontWeight:800,color:"#fff",padding:"4px 10px",borderRadius:20,background:red,display:"flex",alignItems:"center",gap:3}},
-                ce("div",{style:{width:5,height:5,background:"#fff",borderRadius:"50%"}}),"EN DIRECTO"
-              )
-            ),
-            ce("div",{style:{flex:1,padding:"0 10px 10px"}},
-              ce("div",{style:{fontSize:7,fontWeight:700,letterSpacing:"0.15em",textTransform:"uppercase",color:red,marginBottom:3}},"HOY VENDEMOS"),
-              ce("div",{style:{fontSize:14,fontWeight:900,color:dark,lineHeight:0.9,marginBottom:10}},loteTitle.toUpperCase()),
-              ce("div",{style:{display:"flex",flexDirection:"column",gap:4}},
-                loteCards.slice(0,6).map(function(c,i){
-                  var img=c.imageUrl||c.cloudinaryUrl||"";
-                  return ce("div",{key:c.id,style:{display:"flex",alignItems:"center",gap:6,padding:"4px 0",borderBottom:i<5?"1px solid #d0d2da":"none"}},
-                    img?ce("img",{src:img,style:{width:28,height:38,objectFit:"cover",borderRadius:3,flexShrink:0,border:"1px solid #d0d2da"}}):
-                    ce("div",{style:{width:28,height:38,background:"#d4d6e0",borderRadius:3,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#aaa",fontWeight:700}},i+1),
-                    ce("div",{style:{flex:1,minWidth:0}},
-                      ce("div",{style:{fontSize:8,fontWeight:600,color:dark,lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},c.name||"")
-                    ),
-                    c.sellPrice||c.targetPrice?ce("div",{style:{fontSize:8,fontWeight:700,color:red,whiteSpace:"nowrap",flexShrink:0}},(c.sellPrice||c.targetPrice)+"\u20AC"):null
-                  );
-                }),
-                loteCards.length>5?ce("div",{style:{fontSize:9,color:sub,marginTop:4,textAlign:"center"}},"+"+( loteCards.length-5)+" m\u00E1s..."):null
-              )
-            ),
-            ce("div",{style:{flexShrink:0,height:28,padding:"0 10px",display:"flex",alignItems:"center",justifyContent:"space-between",borderTop:"3px solid transparent",background:"linear-gradient("+bg+","+bg+") padding-box, linear-gradient(to right,"+blue+" 50%,"+red+" 50%) border-box"}},
-              ce("span",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.06em"}},"@thecardgirl"),
-              ce("span",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.06em"}},"CARTAS \u00B7 COLECCIONISMO")
-            )
-          ),
-          ce("button",{onClick:function(){
-            saveRedesToFirestore({loteTitle:loteTitle});
-            var el=document.getElementById("redes-lote");
-            if(!el||!window.html2canvas){alert("Espera un momento");return;}
-            window.html2canvas(el,{scale:4,useCORS:true,allowTaint:true,backgroundColor:null}).then(function(c){
-              var a=document.createElement("a");a.download="lote-directo.png";a.href=c.toDataURL("image/png");a.click();
-            });
-          },style:{width:"100%",marginTop:8,padding:"8px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 Descargar story")
-        ):null
-      )
-    ):null,
-
     // ── CALENDARIO ──
     activeSection==="cal"?ce("div",null,
       ce("div",{style:{display:"flex",gap:16,flexWrap:"wrap"}},
         ce("div",{style:{flex:1,minWidth:220}},
-          ce("div",{style:{fontSize:14,fontWeight:700,marginBottom:12}},"Nuevo evento"),
+          ce("div",{style:{fontSize:14,fontWeight:700,marginBottom:12}}, calEditId?"Editar evento":"Nuevo evento"),
           ce("div",{style:{marginBottom:10}},
             ce("label",{style:{fontSize:10,fontWeight:700,color:red,letterSpacing:"0.15em",textTransform:"uppercase",display:"block",marginBottom:4}},"FECHA"),
             ce("input",{type:"date",value:calForm.fecha,onChange:function(e){setCalForm(function(p){return Object.assign({},p,{fecha:e.target.value});});},style:{width:"100%",border:"1px solid #e5e7eb",borderRadius:6,padding:"8px 10px",fontSize:13,fontFamily:"Inter,sans-serif",boxSizing:"border-box"}})
@@ -19823,13 +19816,17 @@ function RedesTab({ cards, onOpenPost }) {
           ),
           ce("button",{onClick:function(){
             if(!calForm.fecha){alert("Elige una fecha");return;}
-            var ev = Object.assign({},calForm,{id:Date.now().toString(36)});
-            var newEvents = calEvents.concat([ev]).sort(function(a,b){return a.fecha.localeCompare(b.fecha);});
+            var newEvents;
+            if(calEditId){ newEvents = calEvents.map(function(e){ return e.id===calEditId?Object.assign({},e,calForm):e; }); }
+            else { newEvents = calEvents.concat([Object.assign({},calForm,{id:Date.now().toString(36)})]); }
+            newEvents = newEvents.sort(function(a,b){return a.fecha.localeCompare(b.fecha);});
             setCalEvents(newEvents);
             localStorage.setItem("cv10_cal_events",JSON.stringify(newEvents));
             saveRedesToFirestore({calEvents:newEvents});
             setCalForm({fecha:"",tipo:"post",carta:"",nota:""});
-          },style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"+ A\u00F1adir al calendario")
+            setCalEditId(null);
+          },style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:calEditId?blue:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}}, calEditId?"\u2713 Guardar cambios":"+ A\u00F1adir al calendario"),
+          calEditId?ce("button",{onClick:function(){setCalForm({fecha:"",tipo:"post",carta:"",nota:""});setCalEditId(null);},style:{width:"100%",marginTop:6,padding:"8px",border:"1px solid #e5e7eb",borderRadius:8,background:"#fff",color:sub,fontSize:12,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Cancelar edici\u00F3n"):null
         ),
         ce("div",{style:{flex:1,minWidth:220}},
           ce("div",{style:{fontSize:14,fontWeight:700,marginBottom:12}},"Pr\u00F3ximas publicaciones"),
@@ -19849,11 +19846,13 @@ function RedesTab({ cards, onOpenPost }) {
                   ce("div",{style:{fontSize:11,color:sub}},ev.fecha+(ev.nota?" · "+ev.nota:"")),
                   isPast?ce("div",{style:{fontSize:10,color:"#9ca3af",marginTop:2}},"\u2713 Publicado"):null
                 ),
+                ce("button",{onClick:function(){ setCalForm({fecha:ev.fecha,tipo:ev.tipo,carta:ev.carta||"",nota:ev.nota||""}); setCalEditId(ev.id); },style:{background:"none",border:"none",cursor:"pointer",color:"#9ca3af",fontSize:14,padding:0,flexShrink:0}},"\u270F\uFE0F"),
                 ce("button",{onClick:function(){
                   var newEvents=calEvents.filter(function(e){return e.id!==ev.id;});
                   setCalEvents(newEvents);
                   localStorage.setItem("cv10_cal_events",JSON.stringify(newEvents));
                   saveRedesToFirestore({calEvents:newEvents});
+                  if(calEditId===ev.id){ setCalEditId(null); setCalForm({fecha:"",tipo:"post",carta:"",nota:""}); }
                 },style:{background:"none",border:"none",cursor:"pointer",color:"#d1d5db",fontSize:14,padding:0,flexShrink:0}},"\u00D7")
               );
             })
@@ -19954,38 +19953,29 @@ function RedesTab({ cards, onOpenPost }) {
     ):null,
 
     activeSection==="faq"?React.createElement("div",null,
-      React.createElement("div",{style:{fontSize:14,fontWeight:700,marginBottom:4}},"Respuestas r\u00E1pidas para DMs"),
-      React.createElement("div",{style:{fontSize:12,color:sub,marginBottom:16}},"Copia cualquier respuesta con un clic para pegarla en Instagram o Geek."),
-      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10}},
-        [
-          {cat:"Env\u00EDos",q:"\u00BFC\u00F3mo env\u00EDas?",a:"Env\u00EDo con Correos/Envialia con seguimiento. 24-48h desde el pago. Todas las cartas van en top loader + sleeve + sobre acolchado. \uD83D\uDCE6"},
-          {cat:"Env\u00EDos",q:"\u00BFEnv\u00EDas fuera de Espa\u00F1a?",a:"S\u00ED, env\u00EDo a toda la UE. El coste internacional lo calculamos seg\u00FAn destino, esc\u00EDbeme con tu pa\u00EDs. \uD83C\uDF0D"},
-          {cat:"Pagos",q:"\u00BFC\u00F3mo se paga?",a:"Acepto Bizum, PayPal (F&F o con comisi\u00F3n) y transferencia. Pago antes del env\u00EDo. \uD83D\uDCB3"},
-          {cat:"Pagos",q:"\u00BFHaces reservas?",a:"S\u00ED, con se\u00F1al del 50% reservo hasta 48h. Pas\u00E1ndose ese tiempo la pongo a la venta de nuevo. \u23F0"},
-          {cat:"Cartas",q:"\u00BFEst\u00E1 en buen estado?",a:"S\u00ED, todas en perfecto estado NM/M salvo que se indique. Siempre env\u00EDo foto real antes de confirmar. \uD83D\uDC40"},
-          {cat:"Cartas",q:"\u00BFHaces descuento por varios?",a:"S\u00ED, comprando 2+ cartas hago descuento en env\u00EDo y miramos precio. Esc\u00EDbeme con lo que te interesa. \uD83D\uDECD\uFE0F"},
-          {cat:"Cambios",q:"\u00BFHaces cambios?",a:"Depende de la carta. Esc\u00EDbeme qu\u00E9 ofreces y qu\u00E9 quieres y lo valoramos. \uD83E\uDD1D"},
-          {cat:"PSA",q:"\u00BFLa env\u00EDas a gradar?",a:"Puedo gestionarlo con coste de gesti\u00F3n. Preg\u00FAntame por precios seg\u00FAn el tier (Economy, Regular, Express). \uD83C\uDFC6"}
-        ].map(function(item,i){
-          return React.createElement("div",{key:i,style:{padding:"12px 14px",background:"#fff",border:"1px solid #e8eaed",borderRadius:10}},
-            React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
-              React.createElement("div",{style:{flex:1}},
-                React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:6}},
-                  React.createElement("span",{style:{fontSize:9,fontWeight:700,color:"#fff",background:red,padding:"2px 8px",borderRadius:20,letterSpacing:"0.1em",textTransform:"uppercase"}},item.cat),
-                  React.createElement("span",{style:{fontSize:12,fontWeight:700,color:dark}},item.q)
-                ),
-                React.createElement("div",{style:{fontSize:12,color:"#4b5563",lineHeight:1.6}},item.a)
-              ),
-              React.createElement("button",{onClick:function(){
-                var txt=item.a;
-                if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){alert("\u2705 Copiado!");});}
-                else{var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);alert("\u2705 Copiado!");}
-              },style:{flexShrink:0,padding:"6px 12px",border:"1px solid #e5e7eb",borderRadius:6,background:"#f9fafb",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",whiteSpace:"nowrap"}},"\uD83D\uDCCB Copiar")
-            )
-          );
-        })
-      )
-    ):null
+      ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,gap:8,flexWrap:"wrap"}},
+        ce("div",null,
+          ce("div",{style:{fontSize:14,fontWeight:700}},"Respuestas rápidas para DMs"),
+          ce("div",{style:{fontSize:12,color:sub,marginTop:2}}, faqEdit?"Edita tus respuestas · se guardan solas":"Copia cualquier respuesta con un clic")),
+        ce("button",{onClick:function(){setFaqEdit(!faqEdit);},style:{padding:"7px 14px",border:"1px solid #e5e7eb",borderRadius:8,background:faqEdit?dark:"#f9fafb",color:faqEdit?"#fff":dark,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}}, faqEdit?"✓ Hecho":"✏️ Editar")),
+      ce("div",{style:{display:"flex",flexDirection:"column",gap:10}},
+        faqData.map(function(item,i){
+          return faqEdit?ce("div",{key:i,style:{padding:"12px 14px",background:"#fff",border:"1px solid #e8eaed",borderRadius:10}},
+              ce("div",{style:{display:"flex",gap:6,marginBottom:6}},
+                ce("input",{value:item.cat||"",onChange:function(e){var v=e.target.value;saveFaq(faqData.map(function(x,j){return j===i?Object.assign({},x,{cat:v}):x;}));},placeholder:"Cat.",style:{width:100,border:"1px solid #e5e7eb",borderRadius:6,padding:"6px 8px",fontSize:12,fontFamily:"Inter,sans-serif"}}),
+                ce("input",{value:item.q||"",onChange:function(e){var v=e.target.value;saveFaq(faqData.map(function(x,j){return j===i?Object.assign({},x,{q:v}):x;}));},placeholder:"Pregunta",style:{flex:1,minWidth:0,border:"1px solid #e5e7eb",borderRadius:6,padding:"6px 8px",fontSize:12,fontFamily:"Inter,sans-serif"}}),
+                ce("button",{onClick:function(){saveFaq(faqData.filter(function(_,j){return j!==i;}));},style:{border:"none",background:"none",color:red,cursor:"pointer",fontSize:16,flexShrink:0}},"×")),
+              ce("textarea",{value:item.a||"",onChange:function(e){var v=e.target.value;saveFaq(faqData.map(function(x,j){return j===i?Object.assign({},x,{a:v}):x;}));},rows:2,placeholder:"Respuesta",style:{width:"100%",border:"1px solid #e5e7eb",borderRadius:6,padding:"6px 8px",fontSize:12,fontFamily:"Inter,sans-serif",boxSizing:"border-box",resize:"vertical"}}))
+          :ce("div",{key:i,style:{padding:"12px 14px",background:"#fff",border:"1px solid #e8eaed",borderRadius:10}},
+              ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
+                ce("div",{style:{flex:1}},
+                  ce("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:6}},
+                    item.cat?ce("span",{style:{fontSize:9,fontWeight:700,color:"#fff",background:red,padding:"2px 8px",borderRadius:20,letterSpacing:"0.1em",textTransform:"uppercase"}},item.cat):null,
+                    ce("span",{style:{fontSize:12,fontWeight:700,color:dark}},item.q)),
+                  ce("div",{style:{fontSize:12,color:"#4b5563",lineHeight:1.6}},item.a)),
+                ce("button",{onClick:function(){var txt=item.a;if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){alert("✅ Copiado!");});}else{var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);alert("✅ Copiado!");}},style:{flexShrink:0,padding:"6px 12px",border:"1px solid #e5e7eb",borderRadius:6,background:"#f9fafb",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",whiteSpace:"nowrap"}},"📋 Copiar")));
+        }),
+        faqEdit?ce("button",{onClick:function(){saveFaq(faqData.concat([{cat:"Nueva",q:"Nueva pregunta",a:"Respuesta"}]));},style:{padding:"9px",border:"1px dashed #cbd5e1",borderRadius:8,background:"#f9fafb",color:dark,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"+ Añadir pregunta"):null)):null
   );
 }
 function PostModal({ card, onClose }) {
@@ -20032,15 +20022,14 @@ function PostModal({ card, onClose }) {
               React.createElement("div",{style:{fontSize:9,fontWeight:700,color:dark}},ef.set),
               React.createElement("div",{style:{fontSize:8,color:sub,paddingBottom:6,borderBottom:"1px solid #d0d2da",marginBottom:6}},ef.num?"/"+ef.num:""),
               slbl("PRECIO"),
-              React.createElement("div",{style:{fontSize:w>200?20:13,fontWeight:900,color:red,letterSpacing:"-0.02em",lineHeight:1}},ef.price?ef.price+"\u20AC":""),
-              React.createElement("div",{style:{marginTop:6,background:dark,color:"#fff",fontSize:8,fontWeight:800,letterSpacing:"0.06em",textTransform:"uppercase",padding:"6px 8px",borderRadius:4,display:"inline-block"}},ef.cta)
+              React.createElement("div",{style:{fontSize:w>200?20:13,fontWeight:900,color:red,letterSpacing:"-0.02em",lineHeight:1}},ef.price?ef.price+"\u20AC":"")
             ),
             cardEl(w>200?90:55,w>200?100:65)
           )
         ),
         ftrEl
       );},
-      fields:["label1","name","set","num","price","cta","psa"]
+      fields:["label1","name","set","num","price","psa"]
     },
     { id:"s-dia", label:"Story carta del d\u00EDa",
       render: function(w,h){ return React.createElement("div",{id:"tcg-tpl",style:{width:w,height:h,background:bg,borderRadius:4,overflow:"hidden",display:"flex",flexDirection:"column",flexShrink:0}},
@@ -20048,12 +20037,11 @@ function PostModal({ card, onClose }) {
         React.createElement("div",{style:{flex:1,padding:"0 8px 6px",display:"flex",flexDirection:"column",overflow:"hidden"}},
           slbl(ef.label1),
           React.createElement("div",{style:{fontSize:w>130?20:14,fontWeight:900,lineHeight:0.86,color:dark,marginBottom:6}},"CARTA ",React.createElement("span",{style:{color:red}},"DEL D\u00CDA")),
-          React.createElement("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center"}},cardEl(w>130?110:70,w>130?120:76)),
-          React.createElement("div",{style:{marginTop:6,background:dark,color:"#fff",fontSize:8,fontWeight:800,letterSpacing:"0.04em",textTransform:"uppercase",padding:"7px",borderRadius:5,textAlign:"center",whiteSpace:"nowrap"}},ef.price?ef.price+"\u20AC \u00B7 "+ef.cta:ef.cta)
+          React.createElement("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center"}},cardEl(w>130?110:70,w>130?120:76))
         ),
         ftrEl
       );},
-      fields:["label1","name","price","cta","psa"]
+      fields:["label1","name","price","psa"]
     },
     { id:"s-guardo", label:"\u00BFVendo o guardo?",
       render: function(w,h){ return React.createElement("div",{id:"tcg-tpl",style:{width:w,height:h,background:bg,borderRadius:4,overflow:"hidden",display:"flex",flexDirection:"column",flexShrink:0}},
@@ -20373,7 +20361,15 @@ function BreaksTab({ breaks, saveBreaks }) {
             })));
 
     // ---- Mis breaks ----
+    var agg = breaks.reduce(function (a, b) { var e = breakEcon(b); a.box += e.boxCost; a.rev += e.revenue; a.iva += e.iva; a.net += e.net; return a; }, { box: 0, rev: 0, iva: 0, net: 0 });
+    function acell(label, val, accent, br) { return h("div", { style: { flex: "1 1 90px", padding: "12px 14px", borderRight: br ? "1px solid " + BDR : "none" } }, h("div", { style: { fontSize: 10, color: SUB, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" } }, label), h("div", { style: { fontSize: 17, fontWeight: 800, color: accent || TXT, marginTop: 2 } }, val)); }
+    var aggDash = breaks.length > 0 ? h(Card, { style: { marginBottom: 16, padding: 0 } }, h("div", { style: { display: "flex", flexWrap: "wrap" } },
+        acell("Invertido", eu(agg.box), TXT, true),
+        acell("Recibido", eu(agg.rev), TXT, true),
+        acell("− REBU", eu(agg.iva), RED, true),
+        acell("Neto total", sg(agg.net) + eu(agg.net), cl(agg.net), false))) : null;
     var list = h("div", null,
+        aggDash,
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
             h("div", { style: { fontSize: 13, color: SUB } }, (breaks.length) + " break" + (breaks.length === 1 ? "" : "s") + " registrado" + (breaks.length === 1 ? "" : "s")),
             h(Btn, { onClick: function () { setView("create"); } }, "+ Nuevo break")),
@@ -20400,7 +20396,7 @@ function BreaksTab({ breaks, saveBreaks }) {
                             ec.pend > 0 ? h("span", { style: { color: AMBER, fontWeight: 600 } }, "📦 " + ec.pend + " por enviar") : null),
                         h("div", { style: { display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" } },
                             h(Btn, { sm: true, onClick: function () { setRouletteStart(false); setManaging(b); } }, "🎟️ Spots"),
-                            (b.spots && b.spots.length > 0) ? h(Btn, { sm: true, v: "success", onClick: function () { setRouletteStart(true); setManaging(b); } }, "🎡 Ruleta") : null,
+                            (b.assign === "roulette" && b.spots && b.spots.length > 0) ? h(Btn, { sm: true, v: "success", onClick: function () { setRouletteStart(true); setManaging(b); } }, "🎡 Ruleta") : null,
                             h(Btn, { sm: true, v: "outline", onClick: function () { setEditing(b); } }, "Editar"),
                             h(Btn, { sm: true, v: "ghost", onClick: function () { if (confirm("¿Eliminar este break?")) saveBreaks(breaks.filter(function (x) { return x.id !== b.id; })); } }, "Eliminar")));
                 })));
@@ -20576,9 +20572,7 @@ function BreakEditor({ brk, breaks, saveBreaks, onClose, onManage }) {
                         h("div", { style: { fontSize: 12, color: GREEN, fontWeight: 600, marginBottom: 8 } }, savedMsg),
                         h(Btn, { full: true, onClick: function () { onManage(lastNb || d); } }, (d.assign === "roulette") ? "🎡 Ir a la ruleta →" : "🎟️ Poner compradores →")) : null),
 
-                h("div", { style: { padding: "14px 16px", background: BGS, borderRadius: 10, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 } },
-                    h("span", { style: { fontSize: 13, color: SUB } }, (d.spots || []).length + " spots · Ingresos ", h("b", { style: { color: TXT } }, eu(ec.revenue)), " · IVA REBU ", h("b", { style: { color: RED } }, eu(ec.iva))),
-                    h("span", { style: { fontSize: 15, fontWeight: 800, color: cl(ec.net) } }, "Neto " + sg(ec.net) + eu(ec.net) + " (" + sg(ec.roi) + ec.roi.toFixed(1) + "%)")),
+                h("div", { style: { padding: "12px 16px", background: BGS, borderRadius: 10, fontSize: 13, color: SUB } }, (d.spots || []).length + " spots creados"),
 
                 h("div", { style: { display: "flex", gap: 10, marginTop: 18 } },
                     h(Btn, { v: "outline", full: true, onClick: onClose }, "Cerrar"),
@@ -20594,6 +20588,7 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
     var rot = useState(0), rotDeg = rot[0], setRotDeg = rot[1];
     var sp2 = useState(false), spinning = sp2[0], setSpinning = sp2[1];
     var bn = useState(null), banner = bn[0], setBanner = bn[1];
+    var cq = useState(""), clientQuery = cq[0], setClientQuery = cq[1];
     function persist(nb) { var exists = breaks.some(function (x) { return x.id === nb.id; }); saveBreaks(exists ? breaks.map(function (x) { return x.id === nb.id ? nb : x; }) : [nb].concat(breaks)); }
     function set(k, v) { var o = {}; o[k] = v; var nb = Object.assign({}, d, o); setD(nb); persist(nb); }
     function setSpot(i, k, v) { var sp = (d.spots || []).slice(); var o = {}; o[k] = v; sp[i] = Object.assign({}, sp[i], o); set("spots", sp); }
@@ -20669,22 +20664,30 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
                 h("div", { style: { display: "flex", gap: 8, marginTop: 12, maxWidth: 420, marginLeft: "auto", marginRight: "auto" } },
                     h("input", { value: buyer, onChange: function (e) { setBuyer(e.target.value); }, placeholder: "Nombre del comprador", disabled: spinning, style: Object.assign({}, IS, { flex: 1 }) }),
                     h(Btn, { onClick: spin, disabled: spinning || !buyer.trim(), style: { minWidth: 110, fontSize: 15, padding: "0 18px" } }, spinning ? "Girando…" : "🎯 Girar")),
-                h("div", { style: { fontSize: 11, color: MUT, textAlign: "center", marginTop: 8, lineHeight: 1.5 } }, "Escribe el comprador y gira. El equipo que salga se le asigna solo. Sin precios: puedes compartir esta pantalla.")),
-        hidePanel);
+                h("div", { style: { fontSize: 11, color: MUT, textAlign: "center", marginTop: 8, lineHeight: 1.5 } }, "Escribe el comprador y gira. El equipo que salga se le asigna solo. Sin precios: puedes compartir esta pantalla.")));
 
-    function dcell(label, val, accent, br) { return h("div", { style: { flex: "1 1 90px", padding: "10px 12px", borderRight: br ? "1px solid " + BDR : "none" } }, h("div", { style: { fontSize: 10, color: SUB, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" } }, label), h("div", { style: { fontSize: 16, fontWeight: 800, color: accent || TXT, marginTop: 2 } }, val)); }
-    var dashboard = h(Card, { style: { marginBottom: 16, padding: 0 } },
-        h("div", { style: { display: "flex", flexWrap: "wrap" } },
-            dcell("Invertido", eu(ec.boxCost), TXT, true),
-            dcell("Recibido", eu(ec.revenue), TXT, true),
-            dcell("− REBU", eu(ec.iva), RED, true),
-            dcell("Neto", sg(ec.net) + eu(ec.net), cl(ec.net), false)),
-        (ec.feeAmt > 0 || ec.shipping > 0) ? h("div", { style: { display: "flex", gap: 16, padding: "8px 12px", borderTop: "1px solid " + BDR, fontSize: 11, color: SUB, flexWrap: "wrap" } },
-            h("span", null, "Comisión ", h("b", { style: { color: RED } }, eu(ec.feeAmt))),
-            h("span", null, "Envío ", h("b", { style: { color: RED } }, eu(ec.shipping))),
-            h("span", null, "ROI ", h("b", { style: { color: cl(ec.roi) } }, sg(ec.roi) + ec.roi.toFixed(1) + "%"))) : null);
+    var cqv = clientQuery.trim().toLowerCase();
+    var clientHits = cqv ? breaks.map(function (b) { return { b: b, spots: (b.spots || []).map(function (s, i) { return { s: s, i: i }; }).filter(function (o) { return (o.s.buyer || "").toLowerCase().indexOf(cqv) >= 0; }) }; }).filter(function (x) { return x.spots.length > 0; }) : [];
+    var clientTotal = clientHits.reduce(function (a, x) { return a + x.spots.length; }, 0);
+    var clientBox = h("div", { style: { marginBottom: 16 } },
+        h("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
+            h("input", { value: clientQuery, onChange: function (e) { setClientQuery(e.target.value); }, placeholder: "🔍 Buscar cliente (su historial en todos los breaks)", style: Object.assign({}, IS, { flex: 1 }) }),
+            clientQuery ? h("button", { onClick: function () { setClientQuery(""); }, style: { border: "none", background: "none", color: SUB, cursor: "pointer", fontSize: 18 } }, "×") : null),
+        cqv ? h("div", { style: { marginTop: 10, border: "1px solid " + BDR, borderRadius: 10, overflow: "hidden" } },
+            clientHits.length === 0 ? h("div", { style: { padding: "14px", fontSize: 13, color: MUT, textAlign: "center" } }, "Sin resultados para “" + clientQuery + "”")
+                : h("div", null,
+                    h("div", { style: { padding: "8px 12px", background: BGS, fontSize: 12, fontWeight: 700 } }, clientTotal + " spot" + (clientTotal === 1 ? "" : "s") + " en " + clientHits.length + " break" + (clientHits.length === 1 ? "" : "s") + " · para empaquetar junto"),
+                    clientHits.map(function (x) {
+                        return h("div", { key: x.b.id, style: { padding: "8px 12px", borderTop: "1px solid " + BDR } },
+                            h("div", { style: { fontSize: 12, fontWeight: 700, marginBottom: 4 } }, (CATS[x.b.category] || "") + " " + (x.b.name || "Break") + " · " + (x.b.date || "")),
+                            x.spots.map(function (o) {
+                                return h("div", { key: o.s.id || o.i, style: { display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, padding: "2px 0" } },
+                                    h("span", null, ((o.s.team || "").trim() || ("Spot #" + (o.i + 1))) + " · " + (o.s.buyer || "")),
+                                    h("span", { style: { color: SUB, whiteSpace: "nowrap" } }, (o.s.shipped ? "✓ enviado" : (o.s.paid ? "pagado" : "pendiente"))));
+                            }));
+                    }))) : null);
     var listView = h("div", null,
-        (d.spots || []).length > 0 ? dashboard : null,
+        clientBox,
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, gap: 8, flexWrap: "wrap" } },
             h(SL, { style: { marginBottom: 0 } }, "Spots (" + (d.spots || []).length + ") · Total " + eu(ec.revenue)),
             h("div", { style: { display: "flex", gap: 8 } },
