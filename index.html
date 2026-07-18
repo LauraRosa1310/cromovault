@@ -20399,6 +20399,7 @@ function BreaksTab({ breaks, saveBreaks }) {
                             h(Btn, { sm: true, onClick: function () { setRouletteStart(false); setManaging(b); } }, "🎟️ Spots"),
                             (b.assign === "roulette" && b.spots && b.spots.length > 0) ? h(Btn, { sm: true, v: "success", onClick: function () { setRouletteStart(true); setManaging(b); } }, "🎡 Ruleta") : null,
                             h(Btn, { sm: true, v: "outline", onClick: function () { setEditing(b); } }, "Editar"),
+                            h(Btn, { sm: true, v: "outline", onClick: function () { var nb = JSON.parse(JSON.stringify(b)); nb.id = uid(); nb.date = new Date().toISOString().slice(0, 10); nb.name = (b.name || "Break") + " (copia)"; nb.spots = (b.spots || []).map(function (s) { return Object.assign({}, s, { id: uid(), buyer: "", paid: false, shipped: false, topBid: 0, topBidder: "" }); }); saveBreaks([nb].concat(breaks)); } }, "Duplicar"),
                             h(Btn, { sm: true, v: "ghost", onClick: function () { if (confirm("¿Eliminar este break?")) saveBreaks(breaks.filter(function (x) { return x.id !== b.id; })); } }, "Eliminar")));
                 })));
 
@@ -20616,6 +20617,7 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
     var rot = useState(0), rotDeg = rot[0], setRotDeg = rot[1];
     var sp2 = useState(false), spinning = sp2[0], setSpinning = sp2[1];
     var bn = useState(null), banner = bn[0], setBanner = bn[1];
+    var nr = useState(""), newRes = nr[0], setNewRes = nr[1];
     function persist(nb) { var exists = breaks.some(function (x) { return x.id === nb.id; }); saveBreaks(exists ? breaks.map(function (x) { return x.id === nb.id ? nb : x; }) : [nb].concat(breaks)); }
     function set(k, v) { var o = {}; o[k] = v; var nb = Object.assign({}, d, o); setD(nb); persist(nb); }
     function setSpot(i, k, v) { var sp = (d.spots || []).slice(); var o = {}; o[k] = v; sp[i] = Object.assign({}, sp[i], o); set("spots", sp); }
@@ -20625,6 +20627,10 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
     var byBuyer = {};
     (d.spots || []).forEach(function (s) { var n = (s.buyer || "").trim(); if (!n) return; if (!byBuyer[n]) byBuyer[n] = { name: n, count: 0, total: 0, pend: 0 }; byBuyer[n].count++; byBuyer[n].total += (+(s.price) || 0); if (!s.shipped) byBuyer[n].pend++; });
     var buyers = Object.values(byBuyer).sort(function (a, b) { return b.pend - a.pend; });
+    var reservations = d.reservations || [];
+    var assignedNames = {}; (d.spots || []).forEach(function (s) { var n = (s.buyer || "").trim().toLowerCase(); if (n) assignedNames[n] = true; });
+    function addRes() { var nm = newRes.trim(); if (!nm) return; set("reservations", reservations.concat([{ id: uid(), name: nm }])); setNewRes(""); }
+    function delRes(id) { set("reservations", reservations.filter(function (r) { return r.id !== id; })); }
 
     // ---------- RULETA ----------
     var WHEEL_COLORS = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316", "#6366f1", "#84cc16", "#06b6d4", "#eab308"];
@@ -20688,12 +20694,40 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
                         h("circle", { cx: 150, cy: 150, r: 22, fill: "#fff", stroke: "#e5e7eb", strokeWidth: 3 }),
                         h("circle", { cx: 150, cy: 150, r: 6, fill: "#9ca3af" }))),
                 banner ? h("div", { style: { textAlign: "center", padding: "10px 14px", margin: "8px auto", maxWidth: 360, background: "rgba(0,196,140,0.12)", border: "1px solid " + GREEN, borderRadius: 10, fontSize: 14, fontWeight: 700, color: "#047857" } }, "🎉 " + banner.team + " → " + banner.buyer) : null,
+                reservations.filter(function (r) { return !assignedNames[(r.name || "").toLowerCase()]; }).length > 0 ? h("div", { style: { display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center", marginTop: 12, maxWidth: 420, marginLeft: "auto", marginRight: "auto" } },
+                    h("span", { style: { fontSize: 11, color: SUB, width: "100%", textAlign: "center", marginBottom: 2 } }, "Reservas — toca para elegir:"),
+                    reservations.filter(function (r) { return !assignedNames[(r.name || "").toLowerCase()]; }).map(function (r) { return h("button", { key: r.id, onClick: function () { setBuyer(r.name); }, style: { padding: "4px 10px", border: "1px solid " + BLUE, borderRadius: 20, background: buyer === r.name ? BLUE : BG, color: buyer === r.name ? "#fff" : BLUE, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, r.name); })) : null,
                 h("div", { style: { display: "flex", gap: 8, marginTop: 12, maxWidth: 420, marginLeft: "auto", marginRight: "auto" } },
                     h("input", { value: buyer, onChange: function (e) { setBuyer(e.target.value); }, placeholder: "Nombre del comprador", disabled: spinning, style: Object.assign({}, IS, { flex: 1 }) }),
                     h(Btn, { onClick: spin, disabled: spinning || !buyer.trim(), style: { minWidth: 110, fontSize: 15, padding: "0 18px" } }, spinning ? "Girando…" : "🎯 Girar")),
                 h("div", { style: { fontSize: 11, color: MUT, textAlign: "center", marginTop: 8, lineHeight: 1.5 } }, "Escribe el comprador y gira. El equipo que salga se le asigna solo. Sin precios: puedes compartir esta pantalla.")));
 
+    var reservasPanel = h("div", { style: { marginBottom: 16, padding: "12px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10 } },
+        h("div", { style: { fontSize: 12, fontWeight: 700, marginBottom: 8 } }, "📋 Reservas antes del directo (" + reservations.length + ")"),
+        h("div", { style: { display: "flex", gap: 6, marginBottom: reservations.length ? 10 : 0 } },
+            h("input", { value: newRes, onChange: function (e) { setNewRes(e.target.value); }, onKeyDown: function (e) { if (e.key === "Enter") addRes(); }, placeholder: "Cliente que ya quiere un spot…", style: Object.assign({}, IS, { flex: 1 }) }),
+            h(Btn, { sm: true, onClick: addRes }, "+ Reservar")),
+        reservations.length > 0 ? h("div", { style: { display: "flex", flexWrap: "wrap", gap: 6 } }, reservations.map(function (r) {
+            var done = !!assignedNames[(r.name || "").toLowerCase()];
+            return h("span", { key: r.id, style: { display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 10px", background: BG, border: "1px solid " + (done ? GREEN : BDR), borderRadius: 20, fontSize: 12, fontWeight: 600, color: done ? GREEN : TXT } },
+                (done ? "✓ " : "") + r.name,
+                h("button", { onClick: function () { delRes(r.id); }, style: { border: "none", background: "none", cursor: "pointer", fontSize: 13, color: SUB } }, "×"));
+        })) : null);
+    var pujasPanel = hiddenSpots.length > 0 ? h("div", { style: { marginBottom: 16, padding: "12px 14px", background: "rgba(245,158,11,0.08)", border: "1px solid " + AMBER, borderRadius: 10 } },
+        h("div", { style: { fontSize: 12, fontWeight: 700, color: "#b45309", marginBottom: 2 } }, "🔨 Pujas · equipos ocultos (privado, no sale en la ruleta)"),
+        h("div", { style: { fontSize: 11, color: SUB, marginBottom: 8 } }, "Apunta la puja más alta durante el directo y adjudica al final."),
+        hiddenSpots.map(function (o) {
+            var s2 = o.s, i = o.idx;
+            return h("div", { key: s2.id || i, style: { display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", padding: "6px 0", borderTop: "1px solid " + BDR } },
+                h("span", { style: { flex: "1 1 90px", fontWeight: 600, fontSize: 13 } }, (s2.team || "").trim() || ("#" + (i + 1))),
+                h("input", { value: s2.topBidder || "", onChange: function (e) { setSpot(i, "topBidder", e.target.value); }, placeholder: "Mejor postor", style: Object.assign({}, IS, { flex: "1 1 90px", padding: "6px 8px" }) }),
+                h("input", { type: "number", value: s2.topBid || 0, onChange: function (e) { setSpot(i, "topBid", +e.target.value); }, placeholder: "€", style: Object.assign({}, IS, { width: 72, padding: "6px 8px" }) }),
+                h(Btn, { sm: true, disabled: !(s2.topBidder || "").trim(), onClick: function () { var sp = (d.spots || []).slice(); sp[i] = Object.assign({}, sp[i], { buyer: (s2.topBidder || "").trim(), price: +s2.topBid || 0 }); set("spots", sp); } }, "✓ Adjudicar"),
+                s2.buyer ? h("span", { style: { fontSize: 11, color: GREEN, fontWeight: 600 } }, "→ " + s2.buyer) : null);
+        })) : null;
     var listView = h("div", null,
+        reservasPanel,
+        pujasPanel,
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, gap: 8, flexWrap: "wrap" } },
             h(SL, { style: { marginBottom: 0 } }, "Spots (" + (d.spots || []).length + ") · Total " + eu(ec.revenue)),
             h("div", { style: { display: "flex", gap: 8 } },
