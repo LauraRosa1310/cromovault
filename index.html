@@ -18774,7 +18774,7 @@ function LotsTab({ lots, saveLots, cards, setCards }) {
           )
         )
       ),
-        lots.length > 0 && React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))", gap: 10, marginBottom: 16 } }, (function(){ var tC=lots.reduce(function(a,l){return a+(parseFloat(l.buyPrice)||0);},0); var tN=lots.reduce(function(a,l){return a+cards.filter(function(c){return c.lotId===l.id;}).length;},0); var tP=lots.reduce(function(a,l){var lc=cards.filter(function(c){return c.lotId===l.id;});var rev=lc.filter(function(c){return c.status==="sold";}).reduce(function(s,c){return s+(c.salePrice||c.targetPrice||0);},0);return a+rev-(parseFloat(l.buyPrice)||0);},0); var avg=tN>0?tC/tN:0; var sym=getCurrencySymbol(); return [React.createElement(Card,{key:"a",style:{padding:"12px"}},React.createElement("div",{style:{fontSize:11,color:SUB}},"Lotes"),React.createElement("div",{style:{fontSize:20,fontWeight:700}},lots.length)),React.createElement(Card,{key:"b",style:{padding:"12px"}},React.createElement("div",{style:{fontSize:11,color:SUB}},"Cartas"),React.createElement("div",{style:{fontSize:20,fontWeight:700}},tN)),React.createElement(Card,{key:"c",style:{padding:"12px"}},React.createElement("div",{style:{fontSize:11,color:SUB}},"Coste medio/carta"),React.createElement("div",{style:{fontSize:20,fontWeight:700}},sym+avg.toFixed(2))),React.createElement(Card,{key:"d",style:{padding:"12px"}},React.createElement("div",{style:{fontSize:11,color:SUB}},"P&L total"),React.createElement("div",{style:{fontSize:20,fontWeight:700,color:tP>=0?GREEN:RED}},(tP>=0?"+":"")+sym+tP.toFixed(2)))]; })()
+        lots.length > 0 && React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))", gap: 10, marginBottom: 16 } }, (function(){ var tC=lots.reduce(function(a,l){return a+(parseFloat(l.buyPrice)||0);},0); var tN=lots.reduce(function(a,l){return a+cards.filter(function(c){return c.lotId===l.id;}).length;},0); var tP=lots.reduce(function(a,l){var lc=cards.filter(function(c){return c.lotId===l.id;});var rev=lc.filter(function(c){return c.status==="sold";}).reduce(function(s,c){return s+(c.salePrice||c.targetPrice||0);},0);return a+rev-(parseFloat(l.buyPrice)||0);},0); var avg=tN>0?tC/tN:0; var tInv=lots.reduce(function(a,l){return a+cards.filter(function(c){return c.lotId===l.id&&c.mode==="inventory";}).reduce(function(s,c){return s+(c.buyPrice||0)*(c.quantity||1);},0);},0); var sym=getCurrencySymbol(); return [React.createElement(Card,{key:"a",style:{padding:"12px"}},React.createElement("div",{style:{fontSize:11,color:SUB}},"Lotes"),React.createElement("div",{style:{fontSize:20,fontWeight:700}},lots.length)),React.createElement(Card,{key:"b",style:{padding:"12px"}},React.createElement("div",{style:{fontSize:11,color:SUB}},"Cartas"),React.createElement("div",{style:{fontSize:20,fontWeight:700}},tN)),React.createElement(Card,{key:"c",style:{padding:"12px"}},React.createElement("div",{style:{fontSize:11,color:SUB}},"Coste medio/carta"),React.createElement("div",{style:{fontSize:20,fontWeight:700}},sym+avg.toFixed(2))),React.createElement(Card,{key:"d",style:{padding:"12px"}},React.createElement("div",{style:{fontSize:11,color:SUB}},"P&L total"),React.createElement("div",{style:{fontSize:20,fontWeight:700,color:tP>=0?GREEN:RED}},(tP>=0?"+":"")+sym+tP.toFixed(2))),React.createElement(Card,{key:"e",style:{padding:"12px"}},React.createElement("div",{style:{fontSize:11,color:SUB}},"Benef. est. +40%"),React.createElement("div",{style:{fontSize:20,fontWeight:700,color:PURPLE}},"+"+sym+(tInv*0.4).toFixed(2)))]; })()
         ),
         React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
             React.createElement("div", { style: { fontSize: 13, color: SUB } }, "Agrupa tus cartas por lote de compra y analiza el rendimiento de cada uno"),
@@ -18824,7 +18824,7 @@ function LotsTab({ lots, saveLots, cards, setCards }) {
                         React.createElement(Btn, { sm: true, v: "outline", onClick: () => openEdit(idx) }, "\u270F\uFE0F"),
                         React.createElement(Btn, { sm: true, v: "outline", style: { color: RED, borderColor: "#fecaca" }, onClick: () => deleteLot(idx) }, "\u2715"))),
                 lotCards.length === 0 ? (React.createElement("div", { style: { fontSize: 12, color: MUT, textAlign: "center", padding: "12px 0" } }, "Sin cartas asignadas \u2014 edita tus cartas y selecciona este lote")) : (React.createElement("div", null,
-                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(100px,1fr))", gap: 8, marginBottom: 12 } }, [{ l: "Invertido", v: eu(invested), c: TXT }, { l: "Recuperado", v: eu(recovered), c: GREEN }, { l: "En cartera", v: eu(inPortfolio), c: BLUE }, { l: "P&L", v: (pl >= 0 ? "+" : "") + eu(pl), c: cl(pl) }, { l: "ROI", v: roi.toFixed(0) + "%", c: cl(roi) }, { l: "Vendidas", v: sold.length + "/" + lotCards.length, c: TXT }].map(({ l, v, c }) => (React.createElement("div", { key: l, style: { background: BGS, borderRadius: 8, padding: "8px 10px", border: "1px solid " + BDR } },
+                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(100px,1fr))", gap: 8, marginBottom: 12 } }, [{ l: "Invertido", v: eu(invested), c: TXT }, { l: "Venta est. +40%", v: eu(invested * 1.4), c: PURPLE }, { l: "Benef. est. +40%", v: "+" + eu(invested * 0.4), c: PURPLE }, { l: "Recuperado", v: eu(recovered), c: GREEN }, { l: "En cartera", v: eu(inPortfolio), c: BLUE }, { l: "P&L", v: (pl >= 0 ? "+" : "") + eu(pl), c: cl(pl) }, { l: "ROI", v: roi.toFixed(0) + "%", c: cl(roi) }, { l: "Vendidas", v: sold.length + "/" + lotCards.length, c: TXT }].map(({ l, v, c }) => (React.createElement("div", { key: l, style: { background: BGS, borderRadius: 8, padding: "8px 10px", border: "1px solid " + BDR } },
                         React.createElement("div", { style: { fontSize: 10, color: SUB } }, l),
                         React.createElement("div", { style: { fontSize: 14, fontWeight: 700, color: c } }, v))))),
                     React.createElement("div", { style: { marginBottom: 6 } },
@@ -20256,6 +20256,7 @@ function BreaksTab({ breaks, saveBreaks }) {
     var es = useState(null), editing = es[0], setEditing = es[1];
     var mgs = useState(null), managing = mgs[0], setManaging = mgs[1];
     var rst = useState(false), rouletteStart = rst[0], setRouletteStart = rst[1];
+    var cqB = useState(""), clientQuery = cqB[0], setClientQuery = cqB[1];
     // ---- Calculadora (precio/spot para un objetivo) ----
     var s_box = useState(200), cBox = s_box[0], setCBox = s_box[1];
     var s_n = useState(15), cN = s_n[0], setCN = s_n[1];
@@ -20401,16 +20402,43 @@ function BreaksTab({ breaks, saveBreaks }) {
                             h(Btn, { sm: true, v: "ghost", onClick: function () { if (confirm("¿Eliminar este break?")) saveBreaks(breaks.filter(function (x) { return x.id !== b.id; })); } }, "Eliminar")));
                 })));
 
+    var bqv = clientQuery.trim().toLowerCase();
+    var buyerMap = {};
+    breaks.forEach(function (b) { (b.spots || []).forEach(function (s) { var nm = (s.buyer || "").trim(); if (!nm) return; var key = nm.toLowerCase(); if (!buyerMap[key]) buyerMap[key] = { name: nm, items: [], total: 0, pend: 0 }; buyerMap[key].items.push({ b: b, s: s }); buyerMap[key].total += (+s.price || 0); if (!s.shipped) buyerMap[key].pend++; }); });
+    var buyersArr = Object.keys(buyerMap).map(function (k) { return buyerMap[k]; }).filter(function (x) { return !bqv || x.name.toLowerCase().indexOf(bqv) >= 0; }).sort(function (a, b) { return b.items.length - a.items.length; });
+    var clientes = h("div", null,
+        h("div", { style: { marginBottom: 14 } },
+            h("input", { value: clientQuery, onChange: function (e) { setClientQuery(e.target.value); }, placeholder: "🔍 Buscar por comprador…", style: Object.assign({}, IS, { width: "100%" }) })),
+        buyersArr.length === 0
+            ? h("div", { style: { textAlign: "center", padding: "50px 20px", color: MUT } },
+                h("div", { style: { fontSize: 40, marginBottom: 10 } }, "🧑‍🤝‍🧑"),
+                h("div", { style: { fontSize: 14, color: SUB } }, bqv ? ("Sin compradores para “" + clientQuery + "”") : "Aún no hay compradores registrados"))
+            : h("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
+                buyersArr.map(function (x) {
+                    return h(Card, { key: x.name, style: { padding: 14 } },
+                        h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 8 } },
+                            h("div", { style: { fontSize: 15, fontWeight: 700 } }, x.name),
+                            h("div", { style: { display: "flex", gap: 10, alignItems: "center", fontSize: 12 } },
+                                h("span", { style: { color: SUB } }, x.items.length + " spot" + (x.items.length === 1 ? "" : "s") + " · " + eu(x.total)),
+                                x.pend > 0 ? h("span", { style: { color: AMBER, fontWeight: 700 } }, "📦 " + x.pend + " por enviar") : h("span", { style: { color: GREEN, fontWeight: 700 } }, "✓ todo enviado"))),
+                        h("div", { style: { display: "flex", flexDirection: "column", gap: 4 } },
+                            x.items.slice().sort(function (a, b) { return (a.b.date || "").localeCompare(b.b.date || ""); }).map(function (o, idx) {
+                                return h("div", { key: idx, style: { display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, padding: "4px 0", borderTop: idx > 0 ? "1px solid " + BDR : "none" } },
+                                    h("span", null, (CATS[o.b.category] || "") + " " + (o.b.name || "Break") + " · " + ((o.s.team || "").trim() || "Spot")),
+                                    h("span", { style: { color: SUB, whiteSpace: "nowrap" } }, eu(+o.s.price || 0) + " · " + (o.s.shipped ? "✓ enviado" : (o.s.paid ? "pagado" : "pendiente"))));
+                            })));
+                })));
+
     return h("div", null,
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18, flexWrap: "wrap", gap: 10 } },
             h("div", null,
                 h("div", { style: { fontSize: 20, fontWeight: 700 } }, "🎁 Breaks"),
                 h("div", { style: { fontSize: 12, color: SUB, marginTop: 2 } }, "Arma los spots por equipos y lleva el registro")),
             h("div", { style: { display: "flex", background: BGS, borderRadius: 10, padding: 3, border: "1px solid " + BDR, flexWrap: "wrap" } },
-                [["create", "Crear break"], ["list", "Mis breaks"], ["calc", "Calculadora"]].map(function (p) {
+                [["create", "Crear break"], ["list", "Mis breaks"], ["clientes", "Compradores"], ["calc", "Calculadora"]].map(function (p) {
                     return h("button", { key: p[0], onClick: function () { setView(p[0]); }, style: { padding: "7px 14px", border: "none", borderRadius: 8, background: view === p[0] ? BG : "transparent", color: view === p[0] ? BLUE : SUB, fontWeight: view === p[0] ? 700 : 500, fontSize: 13, cursor: "pointer", fontFamily: "Inter,sans-serif", boxShadow: view === p[0] ? "0 1px 3px rgba(0,0,0,0.1)" : "none" } }, p[1]);
                 }))),
-        view === "create" ? create : view === "list" ? list : calc,
+        view === "create" ? create : view === "list" ? list : view === "clientes" ? clientes : calc,
         editing ? h(BreakEditor, { brk: editing, breaks: breaks, saveBreaks: saveBreaks, onClose: function () { setEditing(null); }, onManage: function (nb) { setEditing(null); setRouletteStart(!!(nb && nb.assign === "roulette")); setManaging(nb); } }) : null,
         managing ? h(SpotManager, { brk: managing, breaks: breaks, saveBreaks: saveBreaks, startRoulette: rouletteStart, onClose: function () { setManaging(null); }, onEdit: function (nb) { setManaging(null); setEditing(nb); } }) : null);
 }
@@ -20588,7 +20616,6 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
     var rot = useState(0), rotDeg = rot[0], setRotDeg = rot[1];
     var sp2 = useState(false), spinning = sp2[0], setSpinning = sp2[1];
     var bn = useState(null), banner = bn[0], setBanner = bn[1];
-    var cq = useState(""), clientQuery = cq[0], setClientQuery = cq[1];
     function persist(nb) { var exists = breaks.some(function (x) { return x.id === nb.id; }); saveBreaks(exists ? breaks.map(function (x) { return x.id === nb.id ? nb : x; }) : [nb].concat(breaks)); }
     function set(k, v) { var o = {}; o[k] = v; var nb = Object.assign({}, d, o); setD(nb); persist(nb); }
     function setSpot(i, k, v) { var sp = (d.spots || []).slice(); var o = {}; o[k] = v; sp[i] = Object.assign({}, sp[i], o); set("spots", sp); }
@@ -20666,28 +20693,7 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
                     h(Btn, { onClick: spin, disabled: spinning || !buyer.trim(), style: { minWidth: 110, fontSize: 15, padding: "0 18px" } }, spinning ? "Girando…" : "🎯 Girar")),
                 h("div", { style: { fontSize: 11, color: MUT, textAlign: "center", marginTop: 8, lineHeight: 1.5 } }, "Escribe el comprador y gira. El equipo que salga se le asigna solo. Sin precios: puedes compartir esta pantalla.")));
 
-    var cqv = clientQuery.trim().toLowerCase();
-    var clientHits = cqv ? breaks.map(function (b) { return { b: b, spots: (b.spots || []).map(function (s, i) { return { s: s, i: i }; }).filter(function (o) { return (o.s.buyer || "").toLowerCase().indexOf(cqv) >= 0; }) }; }).filter(function (x) { return x.spots.length > 0; }) : [];
-    var clientTotal = clientHits.reduce(function (a, x) { return a + x.spots.length; }, 0);
-    var clientBox = h("div", { style: { marginBottom: 16 } },
-        h("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
-            h("input", { value: clientQuery, onChange: function (e) { setClientQuery(e.target.value); }, placeholder: "🔍 Buscar cliente (su historial en todos los breaks)", style: Object.assign({}, IS, { flex: 1 }) }),
-            clientQuery ? h("button", { onClick: function () { setClientQuery(""); }, style: { border: "none", background: "none", color: SUB, cursor: "pointer", fontSize: 18 } }, "×") : null),
-        cqv ? h("div", { style: { marginTop: 10, border: "1px solid " + BDR, borderRadius: 10, overflow: "hidden" } },
-            clientHits.length === 0 ? h("div", { style: { padding: "14px", fontSize: 13, color: MUT, textAlign: "center" } }, "Sin resultados para “" + clientQuery + "”")
-                : h("div", null,
-                    h("div", { style: { padding: "8px 12px", background: BGS, fontSize: 12, fontWeight: 700 } }, clientTotal + " spot" + (clientTotal === 1 ? "" : "s") + " en " + clientHits.length + " break" + (clientHits.length === 1 ? "" : "s") + " · para empaquetar junto"),
-                    clientHits.map(function (x) {
-                        return h("div", { key: x.b.id, style: { padding: "8px 12px", borderTop: "1px solid " + BDR } },
-                            h("div", { style: { fontSize: 12, fontWeight: 700, marginBottom: 4 } }, (CATS[x.b.category] || "") + " " + (x.b.name || "Break") + " · " + (x.b.date || "")),
-                            x.spots.map(function (o) {
-                                return h("div", { key: o.s.id || o.i, style: { display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, padding: "2px 0" } },
-                                    h("span", null, ((o.s.team || "").trim() || ("Spot #" + (o.i + 1))) + " · " + (o.s.buyer || "")),
-                                    h("span", { style: { color: SUB, whiteSpace: "nowrap" } }, (o.s.shipped ? "✓ enviado" : (o.s.paid ? "pagado" : "pendiente"))));
-                            }));
-                    }))) : null);
     var listView = h("div", null,
-        clientBox,
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, gap: 8, flexWrap: "wrap" } },
             h(SL, { style: { marginBottom: 0 } }, "Spots (" + (d.spots || []).length + ") · Total " + eu(ec.revenue)),
             h("div", { style: { display: "flex", gap: 8 } },
