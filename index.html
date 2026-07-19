@@ -17483,12 +17483,16 @@ function SellModal({ card, onSave, onClose }) {
                 React.createElement(Btn, { v: "success", full: true, onClick: confirm, disabled: !pr }, "Confirmar venta")))));
 }
 function CardForm({ onSave, onClose, editCard, defMode, lots }) {
-    const blank = { name: "", category: "trading", series: "", rarity: "Común", condition: "Raw", quantity: 1, buyPrice: "", buyDate: new Date().toISOString().slice(0, 10), notes: "", tags: [], marketPrice: "", images: [], status: "holding", sellPrice: "", sellDate: "", platformFee: "", shippingCost: "", platform: "eBay", isFavorite: false, mode: defMode || "inventory", targetPrice: "", listingDate: "", location: "", imageUrl: "" };
+    const blank = { name: "", category: (localStorage.getItem("cv10_lastcat")||"trading"), series: "", rarity: "Común", condition: "Raw", quantity: 1, buyPrice: "", buyDate: new Date().toISOString().slice(0, 10), notes: "", tags: [], marketPrice: "", images: [], status: "holding", sellPrice: "", sellDate: "", platformFee: "", shippingCost: "", platform: (localStorage.getItem("cv10_lastplat")||"eBay"), isFavorite: false, mode: defMode || "inventory", targetPrice: "", listingDate: "", location: (localStorage.getItem("cv10_lastloc")||""), imageUrl: "" };
     const init = editCard ? Object.assign(Object.assign({}, editCard), { buyPrice: String(editCard.buyPrice || ""), sellPrice: String(editCard.sellPrice || ""), platformFee: String(editCard.platformFee || ""), shippingCost: String(editCard.shippingCost || ""), targetPrice: String(editCard.targetPrice || ""), marketPrice: String(editCard.marketPrice || ""), tags: editCard.tags || [] }) : blank;
     const [f, setF] = useState(init), [imgs, setImgs] = useState((editCard === null || editCard === void 0 ? void 0 : editCard.images) || []), [tab, setTab] = useState("info");
     const fr = { current: null };
     function sf(k, v) { setF(p => (Object.assign(Object.assign({}, p), { [k]: v }))); }
     function addImgs(files) { Array.from(files).forEach(file => { const r = new FileReader(); r.onload = e => setImgs(p => [...p, e.target.result]); r.readAsDataURL(file); }); }
+    var _allc = (function(){ try { return JSON.parse(localStorage.getItem("cv10")||"[]"); } catch(e){ return []; } })();
+    var _names=[],_series=[],_sn={},_ss={}; _allc.forEach(function(c){ var n=(c.name||"").trim(); if(n&&!_sn[n.toLowerCase()]){_sn[n.toLowerCase()]=1;_names.push(n);} var se=(c.series||"").trim(); if(se&&!_ss[se.toLowerCase()]){_ss[se.toLowerCase()]=1;_series.push(se);} });
+    function commitCard(){ if(!f.name.trim()) return false; var ff=Object.assign({},f); delete ff._lotSearch; var base=Object.assign({},ff,{ id: uid(), buyPrice: parseFloat(f.buyPrice)||0, sellPrice: parseFloat(f.sellPrice)||0, platformFee: parseFloat(f.platformFee)||0, shippingCost: parseFloat(f.shippingCost)||0, targetPrice: parseFloat(f.targetPrice)||0, images: imgs }); onSave(base); try{ localStorage.setItem("cv10_lastcat",f.category||""); localStorage.setItem("cv10_lastplat",f.platform||""); localStorage.setItem("cv10_lastloc",f.location||""); }catch(e){} return true; }
+    function addAnother(){ if(commitCard()){ setF(Object.assign({}, blank, { mode:f.mode, category:f.category, series:f.series, platform:f.platform, location:f.location, buyDate:f.buyDate, rarity:f.rarity, condition:f.condition })); setImgs([]); } }
     const tB = (parseFloat(f.buyPrice) || 0) * (f.quantity || 1), tS = (parseFloat(f.sellPrice) || 0) * (f.quantity || 1), fA = tS * ((parseFloat(f.platformFee) || 0) / 100), sA = parseFloat(f.shippingCost) || 0, ns = tS - fA - sA - tB;
     const tabs = f.mode === "inventory" ? [["info", "Info"], ["sell", "Venta"]] : [["info", "Info"]];
     return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, overflowY: "auto" } },
@@ -17506,6 +17510,7 @@ function CardForm({ onSave, onClose, editCard, defMode, lots }) {
                     f.mode === "inventory" && (React.createElement("div", { style: { marginBottom: 14 } },
                         React.createElement("label", { style: LS }, "Estado"),
                         React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 8 } }, [["holding", "En cartera", BLUE], ["listed", "En venta", AMBER], ["sold", "Vendida", GREEN]].map(([k, l, ac]) => (React.createElement("button", { key: k, onClick: () => sf("status", k), style: { flex: 1, padding: "8px 0", borderRadius: 8, cursor: "pointer", border: "1.5px solid " + (f.status === k ? ac : BDR), background: f.status === k ? ac + "18" : "transparent", color: f.status === k ? ac : SUB, fontFamily: "Inter,sans-serif", fontWeight: 500, fontSize: 11 } }, l)))),
+                        React.createElement("button", { onClick: () => sf("reserved", !f.reserved), style: { marginBottom: 8, padding: "6px 12px", borderRadius: 8, border: "1.5px solid " + (f.reserved ? "#0891b2" : BDR), background: f.reserved ? "rgba(8,145,178,0.10)" : "transparent", color: f.reserved ? "#0891b2" : SUB, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, f.reserved ? "🔖 Reservada (clic para quitar)" : "🔖 Marcar reservada"),
                         f.status === "sold" && (f.quantity || 1) > 1 && (React.createElement("div", { style: { background: "#f0fdf8", border: "1px solid #d1fae5", borderRadius: 8, padding: "10px 12px" } },
                             React.createElement("label", { style: Object.assign(Object.assign({}, LS), { marginBottom: 6 }) }, "\u00BFCu\u00E1ntas unidades vendes?"),
                             React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
@@ -17526,7 +17531,7 @@ function CardForm({ onSave, onClose, editCard, defMode, lots }) {
                         React.createElement("input", { type: "date", value: f.buyDate, onChange: e => sf("buyDate", e.target.value), style: IS })),
                     React.createElement("div", { style: { marginBottom: 12 } },
                         React.createElement("label", { style: LS }, "Nombre *"),
-                        React.createElement("input", { value: f.name, onChange: e => sf("name", e.target.value), placeholder: "Charizard Holo / Messi Rookie...", style: IS, autoFocus: true })),
+                        React.createElement("input", { list: "cf-names", value: f.name, onChange: e => sf("name", e.target.value), placeholder: "Charizard Holo / Messi Rookie...", style: IS, autoFocus: true }), React.createElement("datalist", { id: "cf-names" }, _names.map(function(n){ return React.createElement("option", { key:n, value:n }); }))),
                     
                     React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } },
                         React.createElement("div", null,
@@ -17539,7 +17544,7 @@ function CardForm({ onSave, onClose, editCard, defMode, lots }) {
                         React.createElement("div", null,
                             React.createElement("label", { style: LS }, 
                     "Serie / Set"),
-                            React.createElement("input", { value: f.series, onChange: e => sf("series", e.target.value), placeholder: "Base Set, LaLiga...", style: IS })),
+                            React.createElement("input", { list: "cf-series", value: f.series, onChange: e => sf("series", e.target.value), placeholder: "Base Set, LaLiga...", style: IS }), React.createElement("datalist", { id: "cf-series" }, _series.map(function(se){ return React.createElement("option", { key:se, value:se }); }))),
                         React.createElement("div", null,
                             React.createElement("label", { style: LS }, "Condici\u00F3n"),
                             React.createElement("select", { value: f.condition, onChange: e => sf("condition", e.target.value), style: IS }, CONDS.map(c => React.createElement("option", { key: c, value: c }, c))))),
@@ -17641,8 +17646,9 @@ function CardForm({ onSave, onClose, editCard, defMode, lots }) {
                             else {
                                 onSave(base);
                             }
+                            try{ localStorage.setItem("cv10_lastcat",f.category||""); localStorage.setItem("cv10_lastplat",f.platform||""); localStorage.setItem("cv10_lastloc",f.location||""); }catch(e){}
                             onClose();
-                        } }, editCard ? "Guardar cambios" : "Añadir carta")))));
+                        } }, editCard ? "Guardar cambios" : "Añadir carta"), (!editCard ? React.createElement(Btn, { full: true, v: "outline", onClick: addAnother, style: { marginTop: 8 } }, "＋ Guardar y añadir otra") : null)))));
 
 }
 function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl }) {
@@ -17869,9 +17875,10 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
                 React.createElement("div", { style: { width: 10, height: 10, borderRadius: 2, background: bg, border: "1px solid " + c } }),
                 React.createElement("span", { style: { fontSize: 10, color: SUB } }, l)))))));
 }
-function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
+function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDel }) {
     const [invView, setInvView] = useState(() => localStorage.getItem("cv10_inv_view") || "list");
     const [sr, setSr] = useState(""), [st, setSt] = useState("date"), [filterY, setFilterY] = useState("all"), [filterM, setFilterM] = useState("all");
+    const [selMode, setSelMode] = useState(false), [sel, setSel] = useState({});
     const [statusFl, setStatusFl] = useState(new Set()), [catFl, setCatFl] = useState(new Set()), [locFl, setLocFl] = useState(new Set()), [sortBy, setSortBy] = useState(""), [sortDir, setSortDir] = useState(1);
     const INV_MONTHS = [['all', 'Mes'], ['01', 'Ene'], ['02', 'Feb'], ['03', 'Mar'], ['04', 'Abr'], ['05', 'May'], ['06', 'Jun'], ['07', 'Jul'], ['08', 'Ago'], ['09', 'Sep'], ['10', 'Oct'], ['11', 'Nov'], ['12', 'Dic']];
     function toggleSet(setter, val) { setter(prev => { const n = new Set(prev); n.has(val) ? n.delete(val) : n.add(val); return n; }); }
@@ -17889,7 +17896,8 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
             const matchStatus = statusKeys.length === 0 || (statusFl.has('sold') && isSold) || (statusFl.has('listed') && isListed) || (statusFl.has('holding') && isHolding);
             const matchPSA = !statusFl.has('psa') || hasPSA;
             const matchFav = !statusFl.has('fav') || c.isFavorite;
-            if (!matchStatus || !matchPSA || !matchFav)
+            const matchRes = !statusFl.has('reserved') || c.reserved;
+            if (!matchStatus || !matchPSA || !matchFav || !matchRes)
                 return false;
         }
         if (catFl.size > 0 && !catFl.has(c.category))
@@ -17923,7 +17931,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
             React.createElement("div", { style: { padding: "11px 14px", borderBottom: "1px solid " + BDR, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" } },
                 React.createElement("input", { value: sr, onChange: e => setSr(e.target.value), placeholder: "\uD83D\uDD0D Buscar...", style: Object.assign(Object.assign({}, IS), { maxWidth: 150, background: BGS, padding: "7px 10px" }) }),
                 React.createElement("div", { style: { display: "flex", gap: 5, flexWrap: "wrap", alignItems: "center" } },
-                    [["holding", "Cartera", BLUE], ["listed", "En venta", AMBER], ["sold", "Vendidas", GREEN], ["fav", "⭐", PURPLE], ["psa", "PSA", "#6366f1"]].map(([k, l, ac]) => (React.createElement("button", { key: k, onClick: () => toggleSet(setStatusFl, k), style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid " + (statusFl.has(k) ? ac : BDR), background: statusFl.has(k) ? ac + "22" : "transparent", color: statusFl.has(k) ? ac : SUB, fontSize: 11, fontWeight: 500, cursor: "pointer" } }, l))),
+                    [["holding", "Cartera", BLUE], ["listed", "En venta", AMBER], ["sold", "Vendidas", GREEN], ["reserved", "🔖 Reserv.", "#0891b2"], ["fav", "⭐", PURPLE], ["psa", "PSA", "#6366f1"]].map(([k, l, ac]) => (React.createElement("button", { key: k, onClick: () => toggleSet(setStatusFl, k), style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid " + (statusFl.has(k) ? ac : BDR), background: statusFl.has(k) ? ac + "22" : "transparent", color: statusFl.has(k) ? ac : SUB, fontSize: 11, fontWeight: 500, cursor: "pointer" } }, l))),
                     React.createElement("span", { style: { width: 1, height: 18, background: BDR, display: "inline-block", margin: "0 2px" } }),
                     [["nba", "🏀"], ["futbol_m", "⚽M"], ["futbol_f", "⚽F"], ["trading", "🃏"], ["baseball", "⚾"], ["f1", "🏎️"]].map(([k, l]) => (React.createElement("button", { key: k, onClick: () => toggleSet(setCatFl, k), style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid " + (catFl.has(k) ? BLUE : BDR), background: catFl.has(k) ? "#eff4ff" : "transparent", color: catFl.has(k) ? BLUE : SUB, fontSize: 11, fontWeight: 500, cursor: "pointer" } }, l))),
                     React.createElement("span", { style: { width: 1, height: 18, background: BDR, display: "inline-block", margin: "0 2px" } }),
@@ -17953,15 +17961,27 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
             ),
             React.createElement("div", { style: { display: "flex", gap: 8, padding: "8px 14px 0", flexWrap: "wrap" } },
               React.createElement("button", { onClick: function(){ if(window._openTop5Modal) window._openTop5Modal(); }, style: { padding: "6px 12px", background: "transparent", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#6b7280", fontFamily: "Inter,sans-serif" } }, "\uD83D\uDCCB Top 5"),
-              React.createElement("button", { onClick: function(){ if(window._openDirectoModal) window._openDirectoModal(); }, style: { padding: "6px 12px", background: "transparent", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#6b7280", fontFamily: "Inter,sans-serif" } }, "\uD83C\uDFA5 Directo")
+              React.createElement("button", { onClick: function(){ if(window._openDirectoModal) window._openDirectoModal(); }, style: { padding: "6px 12px", background: "transparent", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#6b7280", fontFamily: "Inter,sans-serif" } }, "\uD83C\uDFA5 Directo"),
+              React.createElement("button", { onClick: function(){ setSelMode(function(v){ if(v) setSel({}); return !v; }); }, style: { padding: "6px 12px", background: selMode?BLUE:"transparent", border: "1px solid "+(selMode?BLUE:"#e5e7eb"), borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer", color: selMode?"#fff":"#6b7280", fontFamily: "Inter,sans-serif" } }, selMode?"✓ Seleccionando":"☑️ Seleccionar")
             ),
+            (selMode ? React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", padding: "10px 14px", margin: "8px 0", background: "rgba(29,107,252,0.06)", border: "1px solid " + BLUE, borderRadius: 10 } },
+              React.createElement("span", { style: { fontSize: 12, fontWeight: 700, color: BLUE } }, Object.keys(sel).length + " sel."),
+              React.createElement("button", { onClick: function(){ var n={}; fi.forEach(function(c){ n[c.id]=true; }); setSel(n); }, style: { padding:"5px 9px", border:"1px solid "+BDR, borderRadius:8, background:BG, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "Todas"),
+              React.createElement("select", { value:"", onChange: function(e){ var v=e.target.value; if(!v) return; var ids=Object.keys(sel); if(ids.length&&onBulk) onBulk(ids, { status: v }); }, style: Object.assign({}, IS, { width: "auto", padding: "5px 8px", fontSize: 11 }) }, React.createElement("option",{value:""},"Estado…"), React.createElement("option",{value:"holding"},"Cartera"), React.createElement("option",{value:"listed"},"En venta"), React.createElement("option",{value:"sold"},"Vendida")),
+              React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; var loc=prompt("Ubicación / caja para las seleccionadas:"); if(loc===null) return; if(onBulk) onBulk(ids, { location: loc }); }, style: { padding:"5px 9px", border:"1px solid "+BDR, borderRadius:8, background:BG, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "📍 Ubicación"),
+              React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; var p=prompt("Precio de compra para las seleccionadas (€):"); if(p===null) return; if(onBulk) onBulk(ids, { buyPrice: parseFloat((p||"").replace(",","."))||0 }); }, style: { padding:"5px 9px", border:"1px solid "+BDR, borderRadius:8, background:BG, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "💶 Precio"),
+              React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(ids.length&&onBulk) onBulk(ids, { reserved: true }); }, style: { padding:"5px 9px", border:"1px solid #0891b2", borderRadius:8, background:"rgba(8,145,178,0.08)", color:"#0891b2", fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🔖 Reservar"),
+              React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; if(confirm("¿Eliminar "+ids.length+" cartas? No se puede deshacer.")&&onBulkDel){ onBulkDel(ids); setSel({}); } }, style: { padding:"5px 9px", border:"1px solid #fecaca", borderRadius:8, background:"#fff5f5", color:RED, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🗑️ Eliminar"),
+              React.createElement("button", { onClick: function(){ setSel({}); }, style: { padding:"5px 9px", border:"none", background:"none", color:SUB, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "Quitar")
+            ) : null),
             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 12, padding: "4px 0" } },
                 fi.map(function(card, i) {
                     var isSold = card.status === "sold";
                     var roi = card.buyPrice > 0 ? ((((card.sellPrice || card.targetPrice || 0) - card.buyPrice) / card.buyPrice) * 100).toFixed(0) : null;
                     var statusColor = card.status === "listed" ? AMBER : card.status === "sold" ? GREEN : BLUE;
                     var statusLabel = card.status === "listed" ? "En venta" : card.status === "sold" ? "Vendida" : "Cartera";
-                    return React.createElement("div", { key: card.id || i, style: { background: BGS, borderRadius: 12, border: "1px solid " + BDR, overflow: "hidden", cursor: "pointer", transition: "box-shadow 0.15s" }, onClick: function() { onEdit(card); } },
+                    return React.createElement("div", { key: card.id || i, style: { background: BGS, borderRadius: 12, border: "2px solid " + (sel[card.id] ? BLUE : BDR), overflow: "hidden", cursor: "pointer", transition: "box-shadow 0.15s", position: "relative" }, onClick: function() { if(selMode){ setSel(function(pv){ var nx=Object.assign({},pv); if(nx[card.id]) delete nx[card.id]; else nx[card.id]=true; return nx; }); } else { onEdit(card); } } },
+                        selMode ? React.createElement("div", { style: { position: "absolute", top: 6, left: 6, zIndex: 2, width: 22, height: 22, borderRadius: "50%", background: sel[card.id] ? BLUE : "rgba(255,255,255,0.92)", border: "2px solid " + (sel[card.id]?BLUE:"#cbd5e1"), display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 12, fontWeight: 700 } }, sel[card.id] ? "✓" : "") : null,
                         card.imageUrl
                             ? React.createElement("img", { src: card.imageUrl, style: { width: "100%", height: 140, objectFit: "cover", display: "block" } })
                             : React.createElement("div", { style: { width: "100%", height: 140, background: "linear-gradient(135deg,#eff6ff,#f0fdf4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 } }, "\uD83C\uDFB4"),
@@ -20693,6 +20713,9 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
     var sp2 = useState(false), spinning = sp2[0], setSpinning = sp2[1];
     var bn = useState(null), banner = bn[0], setBanner = bn[1];
     var nr = useState(""), newRes = nr[0], setNewRes = nr[1];
+    var bgs = useState(false), bigScreen = bgs[0], setBigScreen = bgs[1];
+    var availSpots = (d.spots || []).map(function (s, i) { return { s: s, i: i }; }).filter(function (o) { return !((o.s.buyer || "").trim()); });
+    var _sp = availSpots.map(function (o) { return +o.s.price || 0; }); var uniPrice = (_sp.length && _sp.every(function (p) { return p === _sp[0]; })) ? _sp[0] : 0;
     function persist(nb) { var exists = breaks.some(function (x) { return x.id === nb.id; }); saveBreaks(exists ? breaks.map(function (x) { return x.id === nb.id ? nb : x; }) : [nb].concat(breaks)); }
     function set(k, v) { var o = {}; o[k] = v; var nb = Object.assign({}, d, o); setD(nb); persist(nb); }
     function setSpot(i, k, v) { var sp = (d.spots || []).slice(); var o = {}; o[k] = v; sp[i] = Object.assign({}, sp[i], o); set("spots", sp); }
@@ -20796,6 +20819,8 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
             h(SL, { style: { marginBottom: 0 } }, "Spots (" + (d.spots || []).length + ") · Total " + eu(ec.revenue)),
             h("div", { style: { display: "flex", gap: 8 } },
                 (d.spots || []).length > 0 ? h(Btn, { sm: true, onClick: function () { setShowRoulette(true); setBanner(null); } }, "🎡 Ruleta") : null,
+                (d.spots || []).length > 0 ? h(Btn, { sm: true, v: "outline", onClick: function () { setBigScreen(true); } }, "🖥️ Pantalla") : null,
+                availSpots.length > 0 ? h(Btn, { sm: true, v: "outline", onClick: function () { var el = document.getElementById("cv-spots-story"); if (!el || !window.html2canvas) { alert("Espera un momento e inténtalo de nuevo"); return; } window.html2canvas(el, { scale: 3, backgroundColor: null }).then(function (cv) { var a = document.createElement("a"); a.download = "spots-disponibles.png"; a.href = cv.toDataURL("image/png"); a.click(); }); } }, "📸 Story") : null,
                 h(Btn, { sm: true, v: "outline", onClick: addSpot }, "+ Añadir spot"))),
         (d.spots || []).length === 0 ? h("div", { style: { fontSize: 13, color: MUT, padding: "20px 0", textAlign: "center" } }, "Sin spots. Créalos desde el editor con el armador, o añádelos aquí a mano.") : null,
         (d.spots || []).map(function (s, i) {
@@ -20834,7 +20859,21 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
                 showRoulette ? roulette : listView,
                 showRoulette ? null : h("div", { style: { display: "flex", gap: 10, marginTop: 20 } },
                     h(Btn, { v: "outline", full: true, onClick: function () { onEdit(d); } }, "✏️ Editar break"),
-                    h(Btn, { full: true, onClick: onClose }, "Hecho")))));
+                    h(Btn, { full: true, onClick: onClose }, "Hecho")),
+                (bigScreen ? h("div", { style: { position: "fixed", inset: 0, background: BG, zIndex: 1004, overflow: "auto", padding: "24px" } },
+                    h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", maxWidth: 900, margin: "0 auto 18px" } },
+                        h("div", null, h("div", { style: { fontSize: 13, color: RED, fontWeight: 700 } }, "● EN DIRECTO"), h("div", { style: { fontSize: 26, fontWeight: 800 } }, d.name || "Break")),
+                        h(Btn, { v: "outline", onClick: function () { setBigScreen(false); } }, "✕ Cerrar")),
+                    h("div", { style: { display: "flex", gap: 10, maxWidth: 900, margin: "0 auto 18px" } },
+                        h("span", { style: { background: "rgba(0,196,140,0.15)", color: GREEN, padding: "8px 16px", borderRadius: 10, fontSize: 18, fontWeight: 800 } }, ec.sold + " / " + ec.total + " vendidos"),
+                        h("span", { style: { background: BGS, color: SUB, padding: "8px 16px", borderRadius: 10, fontSize: 18, fontWeight: 700 } }, (ec.total - ec.sold) + " libres")),
+                    h("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 12, maxWidth: 900, margin: "0 auto" } },
+                        (d.spots || []).map(function (s, i) { var taken = (s.buyer || "").trim(); return h("div", { key: s.id || i, style: { background: taken ? "rgba(0,196,140,0.12)" : BG, border: "2px solid " + (taken ? GREEN : BDR), borderRadius: 12, padding: "14px 16px" } }, h("div", { style: { fontSize: 18, fontWeight: 700, color: taken ? "#047857" : TXT } }, (s.team || "").trim() || ("Spot #" + (i + 1))), h("div", { style: { fontSize: 14, marginTop: 2, color: taken ? GREEN : MUT, fontWeight: taken ? 700 : 500 } }, taken ? s.buyer : "libre")); }))) : null),
+                h("div", { id: "cv-spots-story", style: { position: "absolute", left: -99999, top: 0, width: 360, background: "#0f172a", color: "#fff", padding: 24, fontFamily: "Inter,sans-serif" } },
+                    h("div", { style: { fontSize: 12, letterSpacing: "0.18em", color: "#94a3b8", fontWeight: 700 } }, "SPOTS DISPONIBLES"),
+                    h("div", { style: { fontSize: 24, fontWeight: 900, margin: "4px 0 16px" } }, (d.name || "Break").toUpperCase()),
+                    h("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, availSpots.map(function (o) { return h("div", { key: o.i, style: { display: "flex", justifyContent: "space-between", padding: "10px 14px", background: "#1e293b", borderRadius: 10, fontSize: 16, fontWeight: 700 } }, h("span", null, (o.s.team || "").trim() || ("Spot #" + (o.i + 1))), (uniPrice > 0 ? h("span", { style: { color: "#38bdf8" } }, eu(+o.s.price || 0)) : null)); })),
+                    h("div", { style: { marginTop: 16, fontSize: 13, color: "#94a3b8" } }, availSpots.length + " libres" + (uniPrice > 0 ? " · " + eu(uniPrice) + "/spot" : "") + " · reserva el tuyo")))));
 }
 // =================== FIN BREAKS ===================
 
@@ -20951,6 +20990,8 @@ function App() {
     function oa(m) { setDm(m); setEc(null); setSF(true); }
     function oe(c) { setEc(c); setDm(c.mode); setSF(true); }
     function dup(c) { setDupCard(c); }
+    function bulkUpd(ids, changes) { setCards(function (p) { return p.map(function (c) { return ids.indexOf(c.id) >= 0 ? Object.assign({}, c, changes) : c; }); }); }
+    function bulkDel(ids) { setCards(function (p) { return p.filter(function (c) { return ids.indexOf(c.id) < 0; }); }); }
     const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Análisis"], ["lots", "Lotes"], ["breaks", "🎁 Breaks"], ["redes", "📱 Redes"], ["psa", "PSA/BGS"]];
     return (React.createElement("div", { style: { minHeight: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14 } },
         React.createElement("style", null, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');"),
@@ -21538,7 +21579,7 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
 ),
         React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "clamp(12px, 4vw, 24px)" } },
             tab === "dashboard" && React.createElement(DashTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
-            tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
+            tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup, onBulk: bulkUpd, onBulkDel: bulkDel }),
             tab === "collection" && React.createElement(ColTab, { cards: cards, onEdit: oe, onDelete: del, onDuplicate: dup }),
             tab === "fiscal" && React.createElement(AnalyticsTab, { cards: cards }),
             tab === "invoices" && false,
