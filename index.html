@@ -20259,6 +20259,10 @@ function BreaksTab({ breaks, saveBreaks }) {
     var rst = useState(false), rouletteStart = rst[0], setRouletteStart = rst[1];
     var cqB = useState(""), clientQuery = cqB[0], setClientQuery = cqB[1];
     var eb = useState(null), expandedBuyer = eb[0], setExpandedBuyer = eb[1];
+    var lq = useState(""), listQuery = lq[0], setListQuery = lq[1];
+    var ly = useState("all"), listYear = ly[0], setListYear = ly[1];
+    var cyf = useState("all"), clientYear = cyf[0], setClientYear = cyf[1];
+    var breakYears = (function () { var y = {}; breaks.forEach(function (b) { var yr = (b.date || "").slice(0, 4); if (yr) y[yr] = 1; }); return Object.keys(y).sort().reverse(); })();
     // ---- Calculadora (precio/spot para un objetivo) ----
     var s_box = useState(200), cBox = s_box[0], setCBox = s_box[1];
     var s_n = useState(15), cN = s_n[0], setCN = s_n[1];
@@ -20371,18 +20375,23 @@ function BreaksTab({ breaks, saveBreaks }) {
         acell("Recibido", eu(agg.rev), TXT, true),
         acell("− REBU", eu(agg.iva), RED, true),
         acell("Neto total", sg(agg.net) + eu(agg.net), cl(agg.net), false))) : null;
+    var flBreaks = breaks.filter(function (b) { var okY = listYear === "all" || (b.date || "").slice(0, 4) === listYear; var q = listQuery.trim().toLowerCase(); var okQ = !q || ((b.name || "") + " " + (b.notes || "")).toLowerCase().indexOf(q) >= 0; return okY && okQ; });
     var list = h("div", null,
         aggDash,
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
             h("div", { style: { fontSize: 13, color: SUB } }, (breaks.length) + " break" + (breaks.length === 1 ? "" : "s") + " registrado" + (breaks.length === 1 ? "" : "s")),
             h(Btn, { onClick: function () { setView("create"); } }, "+ Nuevo break")),
+        breaks.length > 0 ? h("div", { style: { display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" } },
+            h("input", { value: listQuery, onChange: function (e) { setListQuery(e.target.value); }, placeholder: "🔍 Buscar break (nombre, notas)…", style: Object.assign({}, IS, { flex: 1, minWidth: 160 }) }),
+            h("select", { value: listYear, onChange: function (e) { setListYear(e.target.value); }, style: Object.assign({}, IS, { width: "auto" }) }, [h("option", { key: "all", value: "all" }, "Todos los años")].concat(breakYears.map(function (y) { return h("option", { key: y, value: y }, y); })))) : null,
         breaks.length === 0
             ? h("div", { style: { textAlign: "center", padding: "60px 20px", color: MUT } },
                 h("div", { style: { fontSize: 40, marginBottom: 10 } }, "🎁"),
                 h("div", { style: { fontSize: 15, fontWeight: 600, color: SUB } }, "Aún no tienes breaks"),
                 h("div", { style: { fontSize: 13, marginTop: 4 } }, "Créalo desde la pestaña “Crear break”"))
             : h("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
-                breaks.slice().sort(function (a, b) { return (b.date || "").localeCompare(a.date || ""); }).map(function (b) {
+                flBreaks.length === 0 ? h("div", { style: { textAlign: "center", padding: "30px 20px", color: MUT, fontSize: 13 } }, "Sin breaks para ese filtro") : null,
+                flBreaks.slice().sort(function (a, b) { return (b.date || "").localeCompare(a.date || ""); }).map(function (b) {
                     var ec = breakEcon(b);
                     return h(Card, { key: b.id, style: { padding: 16 } },
                         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, flexWrap: "wrap" } },
@@ -20407,11 +20416,12 @@ function BreaksTab({ breaks, saveBreaks }) {
 
     var bqv = clientQuery.trim().toLowerCase();
     var buyerMap = {};
-    breaks.forEach(function (b) { (b.spots || []).forEach(function (s) { var nm = (s.buyer || "").trim(); if (!nm) return; var key = nm.toLowerCase(); if (!buyerMap[key]) buyerMap[key] = { name: nm, items: [], total: 0, pend: 0 }; buyerMap[key].items.push({ b: b, s: s }); buyerMap[key].total += (+s.price || 0); if (!s.shipped && (b.channel || "geek") === "whatsapp") buyerMap[key].pend++; }); });
+    breaks.forEach(function (b) { if (clientYear !== "all" && (b.date || "").slice(0, 4) !== clientYear) return; (b.spots || []).forEach(function (s) { var nm = (s.buyer || "").trim(); if (!nm) return; var key = nm.toLowerCase(); if (!buyerMap[key]) buyerMap[key] = { name: nm, items: [], total: 0, pend: 0 }; buyerMap[key].items.push({ b: b, s: s }); buyerMap[key].total += (+s.price || 0); if (!s.shipped && (b.channel || "geek") === "whatsapp") buyerMap[key].pend++; }); });
     var buyersArr = Object.keys(buyerMap).map(function (k) { return buyerMap[k]; }).filter(function (x) { return !bqv || x.name.toLowerCase().indexOf(bqv) >= 0; }).sort(function (a, b) { return b.total - a.total; });
     var clientes = h("div", null,
-        h("div", { style: { marginBottom: 14 } },
-            h("input", { value: clientQuery, onChange: function (e) { setClientQuery(e.target.value); }, placeholder: "🔍 Buscar por comprador…", style: Object.assign({}, IS, { width: "100%" }) })),
+        h("div", { style: { display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" } },
+            h("input", { value: clientQuery, onChange: function (e) { setClientQuery(e.target.value); }, placeholder: "🔍 Buscar por comprador…", style: Object.assign({}, IS, { flex: 1, minWidth: 160 }) }),
+            h("select", { value: clientYear, onChange: function (e) { setClientYear(e.target.value); }, style: Object.assign({}, IS, { width: "auto" }) }, [h("option", { key: "all", value: "all" }, "Todos los años")].concat(breakYears.map(function (y) { return h("option", { key: y, value: y }, y); })))),
         buyersArr.length === 0
             ? h("div", { style: { textAlign: "center", padding: "50px 20px", color: MUT } },
                 h("div", { style: { fontSize: 40, marginBottom: 10 } }, "🧑‍🤝‍🧑"),
