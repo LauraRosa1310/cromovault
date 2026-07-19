@@ -20864,7 +20864,7 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
                 (bigScreen ? h("div", { style: { position: "fixed", inset: 0, background: "#0a0a0f", color: "#fff", zIndex: 1004, overflow: "auto", padding: "28px 24px", fontFamily: "Inter,sans-serif" } },
                     h("div", { style: { maxWidth: 960, margin: "0 auto" } },
                         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 22, gap: 12 } },
-                            h("div", { style: { display: "flex", alignItems: "center", gap: 14 } }, tcgLogoImg(54),
+                            h("div", { style: { display: "flex", alignItems: "center", gap: 14 } }, h("div", { style: { background: "#000", borderRadius: "50%", padding: 4, flexShrink: 0 } }, tcgLogoImg(64)),
                                 h("div", null,
                                     h("div", { style: { display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12, fontWeight: 800, letterSpacing: "0.14em", color: "#f87171", marginBottom: 8 } }, h("span", { style: { width: 9, height: 9, borderRadius: "50%", background: "#ef4444", display: "inline-block" } }), "EN DIRECTO"),
                                     h("div", { style: { fontSize: 34, fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1 } }, d.name || "Break"))),
