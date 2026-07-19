@@ -19426,6 +19426,7 @@ function RedesTab({ cards, onOpenPost }) {
   var [contenidoSub, setContenidoSub] = React.useState("top5list");
   var [ideas, setIdeas] = React.useState(function(){ try{ return JSON.parse(localStorage.getItem("cv10_ideas")||"[]"); }catch(e){ return []; } });
   var [ideaForm, setIdeaForm] = React.useState({texto:"",tipo:"post",urgencia:"normal"});
+  var [ideaEditId, setIdeaEditId] = React.useState(null);
   var [faqItems, setFaqItems] = React.useState(function(){ try{ return JSON.parse(localStorage.getItem("cv10_faq")||"null"); }catch(e){ return null; } });
   var [faqEdit,setFaqEdit]=React.useState(false);
   var [pcForm, setPcForm] = React.useState({coste:"",envio:"3",margen:"30",portes:"si"});
@@ -19874,12 +19875,13 @@ function RedesTab({ cards, onOpenPost }) {
         ),
         React.createElement("button",{onClick:function(){
           if(!ideaForm.texto.trim()) return;
-          var nueva=Object.assign({},ideaForm,{id:Date.now().toString(36),fecha:new Date().toISOString().slice(0,10),hecha:false});
-          var newIdeas=[nueva].concat(ideas);
+          var newIdeas;
+          if(ideaEditId){ newIdeas=ideas.map(function(x){ return x.id===ideaEditId?Object.assign({},x,{texto:ideaForm.texto,tipo:ideaForm.tipo,urgencia:ideaForm.urgencia}):x; }); }
+          else { newIdeas=[Object.assign({},ideaForm,{id:Date.now().toString(36),fecha:new Date().toISOString().slice(0,10),hecha:false})].concat(ideas); }
           setIdeas(newIdeas); localStorage.setItem("cv10_ideas",JSON.stringify(newIdeas));
           if(window._saveToFirestore) window._saveToFirestore({redesData:{ideas:newIdeas}});
-          setIdeaForm({texto:"",tipo:"post",urgencia:"normal"});
-        },style:{width:"100%",padding:"9px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\uD83D\uDCA1 Guardar idea")
+          setIdeaForm({texto:"",tipo:"post",urgencia:"normal"}); setIdeaEditId(null);
+        },style:{width:"100%",padding:"9px",border:"none",borderRadius:8,background:ideaEditId?blue:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}}, ideaEditId?"\u2713 Guardar cambios":"\uD83D\uDCA1 Guardar idea")
       ),
       ideas.length===0?React.createElement("div",{style:{textAlign:"center",padding:40,color:sub}},
         React.createElement("div",{style:{fontSize:32,marginBottom:8}},"\uD83D\uDCA1"),
@@ -19901,6 +19903,7 @@ function RedesTab({ cards, onOpenPost }) {
                 setIdeas(u); localStorage.setItem("cv10_ideas",JSON.stringify(u));
                 if(window._saveToFirestore) window._saveToFirestore({redesData:{ideas:u}});
               },style:{background:"none",border:"1px solid #e5e7eb",borderRadius:5,padding:"3px 8px",fontSize:11,cursor:"pointer",color:idea.hecha?sub:"#16a34a",fontFamily:"Inter,sans-serif"}},idea.hecha?"\u21A9 Reabrir":"\u2713 Hecha"),
+              React.createElement("button",{onClick:function(){ setIdeaForm({texto:idea.texto,tipo:idea.tipo,urgencia:idea.urgencia}); setIdeaEditId(idea.id); },style:{background:"none",border:"1px solid #e5e7eb",borderRadius:5,padding:"3px 8px",fontSize:11,cursor:"pointer",color:sub,fontFamily:"Inter,sans-serif"}},"\u270F\uFE0F Editar"),
               React.createElement("button",{onClick:function(){
                 var u=ideas.filter(function(x){return x.id!==idea.id;});
                 setIdeas(u); localStorage.setItem("cv10_ideas",JSON.stringify(u));
@@ -20886,6 +20889,9 @@ function App() {
     React.useEffect(function(){ window._setShowImport = setShowImport; return function(){ window._setShowImport = null; }; }, [setShowImport]);
     const [importData, setImportData] = useState([]);
     const [importLoading, setImportLoading] = useState(false);
+    const [importMode, setImportMode] = useState("upload");
+    const [importText, setImportText] = useState("");
+    function parseImportText(txt) { var inv = cards.filter(function (c) { return c.mode === "inventory" && c.status !== "sold"; }); var lines = (txt || "").split(/\r?\n/).map(function (l) { return l.trim(); }).filter(function (l) { return l.length > 1; }); return lines.map(function (line) { var nums = line.match(/[0-9]+[.,]?[0-9]*/g) || []; var price = nums.length ? (parseFloat(nums[nums.length - 1].replace(",", ".")) || 0) : 0; var ll = line.toLowerCase(); var match = inv.find(function (c) { var cn = (c.name || "").toLowerCase().trim(); return cn && ll.indexOf(cn) >= 0; }); if (!match) { match = inv.find(function (c) { var cn = (c.name || "").toLowerCase().trim(); return cn && cn.length > 4 && (cn.indexOf(ll.slice(0, 18)) >= 0 || ll.indexOf(cn.slice(0, 18)) >= 0); }); } return { factura: { nombre: line, precio_neto: price, precio_bruto: price, unidades: 1, comision: 0 }, card: match || null, incluir: !!match }; }); }
     const [unreadChats, setUnreadChats] = useState(0);
     const [showPublicProfile, setShowPublicProfile] = useState(false);
     const [showQR, setShowQR] = useState(false);
@@ -21124,79 +21130,18 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
             ),
             React.createElement("div", { style: { padding:"16px 20px",overflowY:"auto",flex:1 } },
               importData.length === 0 ? React.createElement("div", null,
-                React.createElement("div", { style: { fontSize:13,color:SUB,marginBottom:16 } }, "Sube el PDF de la factura de Geek. La app extraer\u00E1 las cartas vendidas y las cruzar\u00E1 con tu inventario autom\u00E1ticamente."),
-                React.createElement("div", { style: { border:"2px dashed "+BDR,borderRadius:12,padding:32,textAlign:"center",cursor:"pointer",background:BGS },
-                  onClick: function(){
-                    var inp = document.createElement("input");
-                    inp.type = "file"; inp.accept = ".pdf";
-                    inp.onchange = function(e){
-                      var file = e.target.files[0];
-                      if(!file) return;
-                      var apiKey = localStorage.getItem("cv10_api_key")||"";
-                      if(!apiKey){ alert("Necesitas una API key de Anthropic. Ve a Preferencias (\uD83C\uDF9B\uFE0F) y a\u00F1\u00E1dela."); return; }
-                      setImportLoading(true);
-                      var reader = new FileReader();
-                      reader.onload = function(ev){
-                        var base64 = ev.target.result.split(",")[1];
-                        fetch("https://api.anthropic.com/v1/messages", {
-                          method: "POST",
-                          headers: { 
-                          "Content-Type": "application/json",
-                          "x-api-key": localStorage.getItem("cv10_api_key")||"",
-                          "anthropic-version": "2023-06-01",
-                          "anthropic-dangerous-direct-browser-access": "true"
-                        },
-                          body: JSON.stringify({
-                            model: "claude-sonnet-4-6",
-                            max_tokens: 4000,
-                            messages: [{
-                              role: "user",
-                              content: [
-                                { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } },
-                                { type: "text", text: "Extrae todas las cartas vendidas de esta factura de Geek. Responde SOLO con JSON array, sin texto adicional ni backticks. Formato: [{\"nombre\": \"nombre exacto de la carta\", \"unidades\": numero, \"precio_bruto\": numero, \"precio_neto\": numero, \"comision\": numero}]. El precio_neto es el volumen neto. Ignora filas de envios y totales." }
-                              ]
-                            }]
-                          })
-                        }).then(function(r){ return r.json(); }).then(function(data){
-                          var text = data.content.map(function(i){ return i.text||""; }).join("");
-                          var clean = text.replace(/```json|```/g,"").trim();
-                          var items = JSON.parse(clean);
-                          var inv = cards.filter(function(c){ return c.mode==="inventory" && c.status!=="sold"; });
-                          var matched = items.map(function(item){
-                            var match = inv.find(function(c){
-                              return (c.name||"").toLowerCase().trim() === (item.nombre||"").toLowerCase().trim();
-                            });
-                            if(!match){
-                              match = inv.find(function(c){
-                                var cn = (c.name||"").toLowerCase(); var fn = (item.nombre||"").toLowerCase();
-                                return cn.includes(fn.slice(0,15)) || fn.includes(cn.slice(0,15));
-                              });
-                            }
-                            return { factura: item, card: match||null, incluir: !!match };
-                          });
-                          setImportData(matched);
-                          setImportLoading(false);
-                        }).catch(function(err){
-                          console.error(err);
-                          alert("Error al procesar el PDF. Int\u00E9ntalo de nuevo.");
-                          setImportLoading(false);
-                        });
-                      };
-                      reader.readAsDataURL(file);
-                    };
-                    inp.click();
-                  }
-                },
-                  importLoading ?
-                    React.createElement("div", null,
-                      React.createElement("div", { style: { fontSize:32,marginBottom:8 } }, "\u23F3"),
-                      React.createElement("div", { style: { fontSize:14,color:SUB } }, "Analizando factura con IA...")
-                    ) :
-                    React.createElement("div", null,
-                      React.createElement("div", { style: { fontSize:40,marginBottom:8 } }, "\uD83D\uDCC4"),
-                      React.createElement("div", { style: { fontSize:15,fontWeight:600,marginBottom:4 } }, "Haz clic para subir el PDF"),
-                      React.createElement("div", { style: { fontSize:13,color:SUB } }, "Factura de Geek en formato PDF")
-                    )
+                React.createElement("div", { style: { display:"flex",gap:8,marginBottom:16 } }, [["upload","📄 Subir archivo"],["paste","📋 Pegar texto"]].map(function(m){ var on=importMode===m[0]; return React.createElement("button",{key:m[0],onClick:function(){setImportMode(m[0]);},style:{flex:1,padding:"9px",borderRadius:8,border:"1.5px solid "+(on?BLUE:BDR),background:on?"rgba(29,107,252,0.08)":BG,color:on?BLUE:SUB,fontWeight:on?700:500,fontSize:13,cursor:"pointer",fontFamily:"Inter,sans-serif"}},m[1]); })),
+                importMode === "paste" ? React.createElement("div", null,
+                  React.createElement("div",{style:{fontSize:13,color:SUB,marginBottom:12}},"Pega el texto de la factura (una carta por línea). Se emparejan con tu inventario por el nombre; si la línea tiene un número, se toma como precio."),
+                  React.createElement("textarea",{value:importText,onChange:function(e){setImportText(e.target.value);},rows:8,placeholder:"Una carta por línea…",style:{width:"100%",border:"1px solid "+BDR,borderRadius:8,padding:"10px",fontSize:13,fontFamily:"Inter,sans-serif",boxSizing:"border-box",resize:"vertical",marginBottom:12}}),
+                  React.createElement("button",{onClick:function(){ if(!importText.trim()){ alert("Pega el texto de la factura primero"); return; } setImportData(parseImportText(importText)); },style:{width:"100%",padding:"11px",border:"none",borderRadius:8,background:BLUE,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Procesar texto")
+                ) : React.createElement("div", null,
+                  React.createElement("div", { style: { fontSize:13,color:SUB,marginBottom:16 } }, "Sube un archivo de texto o CSV con las cartas vendidas (una por línea). Se cruzarán con tu inventario por el nombre."),
+                  React.createElement("div", { style: { border:"2px dashed "+BDR,borderRadius:12,padding:32,textAlign:"center",cursor:"pointer",background:BGS }, onClick: function(){ var inp=document.createElement("input"); inp.type="file"; inp.accept=".txt,.csv,.tsv"; inp.onchange=function(e){ var file=e.target.files[0]; if(!file) return; var reader=new FileReader(); reader.onload=function(ev){ setImportData(parseImportText(ev.target.result)); }; reader.readAsText(file); }; inp.click(); } },
+                    React.createElement("div", { style: { fontSize:40,marginBottom:8 } }, "📄"),
+                    React.createElement("div", { style: { fontSize:15,fontWeight:600,marginBottom:4 } }, "Haz clic para subir el archivo"),
+                    React.createElement("div", { style: { fontSize:13,color:SUB } }, ".txt o .csv · una carta por línea")
+                  )
                 )
               ) :
               React.createElement("div", null,
@@ -21207,7 +21152,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
                       React.createElement("div", { style: { display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4 } },
                         React.createElement("div", { style: { flex:1 } },
                           React.createElement("div", { style: { fontSize:13,fontWeight:600 } }, item.factura.nombre),
-                          React.createElement("div", { style: { fontSize:11,color:SUB } }, "Neto: "+item.factura.precio_neto.toFixed(2)+"\u20AC \u00B7 "+item.factura.unidades+" ud.")
+                          React.createElement("div", { style: { fontSize:11,color:SUB } }, "Neto: "+(item.factura.precio_neto||0).toFixed(2)+"\u20AC \u00B7 "+(item.factura.unidades||1)+" ud.")
                         ),
                         React.createElement("input", { type:"checkbox", checked:item.incluir, onChange:function(e){
                           var idx2=i; setImportData(function(prev){ var n=prev.slice(); n[idx2]=Object.assign({},n[idx2],{incluir:e.target.checked}); return n; });
