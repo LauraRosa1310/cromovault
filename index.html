@@ -20258,6 +20258,7 @@ function BreaksTab({ breaks, saveBreaks }) {
     var mgs = useState(null), managing = mgs[0], setManaging = mgs[1];
     var rst = useState(false), rouletteStart = rst[0], setRouletteStart = rst[1];
     var cqB = useState(""), clientQuery = cqB[0], setClientQuery = cqB[1];
+    var eb = useState(null), expandedBuyer = eb[0], setExpandedBuyer = eb[1];
     // ---- Calculadora (precio/spot para un objetivo) ----
     var s_box = useState(200), cBox = s_box[0], setCBox = s_box[1];
     var s_n = useState(15), cN = s_n[0], setCN = s_n[1];
@@ -20418,12 +20419,12 @@ function BreaksTab({ breaks, saveBreaks }) {
             : h("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
                 buyersArr.map(function (x, ri) {
                     return h(Card, { key: x.name, style: { padding: 14 } },
-                        h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 8 } },
-                            h("div", { style: { fontSize: 15, fontWeight: 700 } }, "#" + (ri + 1) + "  " + x.name),
+                        h("div", { onClick: function () { setExpandedBuyer(expandedBuyer === x.name ? null : x.name); }, style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: expandedBuyer === x.name ? 8 : 0, cursor: "pointer" } },
+                            h("div", { style: { fontSize: 15, fontWeight: 700 } }, (expandedBuyer === x.name ? "▾ " : "▸ ") + "#" + (ri + 1) + "  " + x.name),
                             h("div", { style: { display: "flex", gap: 10, alignItems: "center", fontSize: 12 } },
                                 h("span", { style: { color: SUB } }, x.items.length + " spot" + (x.items.length === 1 ? "" : "s") + " · " + eu(x.total)),
                                 x.pend > 0 ? h("span", { style: { color: AMBER, fontWeight: 700 } }, "📦 " + x.pend + " por enviar") : h("span", { style: { color: GREEN, fontWeight: 700 } }, "✓ todo enviado"))),
-                        h("div", { style: { display: "flex", flexDirection: "column", gap: 2 } },
+                        (expandedBuyer === x.name) ? h("div", { style: { display: "flex", flexDirection: "column", gap: 2 } },
                             (function () {
                                 var byMonth = {}; x.items.forEach(function (o) { var m = (o.b.date || "").slice(0, 7); if (!m) m = "Sin fecha"; if (!byMonth[m]) byMonth[m] = { items: [], total: 0 }; byMonth[m].items.push(o); byMonth[m].total += (+o.s.price || 0); });
                                 var MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -20435,7 +20436,7 @@ function BreaksTab({ breaks, saveBreaks }) {
                                             return h("div", { key: idx, style: { display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, padding: "3px 0", borderTop: idx > 0 ? "1px solid " + BDR : "none" } }, h("span", null, (CATS[o.b.category] || "") + " " + (o.b.name || "Break") + " · " + ((o.s.team || "").trim() || "Spot")), h("span", { style: { color: SUB, whiteSpace: "nowrap" } }, eu(+o.s.price || 0) + " · " + (o.s.shipped ? "✓ enviado" : (o.s.paid ? "pagado" : "pendiente"))));
                                         }));
                                 });
-                            })()));
+                            })()) : null);
                 })));
 
     var dEvs = breaks.map(function (b) { return { b: b, ec: breakEcon(b) }; });
