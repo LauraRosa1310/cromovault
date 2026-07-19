@@ -20262,6 +20262,8 @@ function BreaksTab({ breaks, saveBreaks }) {
     var lq = useState(""), listQuery = lq[0], setListQuery = lq[1];
     var ly = useState("all"), listYear = ly[0], setListYear = ly[1];
     var cyf = useState("all"), clientYear = cyf[0], setClientYear = cyf[1];
+    var lst = useState("all"), listEstado = lst[0], setListEstado = lst[1];
+    var dyf = useState("all"), dashYear = dyf[0], setDashYear = dyf[1];
     var breakYears = (function () { var y = {}; breaks.forEach(function (b) { var yr = (b.date || "").slice(0, 4); if (yr) y[yr] = 1; }); return Object.keys(y).sort().reverse(); })();
     // ---- Calculadora (precio/spot para un objetivo) ----
     var s_box = useState(200), cBox = s_box[0], setCBox = s_box[1];
@@ -20375,7 +20377,7 @@ function BreaksTab({ breaks, saveBreaks }) {
         acell("Recibido", eu(agg.rev), TXT, true),
         acell("− REBU", eu(agg.iva), RED, true),
         acell("Neto total", sg(agg.net) + eu(agg.net), cl(agg.net), false))) : null;
-    var flBreaks = breaks.filter(function (b) { var okY = listYear === "all" || (b.date || "").slice(0, 4) === listYear; var q = listQuery.trim().toLowerCase(); var okQ = !q || ((b.name || "") + " " + (b.notes || "")).toLowerCase().indexOf(q) >= 0; return okY && okQ; });
+    var flBreaks = breaks.filter(function (b) { var okY = listYear === "all" || (b.date || "").slice(0, 4) === listYear; var q = listQuery.trim().toLowerCase(); var okQ = !q || ((b.name || "") + " " + (b.notes || "")).toLowerCase().indexOf(q) >= 0; var okS = listEstado === "all" || (listEstado === "settled" ? !!b.settled : !b.settled); return okY && okQ && okS; });
     var list = h("div", null,
         aggDash,
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
@@ -20383,7 +20385,8 @@ function BreaksTab({ breaks, saveBreaks }) {
             h(Btn, { onClick: function () { setView("create"); } }, "+ Nuevo break")),
         breaks.length > 0 ? h("div", { style: { display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" } },
             h("input", { value: listQuery, onChange: function (e) { setListQuery(e.target.value); }, placeholder: "🔍 Buscar break (nombre, notas)…", style: Object.assign({}, IS, { flex: 1, minWidth: 160 }) }),
-            h("select", { value: listYear, onChange: function (e) { setListYear(e.target.value); }, style: Object.assign({}, IS, { width: "auto" }) }, [h("option", { key: "all", value: "all" }, "Todos los años")].concat(breakYears.map(function (y) { return h("option", { key: y, value: y }, y); })))) : null,
+            h("select", { value: listYear, onChange: function (e) { setListYear(e.target.value); }, style: Object.assign({}, IS, { width: "auto" }) }, [h("option", { key: "all", value: "all" }, "Todos los años")].concat(breakYears.map(function (y) { return h("option", { key: y, value: y }, y); }))),
+            h("select", { value: listEstado, onChange: function (e) { setListEstado(e.target.value); }, style: Object.assign({}, IS, { width: "auto" }) }, h("option", { value: "all" }, "Todos"), h("option", { value: "pend" }, "🔓 Pendientes"), h("option", { value: "settled" }, "✅ Liquidados"))) : null,
         breaks.length === 0
             ? h("div", { style: { textAlign: "center", padding: "60px 20px", color: MUT } },
                 h("div", { style: { fontSize: 40, marginBottom: 10 } }, "🎁"),
@@ -20411,6 +20414,7 @@ function BreaksTab({ breaks, saveBreaks }) {
                             (b.assign === "roulette" && b.spots && b.spots.length > 0) ? h(Btn, { sm: true, v: "success", onClick: function () { setRouletteStart(true); setManaging(b); } }, "🎡 Ruleta") : null,
                             h(Btn, { sm: true, v: "outline", onClick: function () { setEditing(b); } }, "Editar"),
                             h(Btn, { sm: true, v: "outline", onClick: function () { var nb = JSON.parse(JSON.stringify(b)); nb.id = uid(); nb.date = new Date().toISOString().slice(0, 10); nb.name = (b.name || "Break") + " (copia)"; nb.spots = (b.spots || []).map(function (s) { return Object.assign({}, s, { id: uid(), buyer: "", paid: false, shipped: false }); }); saveBreaks([nb].concat(breaks)); } }, "Duplicar"),
+                            h(Btn, { sm: true, v: b.settled ? "success" : "outline", onClick: function () { saveBreaks(breaks.map(function (x) { return x.id === b.id ? Object.assign({}, x, { settled: !x.settled }) : x; })); } }, b.settled ? "✅ Liquidado" : "Liquidar"),
                             h(Btn, { sm: true, v: "ghost", onClick: function () { if (confirm("¿Eliminar este break?")) saveBreaks(breaks.filter(function (x) { return x.id !== b.id; })); } }, "Eliminar")));
                 })));
 
@@ -20449,7 +20453,8 @@ function BreaksTab({ breaks, saveBreaks }) {
                             })()) : null);
                 })));
 
-    var dEvs = breaks.map(function (b) { return { b: b, ec: breakEcon(b) }; });
+    var dashYearBreaks = breaks.filter(function (b) { return dashYear === "all" || (b.date || "").slice(0, 4) === dashYear; });
+    var dEvs = dashYearBreaks.map(function (b) { return { b: b, ec: breakEcon(b) }; });
     var dBox = dEvs.reduce(function (a, e) { return a + e.ec.boxCost; }, 0);
     var dRev = dEvs.reduce(function (a, e) { return a + e.ec.revenue; }, 0);
     var dIva = dEvs.reduce(function (a, e) { return a + e.ec.iva; }, 0);
@@ -20461,32 +20466,34 @@ function BreaksTab({ breaks, saveBreaks }) {
     var worstB = withBox.slice().sort(function (a, b) { return a.ec.roi - b.ec.roi; })[0];
     var barEvs = dEvs.slice().sort(function (a, b) { return b.ec.net - a.ec.net; });
     var maxAbs = Math.max(1, Math.max.apply(null, dEvs.map(function (e) { return Math.abs(e.ec.net); }).concat([0])));
-    var topBuyers = Object.keys(buyerMap).map(function (k) { return buyerMap[k]; }).sort(function (a, b) { return b.total - a.total; }).slice(0, 5);
+    var dbm = {}; dashYearBreaks.forEach(function (b) { (b.spots || []).forEach(function (s) { var nm = (s.buyer || "").trim(); if (!nm) return; var k = nm.toLowerCase(); if (!dbm[k]) dbm[k] = { name: nm, items: 0, total: 0 }; dbm[k].items++; dbm[k].total += (+s.price || 0); }); });
+    var topBuyers = Object.keys(dbm).map(function (k) { return dbm[k]; }).sort(function (a, b) { return b.total - a.total; }).slice(0, 5);
+    var byMon = {}; dEvs.forEach(function (e) { var m = (e.b.date || "").slice(0, 7); if (!m) return; if (!byMon[m]) byMon[m] = { net: 0 }; byMon[m].net += e.ec.net; });
+    var monKeys = Object.keys(byMon).sort();
+    var monMax = Math.max(1, Math.max.apply(null, monKeys.map(function (m) { return Math.abs(byMon[m].net); }).concat([0])));
+    var MESES3 = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    function monLbl(m) { var p = m.split("-"); return (MESES3[(+p[1]) - 1] || "") + " " + p[0].slice(2); }
+    var chG = { rev: 0, net: 0, n: 0 }, chW = { rev: 0, net: 0, n: 0 };
+    dEvs.forEach(function (e) { var c = (e.b.channel || "geek") === "whatsapp" ? chW : chG; c.rev += e.ec.revenue; c.net += e.ec.net; c.n++; });
+    var byCat = {}; dEvs.forEach(function (e) { var c = e.b.category || "other"; if (!byCat[c]) byCat[c] = { net: 0 }; byCat[c].net += e.ec.net; });
+    var catKeys = Object.keys(byCat).sort(function (a, b) { return byCat[b].net - byCat[a].net; });
+    var catMax = Math.max(1, Math.max.apply(null, catKeys.map(function (c) { return Math.abs(byCat[c].net); }).concat([0])));
     function kpi(l, v, c) { return h(Card, { key: l, style: { padding: "12px 14px" } }, h("div", { style: { fontSize: 10, color: SUB, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" } }, l), h("div", { style: { fontSize: 18, fontWeight: 800, color: c || TXT, marginTop: 2 } }, v)); }
+    function chCard(icon, name, o) { return h(Card, { style: { padding: 14 } }, h("div", { style: { fontSize: 12, fontWeight: 700, marginBottom: 4 } }, icon + " " + name), h("div", { style: { fontSize: 12, color: SUB } }, o.n + " break" + (o.n === 1 ? "" : "s") + " · recibido " + eu(o.rev)), h("div", { style: { fontSize: 15, fontWeight: 800, color: cl(o.net), marginTop: 2 } }, "Neto " + sg(o.net) + eu(o.net))); }
+    var dashSelector = breaks.length > 0 ? h("div", { style: { display: "flex", justifyContent: "flex-end", marginBottom: 14 } }, h("select", { value: dashYear, onChange: function (e) { setDashYear(e.target.value); }, style: Object.assign({}, IS, { width: "auto" }) }, [h("option", { key: "all", value: "all" }, "Todos los años")].concat(breakYears.map(function (y) { return h("option", { key: y, value: y }, y); })))) : null;
     var dash = breaks.length === 0
         ? h("div", { style: { textAlign: "center", padding: "60px 20px", color: MUT } }, h("div", { style: { fontSize: 40, marginBottom: 10 } }, "📊"), h("div", { style: { fontSize: 15, fontWeight: 600, color: SUB } }, "Sin datos todavía"), h("div", { style: { fontSize: 13, marginTop: 4 } }, "Crea y vende breaks para ver aquí tus rentabilidades"))
-        : h("div", null,
+        : h("div", null, dashSelector, dEvs.length === 0 ? h("div", { style: { textAlign: "center", padding: "40px 20px", color: MUT, fontSize: 14 } }, "Sin breaks en ese año") : h("div", null,
             h("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(108px,1fr))", gap: 10, marginBottom: 18 } },
-                kpi("Invertido", eu(dBox), TXT), kpi("Recibido", eu(dRev), TXT), kpi("IVA REBU", eu(dIva), RED), kpi("Beneficio neto", sg(dNet) + eu(dNet), cl(dNet)), kpi("ROI global", sg(dRoiG) + dRoiG.toFixed(0) + "%", cl(dRoiG)), kpi("Breaks", String(breaks.length), TXT), kpi("Spots vendidos", String(dSpots), TXT)),
+                kpi("Invertido", eu(dBox), TXT), kpi("Recibido", eu(dRev), TXT), kpi("IVA REBU", eu(dIva), RED), kpi("Beneficio neto", sg(dNet) + eu(dNet), cl(dNet)), kpi("ROI global", sg(dRoiG) + dRoiG.toFixed(0) + "%", cl(dRoiG)), kpi("Breaks", String(dEvs.length), TXT), kpi("Spots vendidos", String(dSpots), TXT)),
             (bestB || worstB) ? h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 } },
                 bestB ? h(Card, { style: { padding: 14, border: "1px solid " + GREEN } }, h("div", { style: { fontSize: 11, color: GREEN, fontWeight: 700, marginBottom: 4 } }, "🏆 Mejor break"), h("div", { style: { fontSize: 13, fontWeight: 700 } }, (bestB.b.name || "Break")), h("div", { style: { fontSize: 12, color: SUB, marginTop: 2 } }, sg(bestB.ec.net) + eu(bestB.ec.net) + " · " + sg(bestB.ec.roi) + bestB.ec.roi.toFixed(0) + "% ROI")) : null,
                 worstB ? h(Card, { style: { padding: 14, border: "1px solid " + RED } }, h("div", { style: { fontSize: 11, color: RED, fontWeight: 700, marginBottom: 4 } }, "📉 Peor break"), h("div", { style: { fontSize: 13, fontWeight: 700 } }, (worstB.b.name || "Break")), h("div", { style: { fontSize: 12, color: SUB, marginTop: 2 } }, sg(worstB.ec.net) + eu(worstB.ec.net) + " · " + sg(worstB.ec.roi) + worstB.ec.roi.toFixed(0) + "% ROI")) : null) : null,
-            h(Card, { style: { padding: 16, marginBottom: 18 } },
-                h(SL, null, "Beneficio neto por break"),
-                barEvs.map(function (e) {
-                    var w = Math.round(Math.abs(e.ec.net) / maxAbs * 100);
-                    return h("div", { key: e.b.id, style: { marginBottom: 8 } },
-                        h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 2, gap: 8 } },
-                            h("span", { style: { fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "56%" } }, (CATS[e.b.category] || "") + " " + (e.b.name || "Break")),
-                            h("span", { style: { fontWeight: 700, color: cl(e.ec.net), whiteSpace: "nowrap" } }, sg(e.ec.net) + eu(e.ec.net) + " · " + sg(e.ec.roi) + e.ec.roi.toFixed(0) + "%")),
-                        h("div", { style: { height: 8, background: BGS, borderRadius: 4, overflow: "hidden" } }, h("div", { style: { height: "100%", width: w + "%", background: e.ec.net >= 0 ? GREEN : RED, borderRadius: 4 } })));
-                })),
-            topBuyers.length > 0 ? h(Card, { style: { padding: 16 } },
-                h(SL, null, "Top compradores"),
-                topBuyers.map(function (x, ri) {
-                    return h("div", { key: x.name, style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderTop: ri > 0 ? "1px solid " + BDR : "none", fontSize: 13 } },
-                        h("span", { style: { fontWeight: 600 } }, "#" + (ri + 1) + "  " + x.name),
-                        h("span", { style: { color: SUB } }, x.items.length + " spots · ", h("b", { style: { color: TXT } }, eu(x.total)))); })) : null);
+            monKeys.length > 0 ? h(Card, { style: { padding: 16, marginBottom: 18 } }, h(SL, null, "Evolución mensual (beneficio neto)"), h("div", { style: { display: "flex", alignItems: "flex-end", gap: 6, height: 130, overflowX: "auto", paddingBottom: 4 } }, monKeys.map(function (m) { var val = byMon[m].net; var hgt = Math.round(Math.abs(val) / monMax * 90); return h("div", { key: m, style: { display: "flex", flexDirection: "column", alignItems: "center", flex: "0 0 auto", minWidth: 38 } }, h("div", { style: { fontSize: 9, color: cl(val), fontWeight: 700, marginBottom: 2, whiteSpace: "nowrap" } }, (val >= 0 ? "+" : "") + Math.round(val)), h("div", { style: { width: 22, height: (hgt + 4) + "px", background: val >= 0 ? GREEN : RED, borderRadius: 3 } }), h("div", { style: { fontSize: 9, color: SUB, marginTop: 3, whiteSpace: "nowrap" } }, monLbl(m))); }))) : null,
+            h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 } }, chCard("🟣", "Geek", chG), chCard("🟢", "WhatsApp", chW)),
+            catKeys.length > 0 ? h(Card, { style: { padding: 16, marginBottom: 18 } }, h(SL, null, "Rentabilidad por categoría"), catKeys.map(function (c) { var val = byCat[c].net; var w = Math.round(Math.abs(val) / catMax * 100); return h("div", { key: c, style: { marginBottom: 8 } }, h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 2 } }, h("span", { style: { fontWeight: 600 } }, CATS[c] || c), h("span", { style: { fontWeight: 700, color: cl(val) } }, sg(val) + eu(val))), h("div", { style: { height: 8, background: BGS, borderRadius: 4, overflow: "hidden" } }, h("div", { style: { height: "100%", width: w + "%", background: val >= 0 ? GREEN : RED, borderRadius: 4 } }))); })) : null,
+            h(Card, { style: { padding: 16, marginBottom: 18 } }, h(SL, null, "Beneficio neto por break"), barEvs.map(function (e) { var w = Math.round(Math.abs(e.ec.net) / maxAbs * 100); return h("div", { key: e.b.id, style: { marginBottom: 8 } }, h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 2, gap: 8 } }, h("span", { style: { fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "56%" } }, (CATS[e.b.category] || "") + " " + (e.b.name || "Break")), h("span", { style: { fontWeight: 700, color: cl(e.ec.net), whiteSpace: "nowrap" } }, sg(e.ec.net) + eu(e.ec.net) + " · " + sg(e.ec.roi) + e.ec.roi.toFixed(0) + "%")), h("div", { style: { height: 8, background: BGS, borderRadius: 4, overflow: "hidden" } }, h("div", { style: { height: "100%", width: w + "%", background: e.ec.net >= 0 ? GREEN : RED, borderRadius: 4 } }))); })),
+            topBuyers.length > 0 ? h(Card, { style: { padding: 16 } }, h(SL, null, "Top compradores"), topBuyers.map(function (x, ri) { return h("div", { key: x.name, style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderTop: ri > 0 ? "1px solid " + BDR : "none", fontSize: 13 } }, h("span", { style: { fontWeight: 600 } }, "#" + (ri + 1) + "  " + x.name), h("span", { style: { color: SUB } }, x.items + " spots · ", h("b", { style: { color: TXT } }, eu(x.total)))); })) : null));
 
     return h("div", null,
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18, flexWrap: "wrap", gap: 10 } },
