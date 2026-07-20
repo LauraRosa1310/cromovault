@@ -17562,7 +17562,7 @@ function CardForm({ onSave, onClose, editCard, defMode, lots }) {
                     
                     React.createElement("div", { style: { gridColumn: "1/-1" } },
                         React.createElement("label", { style: LS }, "\uD83D\uDCF7 Foto de la carta"),
-                        React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, f.imageUrl ? React.createElement("img", { src: f.imageUrl, style: { width: "100%", maxHeight: 140, objectFit: "contain", borderRadius: 8, background: "#f8fafc" } }) : null, React.createElement("div", { style: { display: "flex", gap: 8 } }, React.createElement("label", { style: { flex: 1, padding: "10px 8px", background: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#1d4ed8", fontFamily: "Inter,sans-serif", textAlign: "center", display: "block" } }, "\uD83D\uDCF7 Hacer foto", React.createElement("input", { type: "file", accept: "image/*", capture: "environment", style: { display: "none" }, onChange: function(e){ var file=e.target.files[0]; if(!file) return; if(window.compressImage){window.compressImage(file,function(blob,dataUrl){if(window.uploadToCloudinary){window.uploadToCloudinary(blob,function(err,url){sf("imageUrl",err?dataUrl:url);});}else{sf("imageUrl",dataUrl);}});} e.target.value=""; } })), React.createElement("label", { style: { flex: 1, padding: "10px 8px", background: "#f0fdf4", border: "1.5px solid #bbf7d0", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#15803d", fontFamily: "Inter,sans-serif", textAlign: "center", display: "block" } }, "\uD83D\uDDBC\uFE0F Galer\u00EDa", React.createElement("input", { type: "file", accept: "image/*", style: { display: "none" }, onChange: function(e){ var file=e.target.files[0]; if(!file) return; if(window.compressImage){window.compressImage(file,function(blob,dataUrl){if(window.uploadToCloudinary){window.uploadToCloudinary(blob,function(err,url){sf("imageUrl",err?dataUrl:url);});}else{sf("imageUrl",dataUrl);}});} e.target.value=""; } }))), React.createElement("input", { value: f.imageUrl || "", onChange: e => sf("imageUrl", e.target.value), placeholder: "O pega una URL...", style: Object.assign({}, IS, { fontSize: 12, color: "#6b7280" }) }))),
+                        React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, f.imageUrl ? React.createElement("img", { src: f.imageUrl, style: { width: "100%", maxHeight: 140, objectFit: "contain", borderRadius: 8, background: "#f8fafc" } }) : null, React.createElement("div", { style: { display: "flex", gap: 8 } }, React.createElement("label", { style: { flex: 1, padding: "10px 8px", background: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#1d4ed8", fontFamily: "Inter,sans-serif", textAlign: "center", display: "block" } }, "\uD83D\uDCF7 Hacer foto", React.createElement("input", { type: "file", accept: "image/*", capture: "environment", style: { display: "none" }, onChange: function(e){ var file=e.target.files[0]; if(!file) return; if(window.compressImage){window.compressImage(file,function(blob,dataUrl){if(window.uploadToCloudinary){window.uploadToCloudinary(blob,function(err,url){sf("imageUrl",err?dataUrl:url);});}else{sf("imageUrl",dataUrl);}});} e.target.value=""; } })), React.createElement("label", { style: { flex: 1, padding: "10px 8px", background: "#f0fdf4", border: "1.5px solid #bbf7d0", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#15803d", fontFamily: "Inter,sans-serif", textAlign: "center", display: "block" } }, "\uD83D\uDDBC\uFE0F Galer\u00EDa", React.createElement("input", { type: "file", accept: "image/*", style: { display: "none" }, onChange: function(e){ var file=e.target.files[0]; if(!file) return; if(window.compressImage){window.compressImage(file,function(blob,dataUrl){if(window.uploadToCloudinary){window.uploadToCloudinary(blob,function(err,url){sf("imageUrl",err?dataUrl:url);});}else{sf("imageUrl",dataUrl);}});} e.target.value=""; } }))))),
 
                     
                     React.createElement("div", { style: { marginTop: 10 } },
@@ -17582,7 +17582,7 @@ function CardForm({ onSave, onClose, editCard, defMode, lots }) {
                             React.createElement("label", { style: LS }, "Fecha"),
                             React.createElement("input", { type: "date", value: f.buyDate, onChange: e => sf("buyDate", e.target.value), style: IS }))),
                     
-                    f.mode === "inventory" && f.status === "listed" && React.createElement("div", { style: { marginBottom: 12 } }, React.createElement("label", { style: LS }, "Precio oferta (deja vacio para quitar oferta)"), React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.salePrice || "", onChange: function(e){ sf("salePrice", e.target.value); }, placeholder: "Precio con descuento", style: IS })),
+                    false,
                     tB > 0 && React.createElement("div", { style: { background: BGS, borderRadius: 8, padding: "9px 12px", fontSize: 13 } },
                         "Total: ",
                         React.createElement("b", null, eu(tB)),
@@ -17906,7 +17906,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
         return a.name.localeCompare(b.name); return (b.buyDate || "").localeCompare(a.buyDate || ""); });
     if (invView === "grid" && sortBy) {
         fi = fi.slice().sort(function(a, b) {
-            if (sortBy === "stockDays") { var da = a.buyDate || "9999-99-99", db2 = b.buyDate || "9999-99-99"; return String(da).localeCompare(String(db2)) * sortDir; }
+            if (sortBy === "stockDays") { var aSold = a.status === "sold", bSold = b.status === "sold"; if (aSold !== bSold) return aSold ? 1 : -1; var da = a.buyDate || "9999-99-99", db2 = b.buyDate || "9999-99-99"; return String(da).localeCompare(String(db2)) * sortDir; }
             var av = a[sortBy] || "", bv = b[sortBy] || "";
             if (typeof av === "number" || !isNaN(parseFloat(av))) {
                 return (parseFloat(bv) - parseFloat(av)) * sortDir;
@@ -20021,7 +20021,8 @@ function RedesTab({ cards, onOpenPost }) {
           ce("input",{value:remForm.hora,onChange:function(e){setRemForm(Object.assign({},remForm,{hora:e.target.value}));},placeholder:"Hora (21:00)",style:Object.assign({},IS2,{width:120})})
         ),
         ce("input",{value:remForm.texto,onChange:function(e){setRemForm(Object.assign({},remForm,{texto:e.target.value}));},placeholder:"\u00bfQu\u00e9 quieres recordar? (ej: directo de sobres)",style:Object.assign({},IS2,{marginBottom:8})}),
-        ce("button",{onClick:function(){ if(!remForm.fecha||!remForm.texto.trim()){alert("Pon al menos fecha y texto");return;} var nr=reminders.concat([{id:Date.now(),fecha:remForm.fecha,hora:remForm.hora,texto:remForm.texto.trim(),done:false}]); saveReminders(nr); setRemForm({fecha:"",hora:"",texto:""}); },style:{width:"100%",padding:"9px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u23F0 A\u00f1adir recordatorio")
+        ce("button",{onClick:function(){ if(!remForm.fecha||!remForm.texto.trim()){alert("Pon al menos fecha y texto");return;} var nr=reminders.concat([{id:Date.now(),fecha:remForm.fecha,hora:remForm.hora,texto:remForm.texto.trim(),done:false}]); saveReminders(nr); setRemForm({fecha:"",hora:"",texto:""}); },style:{width:"100%",padding:"9px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u23F0 A\u00f1adir recordatorio"),
+        ce("div",{style:{fontSize:11,color:sub,marginTop:8,lineHeight:1.5}},"💡 En cada recordatorio, toca 📅 para añadirlo al calendario de tu móvil. Así te avisará con una notificación aunque no tengas la app abierta.")
       ),
       reminders.length===0?ce("div",{style:{textAlign:"center",padding:"30px",color:sub,fontSize:13}},"A\u00fan no tienes recordatorios"):
       ce("div",{style:{display:"flex",flexDirection:"column",gap:8}},
@@ -20038,6 +20039,7 @@ function RedesTab({ cards, onOpenPost }) {
               ce("div",{style:{fontSize:11,color:sub,marginTop:2}}, (r.fecha||"")+(r.hora?" \u00b7 "+r.hora:""))
             ),
             badge?ce("span",{style:{flexShrink:0,fontSize:10,fontWeight:700,color:"#fff",background:bc,padding:"3px 9px",borderRadius:20,textTransform:"uppercase",letterSpacing:"0.05em"}},badge):null,
+            ce("button",{onClick:function(){ _icsDownload(r); },title:"Añadir al calendario del móvil (te avisa aunque la app esté cerrada)",style:{flexShrink:0,border:"none",background:"none",color:blue,cursor:"pointer",fontSize:15}},"📅"),
             ce("button",{onClick:function(){ saveReminders(reminders.filter(function(x){return x.id!==r.id;})); },style:{flexShrink:0,border:"none",background:"none",color:red,cursor:"pointer",fontSize:16}},"\u00d7")
           );
         })
@@ -20502,7 +20504,7 @@ function BreaksTab({ breaks, saveBreaks }) {
                             ec.pend > 0 ? h("span", { style: { color: AMBER, fontWeight: 600 } }, "📦 " + ec.pend + " por enviar") : null),
                         (ec.total > 0) ? h("div", { style: { marginTop: 10 } }, h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 11, color: SUB, marginBottom: 3 } }, h("span", null, "Vendidos"), h("span", null, ec.sold + "/" + ec.total)), h("div", { style: { height: 6, borderRadius: 3, background: BDR, overflow: "hidden" } }, h("div", { style: { height: "100%", width: Math.round(ec.sold / ec.total * 100) + "%", background: GREEN, borderRadius: 3, transition: "width .3s" } }))) : null,
                         h("div", { style: { display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" } },
-                            h(Btn, { sm: true, v: b.pinned ? "success" : "ghost", onClick: function () { saveBreaks(breaks.map(function (x) { return x.id === b.id ? Object.assign({}, x, { pinned: !x.pinned }) : x; })); } }, b.pinned ? "📌 En curso" : "📌 Fijar"),
+                            h(Btn, { sm: true, v: "ghost", style: b.pinned ? { background: AMBER, color: "#fff" } : {}, onClick: function () { saveBreaks(breaks.map(function (x) { return x.id === b.id ? Object.assign({}, x, { pinned: !x.pinned }) : x; })); } }, b.pinned ? "📌 En curso" : "📌 Fijar"),
                             h(Btn, { sm: true, onClick: function () { setRouletteStart(false); setManaging(b); } }, "🎟️ Spots"),
                             (b.assign === "roulette" && b.spots && b.spots.length > 0) ? h(Btn, { sm: true, v: "success", onClick: function () { setRouletteStart(true); setManaging(b); } }, "🎡 Ruleta") : null,
                             h(Btn, { sm: true, v: "outline", onClick: function () { setEditing(b); } }, "Editar"),
@@ -20574,13 +20576,42 @@ function BreaksTab({ breaks, saveBreaks }) {
     function kpi(l, v, c) { return h(Card, { key: l, style: { padding: "12px 14px" } }, h("div", { style: { fontSize: 10, color: SUB, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" } }, l), h("div", { style: { fontSize: 18, fontWeight: 800, color: c || TXT, marginTop: 2 } }, v)); }
     function chCard(icon, name, o) { return h(Card, { style: { padding: 14 } }, h("div", { style: { fontSize: 12, fontWeight: 700, marginBottom: 4 } }, icon + " " + name), h("div", { style: { fontSize: 12, color: SUB } }, o.n + " break" + (o.n === 1 ? "" : "s") + " · recibido " + eu(o.rev)), h("div", { style: { fontSize: 15, fontWeight: 800, color: cl(o.net), marginTop: 2 } }, "Neto " + sg(o.net) + eu(o.net))); }
     function exportDash() {
-        var el = document.getElementById("cv-breaks-dash");
-        if (!el || !window.html2canvas) { if (window._cvToast) window._cvToast("Espera un momento e inténtalo de nuevo", { icon: "\u23F3" }); return; }
-        if (window._cvToast) window._cvToast("Generando imagen…", { icon: "\uD83D\uDDBC\uFE0F" });
-        window.html2canvas(el, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff" }).then(function (c) {
-            var a = document.createElement("a"); a.download = "analisis-breaks-" + (dashYear === "all" ? "todos" : dashYear) + ".png"; a.href = c.toDataURL("image/png"); a.click();
-            if (window._cvToast) window._cvToast("Imagen descargada");
-        });
+        if (!window.html2canvas) { if (window._cvToast) window._cvToast("Espera un momento e inténtalo de nuevo", { icon: "⏳" }); return; }
+        if (window._cvToast) window._cvToast("Generando resumen…", { icon: "🖼️" });
+        var yLbl = dashYear === "all" ? "Todos los años" : dashYear;
+        var pos = dNet >= 0;
+        var accent = pos ? "#00c48c" : "#ff5a5f";
+        function kb(l, v, c) { return '<div style="flex:1;min-width:110px;background:#17172a;border:1px solid #262640;border-radius:14px;padding:13px 15px"><div style="font-size:10px;color:#8a8aa8;font-weight:600;text-transform:uppercase;letter-spacing:.06em">' + l + '</div><div style="font-size:19px;font-weight:800;color:' + (c || "#fff") + ';margin-top:4px">' + v + '</div></div>'; }
+        var bestHtml = bestB ? '<div style="flex:1;background:rgba(0,196,140,0.10);border:1px solid #00c48c;border-radius:14px;padding:13px 15px"><div style="font-size:10px;color:#00c48c;font-weight:700">🏆 MEJOR BREAK</div><div style="font-size:14px;font-weight:700;color:#fff;margin-top:4px">' + (bestB.b.name || "Break") + '</div><div style="font-size:12px;color:#c3c3d8;margin-top:2px">' + sg(bestB.ec.net) + eu(bestB.ec.net) + ' · ' + sg(bestB.ec.roi) + bestB.ec.roi.toFixed(0) + '% ROI</div></div>' : '';
+        var worstHtml = worstB ? '<div style="flex:1;background:rgba(255,90,95,0.10);border:1px solid #ff5a5f;border-radius:14px;padding:13px 15px"><div style="font-size:10px;color:#ff5a5f;font-weight:700">📉 PEOR BREAK</div><div style="font-size:14px;font-weight:700;color:#fff;margin-top:4px">' + (worstB.b.name || "Break") + '</div><div style="font-size:12px;color:#c3c3d8;margin-top:2px">' + sg(worstB.ec.net) + eu(worstB.ec.net) + ' · ' + sg(worstB.ec.roi) + worstB.ec.roi.toFixed(0) + '% ROI</div></div>' : '';
+        var buyersHtml = topBuyers.length ? '<div style="background:#17172a;border:1px solid #262640;border-radius:14px;padding:14px 16px;margin-top:12px"><div style="font-size:10px;color:#8a8aa8;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">🥇 Top compradores</div>' + topBuyers.slice(0, 5).map(function (x, i) { return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-top:' + (i > 0 ? "1px solid #262640" : "none") + '"><span style="font-size:13px;color:#fff;font-weight:600">#' + (i + 1) + '  ' + x.name + '</span><span style="font-size:13px;color:#8a8aa8">' + x.items + ' spots · <b style="color:#fff">' + eu(x.total) + '</b></span></div>'; }).join('') + '</div>' : '';
+        var chHtml = '<div style="display:flex;gap:12px;margin-top:12px">'
+          + '<div style="flex:1;background:#17172a;border:1px solid #262640;border-radius:14px;padding:13px 15px"><div style="font-size:12px;font-weight:700;color:#a78bfa">🟣 Geek</div><div style="font-size:11px;color:#8a8aa8;margin-top:2px">' + chG.n + ' breaks · ' + eu(chG.rev) + '</div><div style="font-size:16px;font-weight:800;color:' + (chG.net >= 0 ? "#00c48c" : "#ff5a5f") + ';margin-top:2px">Neto ' + sg(chG.net) + eu(chG.net) + '</div></div>'
+          + '<div style="flex:1;background:#17172a;border:1px solid #262640;border-radius:14px;padding:13px 15px"><div style="font-size:12px;font-weight:700;color:#34d399">🟢 WhatsApp</div><div style="font-size:11px;color:#8a8aa8;margin-top:2px">' + chW.n + ' breaks · ' + eu(chW.rev) + '</div><div style="font-size:16px;font-weight:800;color:' + (chW.net >= 0 ? "#00c48c" : "#ff5a5f") + ';margin-top:2px">Neto ' + sg(chW.net) + eu(chW.net) + '</div></div></div>';
+        var wrap = document.createElement("div");
+        wrap.style.cssText = "position:fixed;left:-9999px;top:0;width:680px;font-family:Inter,sans-serif";
+        wrap.innerHTML = '<div style="background:linear-gradient(160deg,#0f0f1a,#15152b);padding:26px 24px;color:#fff">'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">'
+            + '<div style="display:flex;align-items:center;gap:12px"><img src="' + CV_LOGO + '" style="width:46px;height:46px;border-radius:50%;object-fit:cover"/><div><div style="font-size:10px;color:#8a8aa8;letter-spacing:0.12em;text-transform:uppercase">@thecardgirl</div><div style="font-size:18px;font-weight:800">Resumen de Breaks</div></div></div>'
+            + '<div style="font-size:12px;font-weight:700;color:#0f0f1a;background:' + accent + ';padding:6px 14px;border-radius:20px">' + yLbl + '</div>'
+          + '</div>'
+          + '<div style="background:linear-gradient(135deg,' + (pos ? "rgba(0,196,140,0.16)" : "rgba(255,90,95,0.16)") + ',transparent);border:1px solid ' + accent + ';border-radius:18px;padding:18px 22px;margin-bottom:12px">'
+            + '<div style="font-size:11px;color:#c3c3d8;font-weight:600;text-transform:uppercase;letter-spacing:.08em">Beneficio neto</div>'
+            + '<div style="font-size:44px;font-weight:900;line-height:1;color:' + accent + ';margin-top:4px">' + sg(dNet) + eu(dNet) + '</div>'
+            + '<div style="font-size:13px;color:#fff;margin-top:6px;font-weight:600">ROI global ' + sg(dRoiG) + dRoiG.toFixed(0) + '% · ' + dEvs.length + ' breaks · ' + dSpots + ' spots vendidos</div>'
+          + '</div>'
+          + '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">' + kb("Invertido", eu(dBox)) + kb("Recibido", eu(dRev)) + kb("IVA REBU", eu(dIva), "#ff8a8a") + '</div>'
+          + ((bestHtml || worstHtml) ? '<div style="display:flex;gap:12px">' + bestHtml + worstHtml + '</div>' : '')
+          + buyersHtml
+          + chHtml
+          + '<div style="text-align:center;margin-top:18px;font-size:10px;color:#6b6b85;letter-spacing:0.08em">CROMOVAULT · ' + new Date().toLocaleDateString("es-ES") + ' · CARTAS · COLECCIONISMO</div>'
+          + '</div>';
+        document.body.appendChild(wrap);
+        window.html2canvas(wrap.firstChild, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#0f0f1a" }).then(function (c) {
+            var a = document.createElement("a"); a.download = "resumen-breaks-" + (dashYear === "all" ? "todos" : dashYear) + ".png"; a.href = c.toDataURL("image/png"); a.click();
+            if (wrap.parentNode) document.body.removeChild(wrap);
+            if (window._cvToast) window._cvToast("Resumen descargado");
+        }).catch(function () { if (wrap.parentNode) document.body.removeChild(wrap); });
     }
     var dashSelector = breaks.length > 0 ? h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, gap: 8 } }, h("button", { onClick: exportDash, style: { padding: "7px 12px", border: "1px solid " + BDR, borderRadius: 8, background: BG, color: TXT, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif", whiteSpace: "nowrap" } }, "🖼️ Exportar imagen"), h("select", { value: dashYear, onChange: function (e) { setDashYear(e.target.value); }, style: Object.assign({}, IS, { width: "auto" }) }, [h("option", { key: "all", value: "all" }, "Todos los años")].concat(breakYears.map(function (y) { return h("option", { key: y, value: y }, y); })))) : null;
     var dash = breaks.length === 0
@@ -21012,6 +21043,27 @@ function _cvToast(msg, opts) {
 window._cvToast = _cvToast;
 function _diasStock(d) { if (!d) return null; var dt = new Date(d + "T00:00:00"); if (isNaN(dt)) return null; return Math.max(0, Math.round((Date.now() - dt) / 86400000)); }
 window._diasStock = _diasStock;
+function _icsDownload(r) {
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  var d = (r.fecha || "").replace(/-/g, "");
+  if (d.length !== 8) { if (window._cvToast) window._cvToast("Falta la fecha", { icon: "⚠️" }); return; }
+  var allday = false, dt, dtend;
+  var hm = (r.hora || "").match(/(\d{1,2}):(\d{2})/);
+  if (hm) { var hh = pad(parseInt(hm[1])), mm = pad(parseInt(hm[2])); dt = d + "T" + hh + mm + "00"; dtend = d + "T" + pad((parseInt(hm[1]) + 1) % 24) + mm + "00"; } else { allday = true; }
+  function esc(t) { return (t || "").replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n"); }
+  var now = new Date();
+  var stamp = now.getUTCFullYear() + pad(now.getUTCMonth() + 1) + pad(now.getUTCDate()) + "T" + pad(now.getUTCHours()) + pad(now.getUTCMinutes()) + pad(now.getUTCSeconds()) + "Z";
+  var lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//CromoVault//ES", "CALSCALE:GREGORIAN", "BEGIN:VEVENT", "UID:" + (r.id || Date.now()) + "@cromovault", "DTSTAMP:" + stamp];
+  if (allday) { lines.push("DTSTART;VALUE=DATE:" + d); } else { lines.push("DTSTART:" + dt); lines.push("DTEND:" + dtend); }
+  lines.push("SUMMARY:" + esc("🎴 " + r.texto));
+  lines.push("DESCRIPTION:" + esc("Recordatorio · The Card Girl"));
+  lines.push("BEGIN:VALARM", "TRIGGER:-PT30M", "ACTION:DISPLAY", "DESCRIPTION:" + esc(r.texto), "END:VALARM");
+  lines.push("END:VEVENT", "END:VCALENDAR");
+  var blob = new Blob([lines.join("\r\n")], { type: "text/calendar" });
+  var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "recordatorio.ics"; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(a.href);
+  if (window._cvToast) window._cvToast("Descargado · ábrelo para añadirlo a tu calendario", { icon: "📅", duration: 4000 });
+}
+window._icsDownload = _icsDownload;
 function _audioCtx() { try { if (!window._cvAC) window._cvAC = new (window.AudioContext || window.webkitAudioContext)(); if (window._cvAC.state === "suspended") window._cvAC.resume(); return window._cvAC; } catch (e) { return null; } }
 function playSpinSound(dur) { var ac = _audioCtx(); if (!ac) return; var t0 = ac.currentTime; var t = 0; for (var i = 0; i < 46; i++) { var frac = i / 46; t += 0.045 + frac * frac * 0.3; if (t > dur) break; (function (tt) { var o = ac.createOscillator(), g = ac.createGain(); o.type = "square"; o.frequency.value = 900; g.gain.setValueAtTime(0.0001, t0 + tt); g.gain.exponentialRampToValueAtTime(0.14, t0 + tt + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t0 + tt + 0.06); o.connect(g); g.connect(ac.destination); o.start(t0 + tt); o.stop(t0 + tt + 0.07); })(t); } }
 function playWinSound() { var ac = _audioCtx(); if (!ac) return; var t0 = ac.currentTime; [523, 659, 784, 1047].forEach(function (f, i) { var o = ac.createOscillator(), g = ac.createGain(); o.type = "triangle"; o.frequency.value = f; var tt = t0 + i * 0.11; g.gain.setValueAtTime(0.0001, tt); g.gain.exponentialRampToValueAtTime(0.2, tt + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.28); o.connect(g); g.connect(ac.destination); o.start(tt); o.stop(tt + 0.32); }); }
