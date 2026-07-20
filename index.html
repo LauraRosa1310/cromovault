@@ -85,12 +85,7 @@
         <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px 12px;text-align:left;">
           <div style="font-size:24px;margin-bottom:8px;">💰</div>
           <div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:4px;">Finanzas</div>
-          <div style="font-size:11px;color:#64748b;line-height:1.5;">Análisis fiscal, facturas y rentabilidad</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px 12px;text-align:left;">
-          <div style="font-size:24px;margin-bottom:8px;">🌐</div>
-          <div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:4px;">Perfil público</div>
-          <div style="font-size:11px;color:#64748b;line-height:1.5;">Vende cartas y recibe ofertas y valoraciones</div>
+          <div style="font-size:11px;color:#64748b;line-height:1.5;">Análisis y rentabilidad de tu colección</div>
         </div>
         <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px 12px;text-align:left;">
           <div style="font-size:24px;margin-bottom:8px;">☁️</div>
@@ -17409,7 +17404,7 @@ function SellModal({ card, onSave, onClose }) {
         }
         else {
             // All units sold
-            var reviewCode="CV-"+Math.random().toString(36).substr(2,4).toUpperCase();onSave(Object.assign(Object.assign({},card),{status:"sold",sellPrice:parseFloat(pr)||0,sellDate:dt,platformFee:parseFloat(fe)||0,shippingCost:parseFloat(sh)||0,platform:pl,reviewCode:reviewCode}));setTimeout(function(){alert("Codigo CV: "+reviewCode+"\n\nEste codigo es de un solo uso. Compartelo con el comprador tras enviar la carta. Al introducirlo en tu perfil publico podra dejarte una valoracion.");},100);
+            var reviewCode="CV-"+Math.random().toString(36).substr(2,4).toUpperCase();onSave(Object.assign(Object.assign({},card),{status:"sold",sellPrice:parseFloat(pr)||0,sellDate:dt,platformFee:parseFloat(fe)||0,shippingCost:parseFloat(sh)||0,platform:pl,reviewCode:reviewCode}));
         }
         onClose();
     }
@@ -17876,6 +17871,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
     const [invView, setInvView] = useState(() => localStorage.getItem("cv10_inv_view") || "list");
     const [sr, setSr] = useState(""), [st, setSt] = useState("date"), [filterY, setFilterY] = useState("all"), [filterM, setFilterM] = useState("all");
     const [selMode, setSelMode] = useState(false), [sel, setSel] = useState({});
+    const [bf, setBf] = useState({ status: "", location: "", category: "", series: "", buyPrice: "" });
     const [statusFl, setStatusFl] = useState(new Set()), [catFl, setCatFl] = useState(new Set()), [locFl, setLocFl] = useState(new Set()), [sortBy, setSortBy] = useState(""), [sortDir, setSortDir] = useState(1);
     const INV_MONTHS = [['all', 'Mes'], ['01', 'Ene'], ['02', 'Feb'], ['03', 'Mar'], ['04', 'Abr'], ['05', 'May'], ['06', 'Jun'], ['07', 'Jul'], ['08', 'Ago'], ['09', 'Sep'], ['10', 'Oct'], ['11', 'Nov'], ['12', 'Dic']];
     function toggleSet(setter, val) { setter(prev => { const n = new Set(prev); n.has(val) ? n.delete(val) : n.add(val); return n; }); }
@@ -17949,21 +17945,29 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
                     })
                 )),
             selMode ? React.createElement("div", { style: { padding: "12px 14px" } },
-              React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", padding: "10px 14px", marginBottom: 12, background: "rgba(29,107,252,0.06)", border: "1px solid " + BLUE, borderRadius: 10, position: "sticky", top: 0, zIndex: 3 } },
-                React.createElement("span", { style: { fontSize: 12, fontWeight: 700, color: BLUE } }, Object.keys(sel).length + " sel."),
-                React.createElement("button", { onClick: function(){ var n={}; fi.forEach(function(c){ n[c.id]=true; }); setSel(n); }, style: { padding:"5px 9px", border:"1px solid "+BDR, borderRadius:8, background:BG, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "Todas (" + fi.length + ")"),
-                React.createElement("select", { value:"", onChange: function(e){ var v=e.target.value; if(!v) return; var ids=Object.keys(sel); if(ids.length&&onBulk) onBulk(ids, { status: v }); }, style: Object.assign({}, IS, { width: "auto", padding: "5px 8px", fontSize: 11 }) }, React.createElement("option",{value:""},"Estado…"), React.createElement("option",{value:"holding"},"Cartera"), React.createElement("option",{value:"listed"},"En venta"), React.createElement("option",{value:"sold"},"Vendida")),
-                React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; var loc=prompt("Ubicación / caja para las seleccionadas:"); if(loc===null) return; if(onBulk) onBulk(ids, { location: loc }); }, style: { padding:"5px 9px", border:"1px solid "+BDR, borderRadius:8, background:BG, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "📍 Ubicación"),
-                React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; var p=prompt("Precio de compra para las seleccionadas (€):"); if(p===null) return; if(onBulk) onBulk(ids, { buyPrice: parseFloat((p||"").replace(",","."))||0 }); }, style: { padding:"5px 9px", border:"1px solid "+BDR, borderRadius:8, background:BG, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "💶 Precio"),
-                React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(ids.length&&onBulk) onBulk(ids, { reserved: true }); }, style: { padding:"5px 9px", border:"1px solid #0891b2", borderRadius:8, background:"rgba(8,145,178,0.08)", color:"#0891b2", fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🔖 Reservar"),
-                React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; if(confirm("¿Eliminar "+ids.length+" cartas? No se puede deshacer.")&&onBulkDel){ onBulkDel(ids); setSel({}); } }, style: { padding:"5px 9px", border:"1px solid #fecaca", borderRadius:8, background:"#fff5f5", color:RED, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🗑️ Eliminar"),
-                React.createElement("button", { onClick: function(){ setSel({}); setSelMode(false); }, style: { padding:"5px 9px", border:"none", background:"none", color:SUB, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif", marginLeft:"auto" } }, "✕ Salir")),
+              React.createElement("div", { style: { background: "rgba(29,107,252,0.06)", border: "1px solid " + BLUE, borderRadius: 12, padding: 14, marginBottom: 14 } },
+                React.createElement("div", { style: { display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10, flexWrap:"wrap", gap:8 } },
+                  React.createElement("div", { style:{ fontSize:13, fontWeight:700, color:BLUE } }, Object.keys(sel).length + " carta(s) seleccionada(s)"),
+                  React.createElement("div", { style:{ display:"flex", gap:8 } },
+                    React.createElement("button", { onClick: function(){ var n={}; fi.forEach(function(c){ n[c.id]=true; }); setSel(n); }, style:{ padding:"5px 10px", border:"1px solid "+BDR, borderRadius:8, background:BG, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "Todas ("+fi.length+")"),
+                    React.createElement("button", { onClick: function(){ setSel({}); setSelMode(false); }, style:{ padding:"5px 10px", border:"none", background:"none", color:SUB, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "✕ Salir"))),
+                React.createElement("div", { style: { fontSize:11, color:SUB, marginBottom:10 } }, "Cambia solo los campos que quieras y pulsa Aplicar. Lo que dejes en “Sin cambiar” o vacío no se toca."),
+                React.createElement("div", { style: { display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:10, marginBottom:12 } },
+                  React.createElement("div", null, React.createElement("label", { style: LS }, "Estado"), React.createElement("select", { value: bf.status, onChange: function(e){ setBf(function(p){return Object.assign({},p,{status:e.target.value});}); }, style: IS }, React.createElement("option",{value:""},"Sin cambiar"), React.createElement("option",{value:"holding"},"Cartera"), React.createElement("option",{value:"listed"},"En venta"), React.createElement("option",{value:"sold"},"Vendida"))),
+                  React.createElement("div", null, React.createElement("label", { style: LS }, "Ubicación / caja"), React.createElement("select", { value: bf.location, onChange: function(e){ var v=e.target.value; if(v==="__new"){ var nl=prompt("Nombre de la nueva caja:"); if(nl){ var locs=JSON.parse(localStorage.getItem("cv10_locs")||"null")||DEFAULT_LOCATIONS.slice(); if(locs.indexOf(nl)<0){ locs.push(nl); localStorage.setItem("cv10_locs",JSON.stringify(locs)); } setBf(function(p){return Object.assign({},p,{location:nl});}); } return; } setBf(function(p){return Object.assign({},p,{location:v});}); }, style: IS }, React.createElement("option",{value:""},"Sin cambiar"), (JSON.parse(localStorage.getItem("cv10_locs")||"null")||DEFAULT_LOCATIONS).map(function(loc){ return React.createElement("option",{key:loc,value:loc},loc); }), React.createElement("option",{value:"__new"},"+ Nueva caja…"))),
+                  React.createElement("div", null, React.createElement("label", { style: LS }, "Categoría"), React.createElement("select", { value: bf.category, onChange: function(e){ setBf(function(p){return Object.assign({},p,{category:e.target.value});}); }, style: IS }, React.createElement("option",{value:""},"Sin cambiar"), Object.keys(CATS).map(function(k){ return React.createElement("option",{key:k,value:k},CATS[k]); }))),
+                  React.createElement("div", null, React.createElement("label", { style: LS }, "Serie / Set"), React.createElement("input", { value: bf.series, onChange: function(e){ setBf(function(p){return Object.assign({},p,{series:e.target.value});}); }, placeholder:"(sin cambiar)", style: IS })),
+                  React.createElement("div", null, React.createElement("label", { style: LS }, "Precio compra (€)"), React.createElement("input", { value: bf.buyPrice, onChange: function(e){ setBf(function(p){return Object.assign({},p,{buyPrice:e.target.value.replace(",",".").replace(/[^0-9.]/g,"")});}); }, placeholder:"(sin cambiar)", style: IS }))),
+                React.createElement("div", { style: { display:"flex", gap:8, flexWrap:"wrap" } },
+                  React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length){ alert("Selecciona cartas primero"); return; } var ch={}; if(bf.status)ch.status=bf.status; if(bf.location)ch.location=bf.location; if(bf.category)ch.category=bf.category; if(bf.series.trim())ch.series=bf.series.trim(); if(bf.buyPrice.trim()!=="")ch.buyPrice=parseFloat(bf.buyPrice)||0; if(!Object.keys(ch).length){ alert("No has cambiado ningún campo"); return; } if(onBulk) onBulk(ids,ch); setBf({status:"",location:"",category:"",series:"",buyPrice:""}); }, style: { flex:2, minWidth:150, padding:"11px", border:"none", borderRadius:8, background:BLUE, color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "✓ Aplicar a "+Object.keys(sel).length),
+                  React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(ids.length&&onBulk){ onBulk(ids,{reserved:true}); } }, style: { padding:"11px 13px", border:"1px solid #0891b2", borderRadius:8, background:"rgba(8,145,178,0.08)", color:"#0891b2", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🔖 Reservar"),
+                  React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; if(confirm("¿Eliminar "+ids.length+" cartas? No se puede deshacer.")&&onBulkDel){ onBulkDel(ids); setSel({}); } }, style: { padding:"11px 13px", border:"1px solid #fecaca", borderRadius:8, background:"#fff5f5", color:RED, fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🗑️ Eliminar"))),
               fi.length===0 ? React.createElement("div", { style: { textAlign:"center", padding:"30px", color:MUT, fontSize:13 } }, "Sin cartas para ese filtro") :
               React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 6 } }, fi.map(function(card){ return React.createElement("div", { key: card.id, onClick: function(){ setSel(function(pv){ var nx=Object.assign({},pv); if(nx[card.id]) delete nx[card.id]; else nx[card.id]=true; return nx; }); }, style: { display:"flex", alignItems:"center", gap:10, padding:"8px 12px", borderRadius:8, border:"1.5px solid "+(sel[card.id]?BLUE:BDR), background: sel[card.id]?"#eff4ff":BG, cursor:"pointer" } },
                 React.createElement("div", { style:{ width:20,height:20,borderRadius:5,flexShrink:0,background:sel[card.id]?BLUE:"transparent",border:"2px solid "+(sel[card.id]?BLUE:"#cbd5e1"),display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:12,fontWeight:700 } }, sel[card.id]?"✓":""),
                 React.createElement("div", { style:{ flex:1, minWidth:0 } },
                   React.createElement("div", { style:{ fontSize:13, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" } }, card.name||"Sin nombre"),
-                  React.createElement("div", { style:{ fontSize:11, color:SUB } }, (CATS[card.category]||"")+" · "+(card.status==="listed"?"En venta":card.status==="sold"?"Vendida":"Cartera")+(card.reserved?" · 🔖":"")+(card.location?" · "+card.location:""))),
+                  React.createElement("div", { style:{ fontSize:11, color:SUB } }, (CATS[card.category]||"")+" · "+(card.status==="listed"?"En venta":card.status==="sold"?"Vendida":"Cartera")+(card.reserved?" · 🔖":"")+(card.location?" · "+card.location:"")+(card.series?" · "+card.series:""))),
                 React.createElement("div", { style:{ fontSize:12, fontWeight:700, color: card.status==="sold"?GREEN:BLUE, flexShrink:0 } }, eu(card.targetPrice||card.sellPrice||card.buyPrice||0))); }))) :
             fi.length === 0 ? (React.createElement(Empty, { icon: "\uD83D\uDCE6", title: inv.length === 0 ? "Sin cartas" : "Sin resultados" })) :
             invView === "grid" ? React.createElement("div", null,
@@ -19422,7 +19426,7 @@ function MessagesTab(props){
             ce("div",{style:{position:"relative"}},
               ce("button",{onClick:function(){
                 var qrs=(props.quickReplies&&props.quickReplies.length>0)?props.quickReplies:JSON.parse(localStorage.getItem("cv10_qr")||"[]");
-                if(qrs.length===0){alert("No tienes respuestas r\u00E1pidas configuradas. Ve a Ajustes \u2192 Mi perfil p\u00FAblico.");return;}
+                if(qrs.length===0){alert("No tienes respuestas r\u00E1pidas configuradas.");return;}
                 var menu=document.getElementById("cv-qr-menu");
                 if(menu)menu.style.display=menu.style.display==="none"?"block":"none";
               },style:{padding:"10px 12px",background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:10,color:"#374151",fontSize:16,cursor:"pointer",whiteSpace:"nowrap"}},"⚡"),
@@ -20220,7 +20224,6 @@ function PostModal({ card, onClose }) {
 // Economía de un break bajo Régimen Especial de Bienes Usados (REBU):
 // el IVA se paga sobre el MARGEN (ventas - coste caja), IVA incluido -> margen*tipo/(100+tipo).
 var CV_LEAGUES = {"🇪🇸 LaLiga": ["Real Madrid", "Barcelona", "Atlético", "Athletic", "Villarreal", "Betis", "Celta", "Rayo", "Osasuna", "Mallorca", "Girona", "Sevilla", "Valencia", "Getafe", "Alavés", "Espanyol", "Leganés", "Las Palmas", "Valladolid", "Real Sociedad"], "🏴 Premier": ["Man City", "Arsenal", "Liverpool", "Aston Villa", "Tottenham", "Chelsea", "Newcastle", "Man United", "West Ham", "Brighton", "Bournemouth", "Fulham", "Wolves", "Everton", "Brentford", "Nottingham", "Crystal Palace", "Leicester", "Ipswich", "Southampton"], "🇮🇹 Serie A": ["Inter", "Milan", "Juventus", "Napoli", "Roma", "Lazio", "Atalanta", "Fiorentina", "Bologna", "Torino", "Udinese", "Genoa", "Monza", "Lecce", "Cagliari", "Verona", "Parma", "Como", "Empoli", "Venezia"], "🏀 NBA": ["Celtics", "Nuggets", "Thunder", "Timberwolves", "Clippers", "Mavericks", "Suns", "Knicks", "Bucks", "Cavaliers", "Magic", "Pacers", "76ers", "Heat", "Lakers", "Warriors", "Kings", "Pelicans", "Rockets", "Hawks", "Bulls", "Nets", "Raptors", "Grizzlies", "Jazz", "Spurs", "Hornets", "Blazers", "Wizards", "Pistons"], "🏈 NFL": ["Chiefs", "Bills", "Ravens", "49ers", "Cowboys", "Eagles", "Lions", "Dolphins", "Bengals", "Packers", "Rams", "Vikings", "Texans", "Jaguars", "Browns", "Steelers", "Bears", "Falcons", "Saints", "Seahawks", "Buccaneers", "Colts", "Chargers", "Broncos", "Jets", "Titans", "Raiders", "Commanders", "Cardinals", "Giants", "Panthers", "Patriots"]};
-function tcgLogoImg(size){ var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><circle cx="60" cy="60" r="58" fill="#000"/><path d="M60 4 A56 56 0 0 0 60 116" fill="none" stroke="#1e5fc4" stroke-width="4"/><path d="M60 4 A56 56 0 0 1 60 116" fill="none" stroke="#b5004a" stroke-width="4"/><text x="60" y="49" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="bold" font-size="21" fill="#ffffff"><tspan fill="#b5004a">T</tspan>HE</text><text x="60" y="71" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="bold" font-size="21" fill="#ffffff"><tspan fill="#b5004a">C</tspan>ARD</text><text x="60" y="93" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="bold" font-size="21" fill="#ffffff"><tspan fill="#b5004a">G</tspan>IRL</text></svg>'; return React.createElement("img",{ src:"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg), width:size, height:size, style:{ display:"block", flexShrink:0 } }); }
 function breakEcon(b) {
     var boxCost = +(b.boxCost) || 0;
     var fee = (+(b.platformFee) || 0) / 100;
@@ -21069,12 +21072,8 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
             var items = [
               { label: "Añade tu primera carta", hint: "Pestaña Inventario → botón +", done: JSON.parse(localStorage.getItem("cv10")||"[]").length > 0 },
               { label: "Sube una foto a una carta", hint: "Edita la carta y sube imagen desde el formulario", done: JSON.parse(localStorage.getItem("cv10")||"[]").some(function(c){return c.imageUrl;}) },
-              { label: "Configura tu perfil público", hint: "Ajustes → Mi perfil público → pon tu slug y guarda", done: !!localStorage.getItem("cv10_slug") },
-              { label: "Activa una carta para vender", hint: "Edita una carta → activa “Perfil público”", done: JSON.parse(localStorage.getItem("cv10")||"[]").some(function(c){return c.publicVisible;}) },
               { label: "Completa el tutorial", hint: "Ajustes → Ver tutorial", done: !!localStorage.getItem("cv10_tutorial_done") },
-              { label: "Añade una factura", hint: "Pestaña Fiscal → Facturas → Nueva factura", done: JSON.parse(localStorage.getItem("cv10i")||"[]").length > 0 },
               { label: "Vende tu primera carta", hint: "Inventario → botón Vender en la carta", done: JSON.parse(localStorage.getItem("cv10")||"[]").some(function(c){return c.status==="sold";}) },
-              { label: "Comparte tu enlace de perfil", hint: "Ajustes → Mi perfil → copia el enlace y envíalo", done: !!localStorage.getItem("cv10_shared") }
             ];
             var doneCount = items.filter(function(x){return x.done;}).length;
             var pct = Math.round(doneCount/items.length*100);
@@ -21647,23 +21646,17 @@ var ts=useState(0),step=ts[0],setStep=ts[1];
 var ce=React.createElement;
 var slides=[
   {bg:"linear-gradient(135deg,#1e3a5f,#3b82f6)",icon:"🃏",title:"Bienvenido a CromoVault",
-   desc:"CromoVault es tu gestor de colección e inversión en cartas. Te permite controlar precios, calcular rentabilidad y vender cartas con tu propio perfil público."},
+   desc:"CromoVault es tu gestor de colección, inversión y breaks de cartas. Controla precios, calcula rentabilidad y gestiona tus directos y compradores."},
   {bg:"linear-gradient(135deg,#f59e0b,#ef4444)",icon:"📦",title:"Inventario",
    desc:"Aquí van las cartas que tienes disponibles para vender o guardar. Cada carta tiene nombre, set, rareza, condición, precio de compra y precio objetivo de venta."},
   {bg:"linear-gradient(135deg,#8b5cf6,#3b82f6)",icon:"⭐",title:"Colección",
    desc:"En Colección guardas las cartas que no quieres vender. Puedes crear Rainbows (variantes de una misma carta) y organizarlas en carpetas o cajas."},
   {bg:"linear-gradient(135deg,#10b981,#06b6d4)",icon:"💰",title:"Finanzas y ROI",
-   desc:"La pestaña Fiscal calcula automáticamente tu ROI (rentabilidad) por carta. En Análisis ves tu evolución. En Facturas puedes generar facturas para tus ventas."},
+   desc:"En Análisis ves tu rentabilidad (ROI) por carta y tu evolución en el tiempo."},
   {bg:"linear-gradient(135deg,#f97316,#f59e0b)",icon:"📦",title:"Lotes",
    desc:"Registra lotes de cartas que compras en packs o cajas. CromoVault calcula automáticamente la rentabilidad total del lote según lo que vayas vendiendo."},
-  {bg:"linear-gradient(135deg,#8b5cf6,#ec4899)",icon:"🌐",title:"Tu perfil público",
-   desc:"En Ajustes → Mi perfil creas tu tienda online. Elige un nombre único (slug), añade foto, banner y datos de contacto. Una vez configurado, comparte tu enlace con compradores."},
-  {bg:"linear-gradient(135deg,#3b82f6,#10b981)",icon:"🔍",title:"Activar cartas para vender",
-   desc:"En el inventario, edita una carta y activa la opción 'Visible en perfil público'. Así aparecerá en tu tienda para que los compradores la vean y te hagan ofertas."},
-  {bg:"linear-gradient(135deg,#ef4444,#f97316)",icon:"💬",title:"Chats y Ofertas",
-   desc:"Los compradores te pueden escribir desde tu perfil. Recibirás notificaciones de mensajes y ofertas. Cuando vendas, comparte el código CV para recibir valoraciones."},
   {bg:"linear-gradient(135deg,#06b6d4,#3b82f6)",icon:"🚀",title:"¡Listo para empezar!",
-   desc:"1º Añade tu primera carta en Inventario. 2º Configura tu perfil en Ajustes. 3º Activa cartas para vender. 4º Comparte tu enlace. ¡Mucho éxito!"}
+   desc:"1º Añade tus cartas en Inventario. 2º Registra tus lotes y breaks. 3º Controla tu rentabilidad en Análisis. ¡Mucho éxito!"}
 ];
 var s=slides[step];
 var last=step===slides.length-1;
