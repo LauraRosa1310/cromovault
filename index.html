@@ -17942,11 +17942,29 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
                         React.createElement("option", { value: "profit" }, "P&L"),
                         React.createElement("option", { value: "cost" }, "Coste"),
                         React.createElement("option", { value: "name" }, "Nombre")))),
+                React.createElement("button", { onClick: function(){ setSelMode(function(v){ if(v) setSel({}); return !v; }); }, style: { padding: "5px 11px", borderRadius: 8, border: "1.5px solid " + (selMode ? BLUE : BDR), background: selMode ? BLUE : "transparent", color: selMode ? "#fff" : SUB, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif", marginLeft: 8 } }, selMode ? "✓ Seleccionando" : "☑️ Seleccionar"),
                 React.createElement("div", { style: { display: "flex", gap: 3, marginLeft: 8 } },
                     [["list", "☰"], ["grid", "⊞"]].map(function(pair) {
                         return React.createElement("button", { key: pair[0], onClick: function() { setInvView(pair[0]); localStorage.setItem("cv10_inv_view", pair[0]); }, style: { padding: "5px 9px", borderRadius: 6, border: "1.5px solid " + (invView === pair[0] ? BLUE : BDR), background: invView === pair[0] ? "#eff4ff" : "transparent", color: invView === pair[0] ? BLUE : MUT, fontSize: 13, cursor: "pointer" } }, pair[1]);
                     })
                 )),
+            selMode ? React.createElement("div", { style: { padding: "12px 14px" } },
+              React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", padding: "10px 14px", marginBottom: 12, background: "rgba(29,107,252,0.06)", border: "1px solid " + BLUE, borderRadius: 10, position: "sticky", top: 0, zIndex: 3 } },
+                React.createElement("span", { style: { fontSize: 12, fontWeight: 700, color: BLUE } }, Object.keys(sel).length + " sel."),
+                React.createElement("button", { onClick: function(){ var n={}; fi.forEach(function(c){ n[c.id]=true; }); setSel(n); }, style: { padding:"5px 9px", border:"1px solid "+BDR, borderRadius:8, background:BG, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "Todas (" + fi.length + ")"),
+                React.createElement("select", { value:"", onChange: function(e){ var v=e.target.value; if(!v) return; var ids=Object.keys(sel); if(ids.length&&onBulk) onBulk(ids, { status: v }); }, style: Object.assign({}, IS, { width: "auto", padding: "5px 8px", fontSize: 11 }) }, React.createElement("option",{value:""},"Estado…"), React.createElement("option",{value:"holding"},"Cartera"), React.createElement("option",{value:"listed"},"En venta"), React.createElement("option",{value:"sold"},"Vendida")),
+                React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; var loc=prompt("Ubicación / caja para las seleccionadas:"); if(loc===null) return; if(onBulk) onBulk(ids, { location: loc }); }, style: { padding:"5px 9px", border:"1px solid "+BDR, borderRadius:8, background:BG, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "📍 Ubicación"),
+                React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; var p=prompt("Precio de compra para las seleccionadas (€):"); if(p===null) return; if(onBulk) onBulk(ids, { buyPrice: parseFloat((p||"").replace(",","."))||0 }); }, style: { padding:"5px 9px", border:"1px solid "+BDR, borderRadius:8, background:BG, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "💶 Precio"),
+                React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(ids.length&&onBulk) onBulk(ids, { reserved: true }); }, style: { padding:"5px 9px", border:"1px solid #0891b2", borderRadius:8, background:"rgba(8,145,178,0.08)", color:"#0891b2", fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🔖 Reservar"),
+                React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; if(confirm("¿Eliminar "+ids.length+" cartas? No se puede deshacer.")&&onBulkDel){ onBulkDel(ids); setSel({}); } }, style: { padding:"5px 9px", border:"1px solid #fecaca", borderRadius:8, background:"#fff5f5", color:RED, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🗑️ Eliminar"),
+                React.createElement("button", { onClick: function(){ setSel({}); setSelMode(false); }, style: { padding:"5px 9px", border:"none", background:"none", color:SUB, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif", marginLeft:"auto" } }, "✕ Salir")),
+              fi.length===0 ? React.createElement("div", { style: { textAlign:"center", padding:"30px", color:MUT, fontSize:13 } }, "Sin cartas para ese filtro") :
+              React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 6 } }, fi.map(function(card){ return React.createElement("div", { key: card.id, onClick: function(){ setSel(function(pv){ var nx=Object.assign({},pv); if(nx[card.id]) delete nx[card.id]; else nx[card.id]=true; return nx; }); }, style: { display:"flex", alignItems:"center", gap:10, padding:"8px 12px", borderRadius:8, border:"1.5px solid "+(sel[card.id]?BLUE:BDR), background: sel[card.id]?"#eff4ff":BG, cursor:"pointer" } },
+                React.createElement("div", { style:{ width:20,height:20,borderRadius:5,flexShrink:0,background:sel[card.id]?BLUE:"transparent",border:"2px solid "+(sel[card.id]?BLUE:"#cbd5e1"),display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:12,fontWeight:700 } }, sel[card.id]?"✓":""),
+                React.createElement("div", { style:{ flex:1, minWidth:0 } },
+                  React.createElement("div", { style:{ fontSize:13, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" } }, card.name||"Sin nombre"),
+                  React.createElement("div", { style:{ fontSize:11, color:SUB } }, (CATS[card.category]||"")+" · "+(card.status==="listed"?"En venta":card.status==="sold"?"Vendida":"Cartera")+(card.reserved?" · 🔖":"")+(card.location?" · "+card.location:""))),
+                React.createElement("div", { style:{ fontSize:12, fontWeight:700, color: card.status==="sold"?GREEN:BLUE, flexShrink:0 } }, eu(card.targetPrice||card.sellPrice||card.buyPrice||0))); }))) :
             fi.length === 0 ? (React.createElement(Empty, { icon: "\uD83D\uDCE6", title: inv.length === 0 ? "Sin cartas" : "Sin resultados" })) :
             invView === "grid" ? React.createElement("div", null,
             React.createElement("div", { style: { display: "flex", gap: 0, marginBottom: 10, borderBottom: "2px solid " + BDR, paddingBottom: 0 } },
@@ -17955,11 +17973,6 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
                         pair[1]+(sortBy===pair[0]?(sortDir===1?" ↑":" ↓"):"")
                     );
                 })
-            ),
-            React.createElement("div", { style: { display: "flex", gap: 8, padding: "8px 14px 0", flexWrap: "wrap" } },
-              React.createElement("button", { onClick: function(){ if(window._openTop5Modal) window._openTop5Modal(); }, style: { padding: "6px 12px", background: "transparent", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#6b7280", fontFamily: "Inter,sans-serif" } }, "\uD83D\uDCCB Top 5"),
-              React.createElement("button", { onClick: function(){ if(window._openDirectoModal) window._openDirectoModal(); }, style: { padding: "6px 12px", background: "transparent", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#6b7280", fontFamily: "Inter,sans-serif" } }, "\uD83C\uDFA5 Directo"),
-              React.createElement("button", { onClick: function(){ setSelMode(function(v){ if(v) setSel({}); return !v; }); }, style: { padding: "6px 12px", background: selMode?BLUE:"transparent", border: "1px solid "+(selMode?BLUE:"#e5e7eb"), borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer", color: selMode?"#fff":"#6b7280", fontFamily: "Inter,sans-serif" } }, selMode?"✓ Seleccionando":"☑️ Seleccionar")
             ),
             (selMode ? React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", padding: "10px 14px", margin: "8px 0", background: "rgba(29,107,252,0.06)", border: "1px solid " + BLUE, borderRadius: 10 } },
               React.createElement("span", { style: { fontSize: 12, fontWeight: 700, color: BLUE } }, Object.keys(sel).length + " sel."),
@@ -21374,26 +21387,6 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
     
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "CUENTA"),
     React.createElement("button", { onClick: function() { setShowSettings(false); window._signOut && window._signOut(); }, style: { width: "100%", padding: "10px 14px", background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#ef4444", textAlign: "left", fontFamily: "Inter,sans-serif" } }, "\uD83D\uDEAA Cerrar sesi\u00F3n"),
-    React.createElement("button", { onClick: function() {
-      var slug2 = localStorage.getItem("cv10_slug") || window._currentSlug;
-      if(!slug2){ alert("No tienes perfil p\u00FAblico activo."); return; }
-      var overlay2=document.createElement("div");
-      overlay2.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif";
-      var box2=document.createElement("div");
-      box2.style.cssText="background:#fff;border-radius:16px;padding:28px 24px;max-width:320px;width:90%;text-align:center";
-      box2.innerHTML="<div style=\"font-size:32px;margin-bottom:12px\">🚫</div><div style=\"font-weight:700;font-size:16px;margin-bottom:8px\">Cerrar perfil público</div><div style=\"color:#6b7280;font-size:13px;margin-bottom:20px\">Se eliminará tu perfil de @"+slug2+" del directorio. Seguirás teniendo acceso a toda tu colección e inventario.</div><div style=\"display:flex;gap:10px\"><button id=\"cv-close-cancel\" style=\"flex:1;padding:11px;border:1px solid #e5e7eb;border-radius:10px;background:#f9fafb;font-size:14px;cursor:pointer\">Cancelar</button><button id=\"cv-close-ok\" style=\"flex:1;padding:11px;border:none;border-radius:10px;background:#ef4444;color:#fff;font-size:14px;font-weight:600;cursor:pointer\">Cerrar perfil</button></div>";
-      overlay2.appendChild(box2); document.body.appendChild(overlay2);
-      box2.querySelector("#cv-close-cancel").onclick=function(){document.body.removeChild(overlay2);};
-      box2.querySelector("#cv-close-ok").onclick=function(){
-        document.body.removeChild(overlay2);
-        if(window._db) window._db.ref("public/"+slug2).remove();
-        localStorage.removeItem("cv10_slug");
-        window._currentSlug=null;
-        setPublicSlug("");
-        alert("\u2705 Perfil cerrado correctamente.");
-      };
-      overlay2.onclick=function(e){if(e.target===overlay2)document.body.removeChild(overlay2);};
-    }, style: { width: "100%", padding: "10px 14px", background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#ef4444", textAlign: "left", fontFamily: "Inter,sans-serif", marginTop: 8 } }, "\uD83D\uDEAB Cerrar perfil p\u00FAblico"),
     React.createElement("button", { onClick: function() {
       var overlay=document.createElement("div");
       overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif";
