@@ -17488,7 +17488,7 @@ function CardForm({ onSave, onClose, editCard, defMode, lots }) {
     function commitCard(){ if(!f.name.trim()) return false; var ff=Object.assign({},f); delete ff._lotSearch; var base=Object.assign({},ff,{ id: uid(), buyPrice: parseFloat(f.buyPrice)||0, sellPrice: parseFloat(f.sellPrice)||0, platformFee: parseFloat(f.platformFee)||0, shippingCost: parseFloat(f.shippingCost)||0, targetPrice: parseFloat(f.targetPrice)||0, images: imgs }); onSave(base); try{ localStorage.setItem("cv10_lastcat",f.category||""); localStorage.setItem("cv10_lastplat",f.platform||""); localStorage.setItem("cv10_lastloc",f.location||""); }catch(e){} return true; }
     function addAnother(){ if(commitCard()){ setF(Object.assign({}, blank, { mode:f.mode, category:f.category, series:f.series, platform:f.platform, location:f.location, buyDate:f.buyDate, rarity:f.rarity, condition:f.condition })); setImgs([]); } }
     const tB = (parseFloat(f.buyPrice) || 0) * (f.quantity || 1), tS = (parseFloat(f.sellPrice) || 0) * (f.quantity || 1), fA = tS * ((parseFloat(f.platformFee) || 0) / 100), sA = parseFloat(f.shippingCost) || 0, ns = tS - fA - sA - tB;
-    const tabs = f.mode === "inventory" ? [["info", "Info"], ["sell", "Venta"]] : [["info", "Info"]];
+    const tabs = [["info", "Info"]];
     return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, overflowY: "auto" } },
         React.createElement("div", { style: { background: BG, borderRadius: 16, width: "100%", maxWidth: 480, maxHeight: "94vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", border: "1px solid " + BDR } },
             React.createElement("div", { style: { padding: "18px 24px 0", display: "flex", justifyContent: "space-between", alignItems: "center" } },
@@ -17906,6 +17906,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
         return a.name.localeCompare(b.name); return (b.buyDate || "").localeCompare(a.buyDate || ""); });
     if (invView === "grid" && sortBy) {
         fi = fi.slice().sort(function(a, b) {
+            if (sortBy === "stockDays") { var da = a.buyDate || "9999-99-99", db2 = b.buyDate || "9999-99-99"; return String(da).localeCompare(String(db2)) * sortDir; }
             var av = a[sortBy] || "", bv = b[sortBy] || "";
             if (typeof av === "number" || !isNaN(parseFloat(av))) {
                 return (parseFloat(bv) - parseFloat(av)) * sortDir;
@@ -17972,7 +17973,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
             fi.length === 0 ? (React.createElement(Empty, { icon: "\uD83D\uDCE6", title: inv.length === 0 ? "Sin cartas" : "Sin resultados" })) :
             invView === "grid" ? React.createElement("div", null,
             React.createElement("div", { style: { display: "flex", gap: 0, marginBottom: 10, borderBottom: "2px solid " + BDR, paddingBottom: 0 } },
-                [["name","Nombre"],["buyPrice","Coste"],["targetPrice","Precio"],["buyDate","Fecha"],["status","Estado"]].map(function(pair){
+                [["name","Nombre"],["buyPrice","Coste"],["targetPrice","Precio"],["buyDate","Fecha"],["stockDays","Días stock"],["status","Estado"]].map(function(pair){
                     return React.createElement("button", { key: pair[0], onClick: function(){ if(sortBy===pair[0]){setSortDir(sortDir*-1);}else{setSortBy(pair[0]);setSortDir(1);} }, style: { padding: "8px 10px", border: "none", borderBottom: "2px solid "+(sortBy===pair[0]?BLUE:"transparent"), marginBottom: -2, background: "transparent", color: sortBy===pair[0]?BLUE:SUB, fontSize: 11, fontWeight: 600, cursor: "pointer", userSelect: "none" } },
                         pair[1]+(sortBy===pair[0]?(sortDir===1?" ↑":" ↓"):"")
                     );
@@ -18006,7 +18007,8 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
                                 React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: isSold ? GREEN : BLUE } }, eu(card.targetPrice || card.sellPrice || card.buyPrice || 0)),
                                 React.createElement("div", { style: { fontSize: 10, fontWeight: 600, padding: "2px 6px", borderRadius: 10, background: statusColor + "22", color: statusColor } }, statusLabel)
                             ),
-                            roi ? React.createElement("div", { style: { fontSize: 11, color: parseFloat(roi) >= 0 ? GREEN : RED, marginTop: 3 } }, "ROI " + roi + "%") : null
+                            roi ? React.createElement("div", { style: { fontSize: 11, color: parseFloat(roi) >= 0 ? GREEN : RED, marginTop: 3 } }, "ROI " + roi + "%") : null,
+                            (!isSold && _diasStock(card.buyDate) != null) ? React.createElement("div", { style: { fontSize: 10, color: _diasStock(card.buyDate) > 90 ? AMBER : MUT, marginTop: 3 } }, "\u23F3 " + _diasStock(card.buyDate) + " días en stock") : null
                         )
                     );
                 })
@@ -18026,8 +18028,12 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
                             eu(fN)),
                         React.createElement("td", { colSpan: 2 })))))));
 }
-function ColTab({ cards, onEdit, onDelete, onDuplicate }) {
+function ColTab({ cards, onEdit, onDelete, onDuplicate, onBulk, onBulkDel }) {
     const [sr, setSr] = useState(""), [fl, setFl] = useState("all"), [view, setView] = useState("gallery"), [colSection, setColSection] = useState("cards");
+    const [selMode, setSelMode] = useState(false), [sel, setSel] = useState([]), [bulk, setBulk] = useState({});
+    function tog(id) { setSel(function (p) { return p.indexOf(id) >= 0 ? p.filter(function (x) { return x !== id; }) : p.concat([id]); }); }
+    function applyBulk() { var ch = {}; ["category", "series", "condition"].forEach(function (k) { if (bulk[k]) ch[k] = bulk[k]; }); if (bulk.buyPrice) ch.buyPrice = parseFloat(bulk.buyPrice) || 0; if (Object.keys(ch).length && sel.length && onBulk) onBulk(sel, ch); setSel([]); setBulk({}); setSelMode(false); }
+    function delBulk() { if (sel.length && onBulkDel && confirm("\u00bfEliminar " + sel.length + " cartas de la colecci\u00f3n?")) { onBulkDel(sel); setSel([]); setSelMode(false); } }
     const col = cards.filter(c => c.mode === "collection");
     const [rainbows, setRainbows] = useState(() => { try {
         return JSON.parse(localStorage.getItem("cv10_rainbows") || "[]");
@@ -18067,10 +18073,20 @@ function ColTab({ cards, onEdit, onDelete, onDuplicate }) {
             React.createElement("div", { style: { padding: "8px 10px", borderBottom: "1px solid " + BDR, display: "flex", flexDirection: "column", gap: 6 } },
                 React.createElement("input", { value: sr, onChange: e => setSr(e.target.value), placeholder: "\uD83D\uDD0D Buscar...", style: Object.assign(Object.assign({}, IS), { width: "100%", background: BGS, padding: "6px 10px" }) }),
                 React.createElement("div", { style: { display: "flex", gap: 5, overflowX: "auto", WebkitOverflowScrolling: "touch", paddingBottom: 2 } }, [["all", "Todas"], ["futbol", "⚽"], ["futbol_m", "⚽ Masc."], ["futbol_f", "⚽ Fem."], ["nba", "🏀"], ["trading", "🃏"], ["baseball", "⚾"], ["f1", "🏎️"], ["fav", "⭐"], ["psa", "PSA"]].map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setFl(k), style: { padding: "4px 10px", borderRadius: 20, border: "1.5px solid " + (fl === k ? BLUE : BDR), background: fl === k ? "#eff4ff" : "transparent", color: fl === k ? BLUE : SUB, fontSize: 11, whiteSpace: "nowrap", flexShrink: 0, fontWeight: 500, cursor: "pointer" } }, l)))),
-                React.createElement("div", { style: { display: "flex", gap: 4, marginLeft: "auto" } }, [["gallery", "⊞"], ["list", "☰"], ["vitrina", "✨"]].map(([v, icon]) => (React.createElement("button", { key: v, onClick: () => setView(v), style: { padding: "5px 10px", borderRadius: 6, border: "1.5px solid " + (view === v ? BLUE : BDR), background: view === v ? "#eff4ff" : "transparent", color: view === v ? BLUE : MUT, fontSize: 13, cursor: "pointer" } }, icon))))
+                React.createElement("div", { style: { display: "flex", gap: 4, marginLeft: "auto" } }, React.createElement("button", { onClick: function () { setSelMode(!selMode); setSel([]); }, style: { padding: "5px 10px", borderRadius: 6, border: "1.5px solid " + (selMode ? BLUE : BDR), background: selMode ? "#eff4ff" : "transparent", color: selMode ? BLUE : MUT, fontSize: 13, cursor: "pointer" } }, "☑️"), [["gallery", "⊞"], ["list", "☰"], ["vitrina", "✨"]].map(([v, icon]) => (React.createElement("button", { key: v, onClick: () => setView(v), style: { padding: "5px 10px", borderRadius: 6, border: "1.5px solid " + (view === v ? BLUE : BDR), background: view === v ? "#eff4ff" : "transparent", color: view === v ? BLUE : MUT, fontSize: 13, cursor: "pointer" } }, icon))))
               ),
-            fi.length === 0 ? (React.createElement(Empty, { icon: "\u2B50", title: col.length === 0 ? "Colección vacía" : "Sin resultados", sub: col.length === 0 ? "Añade tus cartas personales" : "" })) : view === "gallery" ? (React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 14, padding: 16 } }, fi.map(c => (React.createElement("div", { key: c.id, style: { borderRadius: 12, border: "1px solid " + BDR, overflow: "hidden", background: BG, cursor: "pointer", transition: "box-shadow 0.15s" }, onMouseEnter: e => e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.10)", onMouseLeave: e => e.currentTarget.style.boxShadow = "none" },
+            selMode && React.createElement("div", { style: { padding: "10px 12px", borderBottom: "1px solid " + BDR, background: "#f8faff", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" } },
+                React.createElement("span", { style: { fontSize: 12, fontWeight: 700, color: BLUE } }, sel.length + " seleccionadas"),
+                React.createElement("select", { value: bulk.category || "", onChange: function (e) { setBulk(Object.assign({}, bulk, { category: e.target.value })); }, style: Object.assign({}, IS, { padding: "5px 8px", fontSize: 12 }) }, React.createElement("option", { value: "" }, "Categor\u00eda\u2026"), ["nba", "futbol_m", "futbol_f", "trading", "baseball", "f1"].map(function (k) { return React.createElement("option", { key: k, value: k }, CATS[k] || k); })),
+                React.createElement("input", { value: bulk.series || "", onChange: function (e) { setBulk(Object.assign({}, bulk, { series: e.target.value })); }, placeholder: "Serie\u2026", style: Object.assign({}, IS, { padding: "5px 8px", fontSize: 12, width: 110 }) }),
+                React.createElement("input", { value: bulk.condition || "", onChange: function (e) { setBulk(Object.assign({}, bulk, { condition: e.target.value })); }, placeholder: "Estado\u2026", style: Object.assign({}, IS, { padding: "5px 8px", fontSize: 12, width: 90 }) }),
+                React.createElement("input", { value: bulk.buyPrice || "", onChange: function (e) { setBulk(Object.assign({}, bulk, { buyPrice: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "") })); }, placeholder: "Precio\u2026", style: Object.assign({}, IS, { padding: "5px 8px", fontSize: 12, width: 80 }) }),
+                React.createElement("button", { onClick: applyBulk, disabled: !sel.length, style: { padding: "6px 12px", borderRadius: 6, border: "none", background: sel.length ? BLUE : BDR, color: "#fff", fontSize: 12, fontWeight: 600, cursor: sel.length ? "pointer" : "default" } }, "Aplicar"),
+                React.createElement("button", { onClick: delBulk, disabled: !sel.length, style: { padding: "6px 12px", borderRadius: 6, border: "1.5px solid " + RED, background: "transparent", color: RED, fontSize: 12, fontWeight: 600, cursor: "pointer" } }, "Eliminar"),
+                React.createElement("button", { onClick: function () { setSelMode(false); setSel([]); }, style: { padding: "6px 10px", borderRadius: 6, border: "1.5px solid " + BDR, background: "transparent", color: SUB, fontSize: 12, cursor: "pointer" } }, "Cancelar")),
+            fi.length === 0 ? (React.createElement(Empty, { icon: "\u2B50", title: col.length === 0 ? "Colección vacía" : "Sin resultados", sub: col.length === 0 ? "Añade tus cartas personales" : "" })) : view === "gallery" ? (React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 14, padding: 16 } }, fi.map(c => (React.createElement("div", { key: c.id, style: { borderRadius: 12, border: (selMode && sel.indexOf(c.id) >= 0 ? "2px solid " + BLUE : "1px solid " + BDR), overflow: "hidden", background: BG, cursor: "pointer", transition: "box-shadow 0.15s" }, onClick: selMode ? function () { tog(c.id); } : undefined, onMouseEnter: e => e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.10)", onMouseLeave: e => e.currentTarget.style.boxShadow = "none" },
                 React.createElement("div", { style: { width: "100%", aspectRatio: "3/4", background: BGS, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative" } },
+                    selMode && React.createElement("div", { style: { position: "absolute", top: 6, left: 6, zIndex: 5, width: 22, height: 22, borderRadius: 6, background: sel.indexOf(c.id) >= 0 ? BLUE : "rgba(255,255,255,0.92)", border: "2px solid " + (sel.indexOf(c.id) >= 0 ? BLUE : BDR), display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 700 } }, sel.indexOf(c.id) >= 0 ? "\u2713" : ""),
                     c.imageUrl ? (React.createElement("img", { src: c.imageUrl, alt: c.name, style: { width: "100%", height: "100%", objectFit: "cover" }, onError: e => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; } })) : null,
                     React.createElement("div", { style: { display: c.imageUrl ? "none" : "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", color: MUT } },
                         React.createElement("div", { style: { fontSize: 32 } }, "\uD83C\uDCCF"),
@@ -18093,12 +18109,14 @@ function ColTab({ cards, onEdit, onDelete, onDuplicate }) {
         colSection === "cards" && view === "list" && React.createElement("div", { style: { padding: "0 8px 8px" } },
             React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
                 React.createElement("thead", null, React.createElement("tr", null,
+                    selMode ? React.createElement("th", { key: "chk", style: { width: 28 } }) : null,
                     ["Carta", "Set", "Rareza", "Cond.", ""].map(function(h, i) {
                         return React.createElement("th", { key: h, style: { padding: "8px 6px", textAlign: i >= 4 ? "right" : "left", fontSize: 11, fontWeight: 600, color: SUB, borderBottom: "2px solid " + BDR } }, h);
                     })
                 )),
                 React.createElement("tbody", null, fi.map(function(c, i) {
-                    return React.createElement("tr", { key: c.id || i, style: { borderBottom: "1px solid " + BDR, cursor: "pointer" }, onClick: function() { onEdit(c); } },
+                    return React.createElement("tr", { key: c.id || i, style: { borderBottom: "1px solid " + BDR, cursor: "pointer", background: (selMode && sel.indexOf(c.id) >= 0 ? "#eff4ff" : "transparent") }, onClick: function() { if (selMode) tog(c.id); else onEdit(c); } },
+                        selMode ? React.createElement("td", { style: { padding: "9px 6px", width: 28 } }, React.createElement("span", { style: { display: "inline-flex", width: 20, height: 20, borderRadius: 5, border: "2px solid " + (sel.indexOf(c.id) >= 0 ? BLUE : BDR), background: sel.indexOf(c.id) >= 0 ? BLUE : "transparent", color: "#fff", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 } }, sel.indexOf(c.id) >= 0 ? "\u2713" : "")) : null,
                         React.createElement("td", { style: { padding: "9px 6px", fontSize: 13, fontWeight: 500 } },
                             React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                                 c.imageUrl ? React.createElement("img", { src: c.imageUrl, style: { width: 32, height: 40, objectFit: "cover", borderRadius: 4 } }) : React.createElement("div", { style: { width: 32, height: 40, background: BGS, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 } }, "\u2B50"),
@@ -19467,6 +19485,9 @@ function RedesTab({ cards, onOpenPost }) {
   function spc(k,v){ setPcForm(function(p){ return Object.assign({},p,{[k]:v}); }); }
   var [ctFields, setCtFields] = React.useState({name:"",price:"",precioActual:"",num:"",psa:"",img:"",countdown:"2H",hora:"21:00H"});
   var [calEvents, setCalEvents] = React.useState(function(){ try{ return JSON.parse(localStorage.getItem("cv10_cal_events")||"[]"); }catch(e){ return []; } });
+  var [reminders, setReminders] = React.useState(function(){ try{ return JSON.parse(localStorage.getItem("cv10_reminders")||"[]"); }catch(e){ return []; } });
+  var [remForm, setRemForm] = React.useState({fecha:"",hora:"",texto:""});
+  function saveReminders(r){ setReminders(r); localStorage.setItem("cv10_reminders", JSON.stringify(r)); if(window._saveToFirestore) window._saveToFirestore({ reminders: r }); }
   var [redesLoaded, setRedesLoaded] = React.useState(false);
   React.useEffect(function(){
     if(redesLoaded) return;
@@ -19474,6 +19495,7 @@ function RedesTab({ cards, onOpenPost }) {
       window._loadRedesFromFirestore(function(data){
         if(!data) return;
         if(data.calEvents) { setCalEvents(data.calEvents); localStorage.setItem("cv10_cal_events", JSON.stringify(data.calEvents)); }
+        if(data.reminders) { setReminders(data.reminders); localStorage.setItem("cv10_reminders", JSON.stringify(data.reminders)); }
         if(data.top5) setTop5(data.top5);
         if(data.top5titulo) setTop5titulo(data.top5titulo);
         if(data.loteTitle) setLoteTitle(data.loteTitle);
@@ -19578,7 +19600,8 @@ function RedesTab({ cards, onOpenPost }) {
       sectionBtn("top5","\uD83C\uDFAC Contenido"),
       sectionBtn("cal","\uD83D\uDCC5 Calendario"),
       sectionBtn("ideas","\uD83D\uDCA1 Ideas"),
-      sectionBtn("faq","\uD83D\uDCAC FAQ")
+      sectionBtn("faq","\uD83D\uDCAC FAQ"),
+      sectionBtn("recordatorios","\u23F0 Recordatorios")
     ),
     activeSection==="post"?ce("div",null,
       ce("div",{style:{marginBottom:12}},
@@ -19989,6 +20012,37 @@ function RedesTab({ cards, onOpenPost }) {
       })()
     ):null,
 
+    activeSection==="recordatorios"?ce("div",{style:{maxWidth:560}},
+      ce("div",{style:{fontSize:14,fontWeight:700,marginBottom:4}},"Recordatorios programados"),
+      ce("div",{style:{fontSize:12,color:sub,marginBottom:14}},"Anota directos, env\u00edos o tareas con fecha y hora"),
+      ce("div",{style:{background:"#fff",border:"1px solid #e8eaed",borderRadius:10,padding:14,marginBottom:16}},
+        ce("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}},
+          ce("input",{type:"date",value:remForm.fecha,onChange:function(e){setRemForm(Object.assign({},remForm,{fecha:e.target.value}));},style:Object.assign({},IS2,{width:150})}),
+          ce("input",{value:remForm.hora,onChange:function(e){setRemForm(Object.assign({},remForm,{hora:e.target.value}));},placeholder:"Hora (21:00)",style:Object.assign({},IS2,{width:120})})
+        ),
+        ce("input",{value:remForm.texto,onChange:function(e){setRemForm(Object.assign({},remForm,{texto:e.target.value}));},placeholder:"\u00bfQu\u00e9 quieres recordar? (ej: directo de sobres)",style:Object.assign({},IS2,{marginBottom:8})}),
+        ce("button",{onClick:function(){ if(!remForm.fecha||!remForm.texto.trim()){alert("Pon al menos fecha y texto");return;} var nr=reminders.concat([{id:Date.now(),fecha:remForm.fecha,hora:remForm.hora,texto:remForm.texto.trim(),done:false}]); saveReminders(nr); setRemForm({fecha:"",hora:"",texto:""}); },style:{width:"100%",padding:"9px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u23F0 A\u00f1adir recordatorio")
+      ),
+      reminders.length===0?ce("div",{style:{textAlign:"center",padding:"30px",color:sub,fontSize:13}},"A\u00fan no tienes recordatorios"):
+      ce("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+        reminders.slice().sort(function(a,b){ var ka=(a.fecha||"")+(a.hora||""); var kb=(b.fecha||"")+(b.hora||""); return ka<kb?-1:ka>kb?1:0; }).map(function(r){
+          var today=new Date(); today.setHours(0,0,0,0);
+          var rd=r.fecha?new Date(r.fecha+"T00:00:00"):null;
+          var diff=rd?Math.round((rd-today)/86400000):null;
+          var badge = r.done?"Hecho":(diff===null?"":(diff<0?"Vencido":(diff===0?"HOY":(diff===1?"Ma\u00f1ana":"En "+diff+" d\u00edas"))));
+          var bc = r.done?sub:(diff===null?sub:(diff<0?red:(diff===0?red:(diff<=3?blue:sub))));
+          return ce("div",{key:r.id,style:{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"#fff",border:"1px solid #e8eaed",borderRadius:10,opacity:r.done?0.55:1}},
+            ce("button",{onClick:function(){ saveReminders(reminders.map(function(x){return x.id===r.id?Object.assign({},x,{done:!x.done}):x;})); },style:{flexShrink:0,width:22,height:22,borderRadius:6,border:"2px solid "+(r.done?blue:"#cbd5e1"),background:r.done?blue:"transparent",color:"#fff",cursor:"pointer",fontSize:13,fontWeight:700}}, r.done?"\u2713":""),
+            ce("div",{style:{flex:1,minWidth:0}},
+              ce("div",{style:{fontSize:13,fontWeight:600,color:dark,textDecoration:r.done?"line-through":"none"}},r.texto),
+              ce("div",{style:{fontSize:11,color:sub,marginTop:2}}, (r.fecha||"")+(r.hora?" \u00b7 "+r.hora:""))
+            ),
+            badge?ce("span",{style:{flexShrink:0,fontSize:10,fontWeight:700,color:"#fff",background:bc,padding:"3px 9px",borderRadius:20,textTransform:"uppercase",letterSpacing:"0.05em"}},badge):null,
+            ce("button",{onClick:function(){ saveReminders(reminders.filter(function(x){return x.id!==r.id;})); },style:{flexShrink:0,border:"none",background:"none",color:red,cursor:"pointer",fontSize:16}},"\u00d7")
+          );
+        })
+      )
+    ):
     activeSection==="faq"?React.createElement("div",null,
       ce("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,gap:8,flexWrap:"wrap"}},
         ce("div",null,
@@ -20236,7 +20290,7 @@ function breakEcon(b) {
     var iva = margin * (ivaRate / (100 + ivaRate));
     var net = revenue - boxCost - feeAmt - shipping - iva;
     var roi = boxCost > 0 ? (net / boxCost * 100) : 0;
-    var sold = spots.filter(function (s) { return (+(s.price) || 0) > 0 || s.buyer; }).length;
+    var sold = spots.filter(function (s) { return (s.buyer || "").trim(); }).length;
     var paid = spots.filter(function (s) { return s.paid; }).length;
     var pend = spots.filter(function (s) { return s.buyer && !s.shipped; }).length;
     return { revenue: revenue, feeAmt: feeAmt, margin: margin, iva: iva, net: net, roi: roi, boxCost: boxCost, shipping: shipping, total: spots.length, sold: sold, paid: paid, pend: pend };
@@ -20431,7 +20485,7 @@ function BreaksTab({ breaks, saveBreaks }) {
                 h("div", { style: { fontSize: 13, marginTop: 4 } }, "Créalo desde la pestaña “Crear break”"))
             : h("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
                 flBreaks.length === 0 ? h("div", { style: { textAlign: "center", padding: "30px 20px", color: MUT, fontSize: 13 } }, "Sin breaks para ese filtro") : null,
-                flBreaks.slice().sort(function (a, b) { return (b.date || "").localeCompare(a.date || ""); }).map(function (b) {
+                flBreaks.slice().sort(function (a, b) { if (a.pinned && !b.pinned) return -1; if (!a.pinned && b.pinned) return 1; return (b.date || "").localeCompare(a.date || ""); }).map(function (b) {
                     var ec = breakEcon(b);
                     return h(Card, { key: b.id, style: { padding: 16 } },
                         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, flexWrap: "wrap" } },
@@ -20446,7 +20500,9 @@ function BreaksTab({ breaks, saveBreaks }) {
                             h("span", null, "IVA REBU ", h("b", { style: { color: RED } }, eu(ec.iva))),
                             h("span", null, "Comisión ", h("b", { style: { color: RED } }, eu(ec.feeAmt))),
                             ec.pend > 0 ? h("span", { style: { color: AMBER, fontWeight: 600 } }, "📦 " + ec.pend + " por enviar") : null),
+                        (ec.total > 0) ? h("div", { style: { marginTop: 10 } }, h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 11, color: SUB, marginBottom: 3 } }, h("span", null, "Vendidos"), h("span", null, ec.sold + "/" + ec.total)), h("div", { style: { height: 6, borderRadius: 3, background: BDR, overflow: "hidden" } }, h("div", { style: { height: "100%", width: Math.round(ec.sold / ec.total * 100) + "%", background: GREEN, borderRadius: 3, transition: "width .3s" } }))) : null,
                         h("div", { style: { display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" } },
+                            h(Btn, { sm: true, v: b.pinned ? "success" : "ghost", onClick: function () { saveBreaks(breaks.map(function (x) { return x.id === b.id ? Object.assign({}, x, { pinned: !x.pinned }) : x; })); } }, b.pinned ? "📌 En curso" : "📌 Fijar"),
                             h(Btn, { sm: true, onClick: function () { setRouletteStart(false); setManaging(b); } }, "🎟️ Spots"),
                             (b.assign === "roulette" && b.spots && b.spots.length > 0) ? h(Btn, { sm: true, v: "success", onClick: function () { setRouletteStart(true); setManaging(b); } }, "🎡 Ruleta") : null,
                             h(Btn, { sm: true, v: "outline", onClick: function () { setEditing(b); } }, "Editar"),
@@ -20517,10 +20573,19 @@ function BreaksTab({ breaks, saveBreaks }) {
     var catMax = Math.max(1, Math.max.apply(null, catKeys.map(function (c) { return Math.abs(byCat[c].net); }).concat([0])));
     function kpi(l, v, c) { return h(Card, { key: l, style: { padding: "12px 14px" } }, h("div", { style: { fontSize: 10, color: SUB, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" } }, l), h("div", { style: { fontSize: 18, fontWeight: 800, color: c || TXT, marginTop: 2 } }, v)); }
     function chCard(icon, name, o) { return h(Card, { style: { padding: 14 } }, h("div", { style: { fontSize: 12, fontWeight: 700, marginBottom: 4 } }, icon + " " + name), h("div", { style: { fontSize: 12, color: SUB } }, o.n + " break" + (o.n === 1 ? "" : "s") + " · recibido " + eu(o.rev)), h("div", { style: { fontSize: 15, fontWeight: 800, color: cl(o.net), marginTop: 2 } }, "Neto " + sg(o.net) + eu(o.net))); }
-    var dashSelector = breaks.length > 0 ? h("div", { style: { display: "flex", justifyContent: "flex-end", marginBottom: 14 } }, h("select", { value: dashYear, onChange: function (e) { setDashYear(e.target.value); }, style: Object.assign({}, IS, { width: "auto" }) }, [h("option", { key: "all", value: "all" }, "Todos los años")].concat(breakYears.map(function (y) { return h("option", { key: y, value: y }, y); })))) : null;
+    function exportDash() {
+        var el = document.getElementById("cv-breaks-dash");
+        if (!el || !window.html2canvas) { if (window._cvToast) window._cvToast("Espera un momento e inténtalo de nuevo", { icon: "\u23F3" }); return; }
+        if (window._cvToast) window._cvToast("Generando imagen…", { icon: "\uD83D\uDDBC\uFE0F" });
+        window.html2canvas(el, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff" }).then(function (c) {
+            var a = document.createElement("a"); a.download = "analisis-breaks-" + (dashYear === "all" ? "todos" : dashYear) + ".png"; a.href = c.toDataURL("image/png"); a.click();
+            if (window._cvToast) window._cvToast("Imagen descargada");
+        });
+    }
+    var dashSelector = breaks.length > 0 ? h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, gap: 8 } }, h("button", { onClick: exportDash, style: { padding: "7px 12px", border: "1px solid " + BDR, borderRadius: 8, background: BG, color: TXT, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif", whiteSpace: "nowrap" } }, "🖼️ Exportar imagen"), h("select", { value: dashYear, onChange: function (e) { setDashYear(e.target.value); }, style: Object.assign({}, IS, { width: "auto" }) }, [h("option", { key: "all", value: "all" }, "Todos los años")].concat(breakYears.map(function (y) { return h("option", { key: y, value: y }, y); })))) : null;
     var dash = breaks.length === 0
         ? h("div", { style: { textAlign: "center", padding: "60px 20px", color: MUT } }, h("div", { style: { fontSize: 40, marginBottom: 10 } }, "📊"), h("div", { style: { fontSize: 15, fontWeight: 600, color: SUB } }, "Sin datos todavía"), h("div", { style: { fontSize: 13, marginTop: 4 } }, "Crea y vende breaks para ver aquí tus rentabilidades"))
-        : h("div", null, dashSelector, dEvs.length === 0 ? h("div", { style: { textAlign: "center", padding: "40px 20px", color: MUT, fontSize: 14 } }, "Sin breaks en ese año") : h("div", null,
+        : h("div", null, dashSelector, dEvs.length === 0 ? h("div", { style: { textAlign: "center", padding: "40px 20px", color: MUT, fontSize: 14 } }, "Sin breaks en ese año") : h("div", { id: "cv-breaks-dash", style: { background: BG, padding: 4 } },
             h("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(108px,1fr))", gap: 10, marginBottom: 18 } },
                 kpi("Invertido", eu(dBox), TXT), kpi("Recibido", eu(dRev), TXT), kpi("IVA REBU", eu(dIva), RED), kpi("Beneficio neto", sg(dNet) + eu(dNet), cl(dNet)), kpi("ROI global", sg(dRoiG) + dRoiG.toFixed(0) + "%", cl(dRoiG)), kpi("Breaks", String(dEvs.length), TXT), kpi("Spots vendidos", String(dSpots), TXT)),
             (bestB || worstB) ? h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 } },
@@ -20557,6 +20622,8 @@ function BreakEditor({ brk, breaks, saveBreaks, onClose, onManage }) {
     function setTeam(i, k, v) { var ts = (d.teams || []).slice(); var o = {}; o[k] = v; ts[i] = Object.assign({}, ts[i], o); set("teams", ts); }
     function addTeam() { set("teams", (d.teams || []).concat([{ id: uid(), name: "", cards: 0, autos: 0 }])); }
     function delTeam(i) { set("teams", (d.teams || []).filter(function (_, j) { return j !== i; })); }
+    var dgt = useState(null), dragT = dgt[0], setDragT = dgt[1];
+    function moveTeam(from, to) { if (from == null || from === to) return; var ts = (d.teams || []).slice(); var it = ts.splice(from, 1)[0]; ts.splice(to, 0, it); set("teams", ts); setDragT(null); }
 
     var mode = (d.assign === "roulette") ? "random" : (d.mode || "teams");
     var wAuto = +d.wAuto || 10, wCard = +d.wCard || 1;
@@ -20617,7 +20684,8 @@ function BreakEditor({ brk, breaks, saveBreaks, onClose, onManage }) {
             h("span", { style: { width: 64, textAlign: "center" } }, "Autos"),
             h("span", { style: { width: 20 } })) : null,
         (d.teams || []).map(function (t, i) {
-            return h("div", { key: t.id || i, style: { display: "flex", gap: 6, alignItems: "center", marginBottom: 6 } },
+            return h("div", { key: t.id || i, onDragOver: function(e){ e.preventDefault(); }, onDrop: function(){ moveTeam(dragT, i); }, style: { display: "flex", gap: 6, alignItems: "center", marginBottom: 6, background: dragT === i ? "rgba(29,107,252,0.06)" : "transparent" } },
+                h("span", { draggable: true, onDragStart: function(){ setDragT(i); }, title: "Arrastra para reordenar", style: { color: MUT, fontSize: 15, cursor: "grab", userSelect: "none", flexShrink: 0 } }, "⠿"),
                 h("input", { value: t.name || "", onChange: function (e) { setTeam(i, "name", e.target.value); }, placeholder: "Equipo", style: Object.assign({}, IS, { flex: 1, minWidth: 90, padding: "7px 10px" }) }),
                 h("input", { type: "text", inputMode: "decimal", value: t.cards || "", onChange: function (e) { setTeam(i, "cards", e.target.value.replace(",", ".").replace(/[^0-9.]/g, "")); }, style: Object.assign({}, IS, { width: 64, padding: "7px 8px", textAlign: "center" }) }),
                 h("input", { type: "text", inputMode: "decimal", value: t.autos || "", onChange: function (e) { setTeam(i, "autos", e.target.value.replace(",", ".").replace(/[^0-9.]/g, "")); }, style: Object.assign({}, IS, { width: 64, padding: "7px 8px", textAlign: "center" }) }),
@@ -20728,6 +20796,10 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
     var bn = useState(null), banner = bn[0], setBanner = bn[1];
     var nr = useState(""), newRes = nr[0], setNewRes = nr[1];
     var bgs = useState(false), bigScreen = bgs[0], setBigScreen = bgs[1];
+    var dgs = useState(null), dragIdx = dgs[0], setDragIdx = dgs[1];
+    var hs = useState([]), spinLog = hs[0], setSpinLog = hs[1];
+    var ms = useState(localStorage.getItem("cv10_rmute") === "1"), muted = ms[0], setMuted = ms[1];
+    function moveSpot(from, to) { if (from == null || from === to) return; var sp = (d.spots || []).slice(); var it = sp.splice(from, 1)[0]; sp.splice(to, 0, it); set("spots", sp); setDragIdx(null); }
     var availSpots = (d.spots || []).map(function (s, i) { return { s: s, i: i }; }).filter(function (o) { return !((o.s.buyer || "").trim()); });
     var _sp = availSpots.map(function (o) { return +o.s.price || 0; }); var uniPrice = (_sp.length && _sp.every(function (p) { return p === _sp[0]; })) ? _sp[0] : 0;
     function persist(nb) { var exists = breaks.some(function (x) { return x.id === nb.id; }); saveBreaks(exists ? breaks.map(function (x) { return x.id === nb.id ? nb : x; }) : [nb].concat(breaks)); }
@@ -20761,14 +20833,25 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
         var won = unassigned[winner];
         var wonTeam = (won.s.team || "").trim() || ("Spot #" + (won.idx + 1));
         var wonBuyer = buyer.trim();
-        setBanner(null); setSpinning(true); setRotDeg(newRot);
+        setBanner(null); setSpinning(true); setRotDeg(newRot); if (!muted) playSpinSound(4.5);
         setTimeout(function () {
             var sp = (d.spots || []).slice();
             sp[won.idx] = Object.assign({}, sp[won.idx], { buyer: wonBuyer });
             set("spots", sp);
             setBanner({ team: wonTeam, buyer: wonBuyer });
             setSpinning(false); setBuyer("");
+            setSpinLog(function (p) { return [{ team: wonTeam, buyer: wonBuyer, idx: won.idx, ts: Date.now() }].concat(p); });
+            if (!muted) playWinSound();
         }, 4700);
+    }
+    function undoLastSpin() {
+        if (!spinLog.length) return;
+        var last = spinLog[0];
+        var sp = (d.spots || []).slice();
+        if (sp[last.idx] && (sp[last.idx].buyer || "").trim() === last.buyer) { sp[last.idx] = Object.assign({}, sp[last.idx], { buyer: "" }); set("spots", sp); }
+        setSpinLog(function (p) { return p.slice(1); });
+        setBanner(null);
+        if (window._cvToast) window._cvToast("Deshecho: " + last.team, { icon: "\u21A9\uFE0F" });
     }
     function pt(rr, deg) { var a = (deg - 90) * Math.PI / 180; return [150 + rr * Math.cos(a), 150 + rr * Math.sin(a)]; }
     var nSeg = unassigned.length, segA = nSeg > 0 ? 360 / nSeg : 360;
@@ -20797,7 +20880,7 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
     var roulette = h("div", null,
         h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 } },
             h(SL, { style: { marginBottom: 0 } }, "🎡 Ruleta · " + unassigned.length + " en la ruleta" + (hiddenSpots.length > 0 ? " · " + hiddenSpots.length + " oculto" + (hiddenSpots.length === 1 ? "" : "s") : "")),
-            h(Btn, { sm: true, v: "outline", onClick: function () { setShowRoulette(false); setBanner(null); } }, "← Lista")),
+            h("div", { style: { display: "flex", gap: 6 } }, h(Btn, { sm: true, v: "ghost", onClick: function () { var nm = !muted; setMuted(nm); localStorage.setItem("cv10_rmute", nm ? "1" : "0"); if (!nm) _audioCtx(); } }, muted ? "🔇" : "🔊"), h(Btn, { sm: true, v: "outline", onClick: function () { setShowRoulette(false); setBanner(null); } }, "← Lista"))),
         unassigned.length === 0
             ? h("div", { style: { textAlign: "center", padding: "40px 20px" } }, h("div", { style: { fontSize: 44, marginBottom: 10 } }, "🎉"), h("div", { style: { fontSize: 15, fontWeight: 700 } }, "No quedan equipos en la ruleta"), hiddenSpots.length > 0 ? h("div", { style: { fontSize: 13, color: SUB, marginTop: 4 } }, "Asigna los equipos ocultos en la lista de spots") : null)
             : h("div", null,
@@ -20814,7 +20897,13 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
                 h("div", { style: { display: "flex", gap: 8, marginTop: 12, maxWidth: 420, marginLeft: "auto", marginRight: "auto" } },
                     h("input", { list: "cv-buyers", value: buyer, onChange: function (e) { setBuyer(e.target.value); }, placeholder: "Nombre del comprador", disabled: spinning, style: Object.assign({}, IS, { flex: 1 }) }),
                     h(Btn, { onClick: spin, disabled: spinning || !buyer.trim(), style: { minWidth: 110, fontSize: 15, padding: "0 18px" } }, spinning ? "Girando…" : "🎯 Girar")),
-                h("div", { style: { fontSize: 11, color: MUT, textAlign: "center", marginTop: 8, lineHeight: 1.5 } }, "Escribe el comprador y gira. El equipo que salga se le asigna solo. Sin precios: puedes compartir esta pantalla.")));
+                h("div", { style: { fontSize: 11, color: MUT, textAlign: "center", marginTop: 8, lineHeight: 1.5 } }, "Escribe el comprador y gira. El equipo que salga se le asigna solo. Sin precios: puedes compartir esta pantalla."),
+                (spinLog.length > 0 ? h("div", { style: { maxWidth: 420, margin: "16px auto 0" } },
+                    h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 } },
+                        h("span", { style: { fontSize: 12, fontWeight: 700, color: SUB } }, "🎡 Historial de tiradas (" + spinLog.length + ")"),
+                        h(Btn, { sm: true, v: "outline", onClick: undoLastSpin }, "↩️ Deshacer última")),
+                    h("div", { style: { display: "flex", flexDirection: "column", gap: 4, maxHeight: 170, overflowY: "auto" } },
+                        spinLog.map(function (l, li) { return h("div", { key: l.ts, style: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, padding: "5px 9px", background: li === 0 ? "rgba(29,107,252,0.07)" : BGS, borderRadius: 6 } }, h("span", { style: { fontWeight: 600 } }, l.team + " → " + l.buyer), li === 0 ? h("button", { onClick: undoLastSpin, style: { border: "none", background: "none", color: RED, cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "Inter,sans-serif" } }, "deshacer") : h("span", { style: { color: MUT, fontSize: 11 } }, "✓")); }))) : null)));
 
     var reservasPanel = h("div", { style: { marginBottom: 16, padding: "12px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10 } },
         h("div", { style: { fontSize: 12, fontWeight: 700, marginBottom: 8 } }, "📋 Reservas antes del directo (" + reservations.length + ")"),
@@ -20838,9 +20927,9 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
                 h(Btn, { sm: true, v: "outline", onClick: addSpot }, "+ Añadir spot"))),
         (d.spots || []).length === 0 ? h("div", { style: { fontSize: 13, color: MUT, padding: "20px 0", textAlign: "center" } }, "Sin spots. Créalos desde el editor con el armador, o añádelos aquí a mano.") : null,
         (d.spots || []).map(function (s, i) {
-            return h("div", { key: s.id || i, style: { padding: "8px 0", borderBottom: "1px solid " + BDR } },
+            return h("div", { key: s.id || i, onDragOver: function(e){ e.preventDefault(); }, onDrop: function(){ moveSpot(dragIdx, i); }, style: { padding: "8px 0", borderBottom: "1px solid " + BDR, background: dragIdx === i ? "rgba(29,107,252,0.06)" : "transparent" } },
                 h("div", { style: { display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" } },
-                    h("span", { style: { fontSize: 11, color: MUT, width: 22 } }, "#" + (i + 1)),
+                    h("span", { draggable: true, onDragStart: function(){ setDragIdx(i); }, title: "Arrastra para reordenar", style: { fontSize: 15, color: MUT, width: 22, textAlign: "center", cursor: "grab", userSelect: "none" } }, "⠿"),
                     h("input", { value: s.team || "", onChange: function (e) { setSpot(i, "team", e.target.value); }, placeholder: "Equipo(s)", style: Object.assign({}, IS, { flex: 1, minWidth: 80, padding: "7px 10px" }) }),
                     h("input", { list: "cv-buyers", value: s.buyer || "", onChange: function (e) { setSpot(i, "buyer", e.target.value); }, placeholder: "Comprador", style: Object.assign({}, IS, { flex: 1, minWidth: 90, padding: "7px 10px" }) }),
                     h("input", { type: "text", inputMode: "decimal", title: "Precio final vendido (edítalo al acabar el directo)", value: (s.price === 0 || s.price == null || s.price === "") ? "" : s.price, onChange: function (e) { setSpot(i, "price", e.target.value.replace(",", ".").replace(/[^0-9.]/g, "")); }, placeholder: "€ vendido", style: Object.assign({}, IS, { width: 72, padding: "7px 10px" }) }),
@@ -20898,6 +20987,34 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
 }
 // =================== FIN BREAKS ===================
 
+function _cvToast(msg, opts) {
+  opts = opts || {};
+  var wrap = document.getElementById("cv-toast-wrap");
+  if (!wrap) { wrap = document.createElement("div"); wrap.id = "cv-toast-wrap"; wrap.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:99999;display:flex;flex-direction:column;gap:8px;align-items:center;font-family:Inter,sans-serif;pointer-events:none"; document.body.appendChild(wrap); }
+  var t = document.createElement("div");
+  t.style.cssText = "pointer-events:auto;display:flex;align-items:center;gap:12px;background:#1a1a2e;color:#fff;padding:11px 16px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.25);font-size:13px;font-weight:500;max-width:90vw;opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s";
+  var icon = opts.icon !== undefined ? opts.icon : "\u2705";
+  var span = document.createElement("span"); span.textContent = (icon ? icon + "  " : "") + msg; t.appendChild(span);
+  var timer;
+  function close() { t.style.opacity = "0"; t.style.transform = "translateY(10px)"; setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 200); }
+  if (opts.action) {
+    var btn = document.createElement("button");
+    btn.textContent = opts.action;
+    btn.style.cssText = "background:none;border:none;color:#7db1ff;font-weight:700;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;padding:0;white-space:nowrap";
+    btn.onclick = function () { if (timer) clearTimeout(timer); if (opts.onAction) opts.onAction(); close(); };
+    t.appendChild(btn);
+  }
+  wrap.appendChild(t);
+  requestAnimationFrame(function () { t.style.opacity = "1"; t.style.transform = "translateY(0)"; });
+  timer = setTimeout(close, opts.duration || 3000);
+  return close;
+}
+window._cvToast = _cvToast;
+function _diasStock(d) { if (!d) return null; var dt = new Date(d + "T00:00:00"); if (isNaN(dt)) return null; return Math.max(0, Math.round((Date.now() - dt) / 86400000)); }
+window._diasStock = _diasStock;
+function _audioCtx() { try { if (!window._cvAC) window._cvAC = new (window.AudioContext || window.webkitAudioContext)(); if (window._cvAC.state === "suspended") window._cvAC.resume(); return window._cvAC; } catch (e) { return null; } }
+function playSpinSound(dur) { var ac = _audioCtx(); if (!ac) return; var t0 = ac.currentTime; var t = 0; for (var i = 0; i < 46; i++) { var frac = i / 46; t += 0.045 + frac * frac * 0.3; if (t > dur) break; (function (tt) { var o = ac.createOscillator(), g = ac.createGain(); o.type = "square"; o.frequency.value = 900; g.gain.setValueAtTime(0.0001, t0 + tt); g.gain.exponentialRampToValueAtTime(0.14, t0 + tt + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t0 + tt + 0.06); o.connect(g); g.connect(ac.destination); o.start(t0 + tt); o.stop(t0 + tt + 0.07); })(t); } }
+function playWinSound() { var ac = _audioCtx(); if (!ac) return; var t0 = ac.currentTime; [523, 659, 784, 1047].forEach(function (f, i) { var o = ac.createOscillator(), g = ac.createGain(); o.type = "triangle"; o.frequency.value = f; var tt = t0 + i * 0.11; g.gain.setValueAtTime(0.0001, tt); g.gain.exponentialRampToValueAtTime(0.2, tt + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.28); o.connect(g); g.connect(ac.destination); o.start(tt); o.stop(tt + 0.32); }); }
 function App() {
     React.useEffect(function() {
       function onDataLoaded() {
@@ -21006,13 +21123,13 @@ function App() {
     const [tab, setTab] = useState("dashboard"), [sf, setSF] = useState(false), [dm, setDm] = useState("inventory"), [ec, setEc] = useState(null), [sc, setSc] = useState(null);
     useEffect(() => { localStorage.setItem("cv10", JSON.stringify(cards)); if (window._currentUser && cards.length > 0) window._saveToFirestore && window._saveToFirestore({ cards: cards }); var slug=localStorage.getItem("cv10_slug"); if(slug&&window._db&&window._currentUser&&cards.length>0){ var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";}); var sold=cards.filter(function(c){return c.status==="sold";}); var vc=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;}); window._db.ref("public/"+slug+"/cards").set(listed); window._db.ref("public/"+slug+"/validCodes").set(vc); } }, [cards]);
     useEffect(() => { localStorage.setItem("cv10i", JSON.stringify(invoices)); if (window._currentUser) window._saveToFirestore && window._saveToFirestore({ invoices: invoices }); }, [invoices]);
-    function ups(c) { setCards(p => p.find(x => x.id === c.id) ? p.map(x => x.id === c.id ? c : x) : [c, ...p]); }
-    function del(id) {var overlay=document.createElement("div");overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif";var box=document.createElement("div");box.style.cssText="background:#fff;border-radius:16px;padding:28px 24px;max-width:320px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.2)";box.innerHTML="<div style=\"font-size:36px;margin-bottom:12px\">&#128465;</div><div style=\"font-weight:700;font-size:16px;margin-bottom:8px\">Eliminar carta</div><div style=\"color:#6b7280;font-size:14px;margin-bottom:24px\">Esta accion no se puede deshacer.</div><div style=\"display:flex;gap:10px\"><button id=\"cv-del-cancel\" style=\"flex:1;padding:11px;border:1px solid #e5e7eb;border-radius:10px;background:#f9fafb;font-size:14px;cursor:pointer;font-family:Inter,sans-serif\">Cancelar</button><button id=\"cv-del-ok\" style=\"flex:1;padding:11px;border:none;border-radius:10px;background:#ef4444;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif\">Eliminar</button></div>";overlay.appendChild(box);document.body.appendChild(overlay);box.querySelector("#cv-del-cancel").onclick=function(){document.body.removeChild(overlay);};box.querySelector("#cv-del-ok").onclick=function(){document.body.removeChild(overlay);setCards(function(p){return p.filter(function(c){return c.id!==id;});});};overlay.onclick=function(e){if(e.target===overlay)document.body.removeChild(overlay);};}
+    function ups(c) { setCards(p => p.find(x => x.id === c.id) ? p.map(x => x.id === c.id ? c : x) : [c, ...p]); if (window._cvToast) window._cvToast("Guardado"); }
+    function del(id) { var idx = cards.findIndex(function (c) { return c.id === id; }); var removed = idx >= 0 ? cards[idx] : null; setCards(function (p) { return p.filter(function (c) { return c.id !== id; }); }); if (removed && window._cvToast) window._cvToast("Carta eliminada", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { setCards(function (p) { var np = p.slice(); np.splice(Math.min(idx, np.length), 0, removed); return np; }); } }); }
     function oa(m) { setDm(m); setEc(null); setSF(true); }
     function oe(c) { setEc(c); setDm(c.mode); setSF(true); }
     function dup(c) { setDupCard(c); }
-    function bulkUpd(ids, changes) { setCards(function (p) { return p.map(function (c) { return ids.indexOf(c.id) >= 0 ? Object.assign({}, c, changes) : c; }); }); }
-    function bulkDel(ids) { setCards(function (p) { return p.filter(function (c) { return ids.indexOf(c.id) < 0; }); }); }
+    function bulkUpd(ids, changes) { setCards(function (p) { return p.map(function (c) { return ids.indexOf(c.id) >= 0 ? Object.assign({}, c, changes) : c; }); }); if (window._cvToast) window._cvToast(ids.length + " cartas actualizadas"); }
+    function bulkDel(ids) { var removed = cards.filter(function (c) { return ids.indexOf(c.id) >= 0; }); setCards(function (p) { return p.filter(function (c) { return ids.indexOf(c.id) < 0; }); }); if (window._cvToast) window._cvToast(removed.length + " cartas eliminadas", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { setCards(function (p) { return removed.concat(p); }); } }); }
     const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Análisis"], ["lots", "Lotes"], ["breaks", "🎁 Breaks"], ["redes", "📱 Redes"], ["psa", "PSA/BGS"]];
     return (React.createElement("div", { style: { minHeight: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14 } },
         React.createElement("style", null, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');"),
@@ -21031,6 +21148,7 @@ function App() {
                     ))),
                 tooltip && React.createElement("div", { onClick: function(){ setTooltip(null); }, style: { position: "fixed", inset: 0, zIndex: 998 } }),
         tooltip && React.createElement("div", { style: { position: "fixed", background: "#1e293b", color: "#fff", borderRadius: 10, padding: "10px 14px", fontSize: 12, maxWidth: 220, zIndex: 999, top: tooltip.y, left: tooltip.x, lineHeight: 1.5 } }, tooltip.text),
+        React.createElement("button", { onClick: function(){ window.scrollTo({ top: 0, behavior: "smooth" }); }, title: "Volver arriba", style: { position: "fixed", bottom: "calc(70px + env(safe-area-inset-bottom))", left: 16, zIndex: 90, width: 40, height: 40, borderRadius: "50%", background: BG, border: "1px solid " + BDR, color: SUB, fontSize: 18, cursor: "pointer", boxShadow: "0 2px 10px rgba(0,0,0,0.12)", opacity: 0.85, fontFamily: "Inter,sans-serif" } }, "↑"),
         React.createElement("div", { id: "cv-fab-container", style: { display: "none", position: "fixed", bottom: "calc(64px + env(safe-area-inset-bottom))", right: 16, zIndex: 99, flexDirection: "column", alignItems: "flex-end", gap: 10 } },
           React.createElement("div", { id: "cv-fab-menu", style: { display: "none", flexDirection: "column", alignItems: "flex-end", gap: 8, marginBottom: 8 } },
             React.createElement("button", { onClick: function(){ document.getElementById("cv-fab-menu").style.display="none"; oa(tab === "collection" ? "collection" : "inventory"); }, style: { background: "#fff", border: "1px solid #e8eaed", borderRadius: 20, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif", boxShadow: "0 2px 8px rgba(0,0,0,0.15)", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 } }, "+ Nueva carta"),
@@ -21563,7 +21681,7 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
         React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "clamp(12px, 4vw, 24px)" } },
             tab === "dashboard" && React.createElement(DashTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
             tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup, onBulk: bulkUpd, onBulkDel: bulkDel }),
-            tab === "collection" && React.createElement(ColTab, { cards: cards, onEdit: oe, onDelete: del, onDuplicate: dup }),
+            tab === "collection" && React.createElement(ColTab, { cards: cards, onEdit: oe, onDelete: del, onDuplicate: dup, onBulk: bulkUpd, onBulkDel: bulkDel }),
             tab === "fiscal" && React.createElement(AnalyticsTab, { cards: cards }),
             tab === "invoices" && false,
             tab === "analytics" && false,
