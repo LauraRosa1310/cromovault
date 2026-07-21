@@ -87,7 +87,7 @@
 <script>if(localStorage.getItem("cv10_dark")==="1"){document.body.classList.add("dark");}</script>
   <div id="cv-login" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%);z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:Inter,sans-serif;overflow:auto;padding:20px;">
     <div style="text-align:center;max-width:420px;width:100%;">
-      <div style="font-size:64px;margin-bottom:8px;">🃏</div>
+      <img src="apple-touch-icon.png" alt="The Card Girl" style="width:96px;height:96px;border-radius:24px;margin:0 auto 12px;display:block;box-shadow:0 8px 30px rgba(0,0,0,0.4);"/>
       <div style="font-size:32px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-0.5px;">CromoVault</div>
       <div style="font-size:15px;color:#94a3b8;margin-bottom:36px;">Gestiona tu colección e inversión en cartas</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:32px;">
@@ -21203,7 +21203,7 @@ function App() {
             React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "0 24px", display: "flex", justifyContent: "space-between", alignItems: "center", height: 54 } },
                 React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 24 } },
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
-                        React.createElement("div", { style: { width: 26, height: 26, background: BLUE, borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 } }, "\uD83C\uDCCF"),
+                        React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
