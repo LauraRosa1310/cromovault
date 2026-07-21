@@ -17245,6 +17245,14 @@ const { useState, useEffect, useRef } = React;
 
 const BLUE = "#1d6bfc", GREEN = "#00c48c", RED = "#f03e3e", AMBER = "#f59e0b", PURPLE = "#8b5cf6";
 const BG = "var(--bg,#fff)", BGS = "var(--bgs,#f7f8fa)", BDR = "var(--bdr,#e8eaed)", TXT = "var(--txt,#0a0a0a)", SUB = "var(--sub,#6b7280)", MUT = "var(--mut,#9ca3af)";
+var STORY_THEMES = [
+  { name: "Clásico", bg: "#e8eaf0", dark: "#1a1a2e", red: "#b5004a", blue: "#1e3fa0", sub: "#8b8b95" },
+  { name: "Rosa pop", bg: "#ffe0ee", dark: "#2a0a1a", red: "#e91e63", blue: "#7c3aed", sub: "#9d6b83" },
+  { name: "Menta", bg: "#e2f7ee", dark: "#08301f", red: "#f97316", blue: "#059669", sub: "#6b9080" },
+  { name: "Coral", bg: "#fff0e6", dark: "#3a1408", red: "#e63946", blue: "#f77f00", sub: "#a08066" },
+  { name: "Cielo", bg: "#e6f0ff", dark: "#0a2540", red: "#ef4444", blue: "#2563eb", sub: "#6b8299" },
+  { name: "Lavanda", bg: "#f1e9ff", dark: "#1a0a2e", red: "#d6336c", blue: "#7048e8", sub: "#8a7ba6" }
+];
 const CATS = { futbol_m: "⚽ Fútbol Masc.", futbol_f: "👟 Fútbol Fem.", nba: "🏀 NBA", trading: "🃏 Trading", baseball: "⚾ Baseball", f1: "🏎️ F1", other: "🏅 Otro" };
 const RARS = ["Común", "Poco común", "Rara", "Ultra Rara", "Legendaria"];
 const RCLR = { "Común": "#9ca3af", "Poco común": "#10b981", "Rara": "#3b82f6", "Ultra Rara": "#8b5cf6", "Legendaria": "#f59e0b" };
@@ -19527,7 +19535,11 @@ function RedesTab({ cards, onOpenPost }) {
   var [loteCards, setLoteCards] = React.useState([]);
   var [loteTitle, setLoteTitle] = React.useState("Directo de hoy");
   var [loteSearch, setLoteSearch] = React.useState("");
-  var bg="#e8eaf0",dark="#1a1a2e",red="#b5004a",blue="#1e3fa0",sub="#999";
+  var stSty = React.useState(function(){ var v=parseInt(localStorage.getItem("cv10_story_theme")||"0"); return isNaN(v)?0:v; }), storyTheme=stSty[0], setStoryThemeS=stSty[1];
+  function setStoryTheme(i){ setStoryThemeS(i); localStorage.setItem("cv10_story_theme", String(i)); }
+  function randomStoryTheme(){ var n=STORY_THEMES.length, r=Math.floor(Math.random()*n); if(n>1&&r===storyTheme) r=(r+1)%n; setStoryTheme(r); }
+  var _ST=STORY_THEMES[storyTheme]||STORY_THEMES[0];
+  var bg=_ST.bg,dark=_ST.dark,red=_ST.red,blue=_ST.blue,sub=_ST.sub;
   var logoUrl=CV_LOGO;
   var logoEl = React.createElement("img",{src:logoUrl,style:{width:36,height:36,borderRadius:"50%",objectFit:"cover",flexShrink:0}});
   var ftrEl = React.createElement("div",{style:{flexShrink:0,height:30,padding:"0 12px",display:"flex",alignItems:"center",justifyContent:"space-between",borderTop:"3px solid transparent",background:"linear-gradient("+bg+","+bg+") padding-box, linear-gradient(to right,"+blue+" 50%,"+red+" 50%) border-box"}},
@@ -19626,6 +19638,11 @@ function RedesTab({ cards, onOpenPost }) {
       sectionBtn("ideas","\uD83D\uDCA1 Ideas"),
       sectionBtn("faq","\uD83D\uDCAC FAQ"),
       sectionBtn("recordatorios","\u23F0 Recordatorios")
+    ),
+    ce("div",{style:{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:18,padding:"10px 12px",background:"#f9fafb",border:"1px solid #eef0f3",borderRadius:10}},
+      ce("span",{style:{fontSize:11,fontWeight:700,color:"#6b7280",textTransform:"uppercase",letterSpacing:"0.06em"}},"🎨 Estilo"),
+      STORY_THEMES.map(function(t,i){ return ce("button",{key:i,title:t.name,onClick:function(){setStoryTheme(i);},style:{width:26,height:26,borderRadius:"50%",cursor:"pointer",padding:0,border:storyTheme===i?"2.5px solid #111":"2px solid #fff",boxShadow:"0 0 0 1px #ddd",background:"linear-gradient(135deg,"+t.blue+" 50%,"+t.red+" 50%)"}}); }),
+      ce("button",{onClick:randomStoryTheme,style:{marginLeft:"auto",padding:"6px 12px",border:"1px solid #e5e7eb",borderRadius:8,background:"#fff",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"🎲 Aleatorio")
     ),
     activeSection==="post"?ce("div",null,
       ce("div",{style:{marginBottom:12}},
@@ -20099,7 +20116,11 @@ function PostModal({ card, onClose }) {
   var c = card || {};
   var [selTpl, setSelTpl] = React.useState(null);
   var logoUrl = CV_LOGO;
-  var bg="#e8eaf0",dark="#1a1a2e",red="#b5004a",blue="#1e3fa0",sub="#999";
+  var pmSty = React.useState(function(){ var v=parseInt(localStorage.getItem("cv10_story_theme")||"0"); return isNaN(v)?0:v; }), postTheme=pmSty[0], setPostThemeS=pmSty[1];
+  function setPostTheme(i){ setPostThemeS(i); localStorage.setItem("cv10_story_theme", String(i)); }
+  function randomPostTheme(){ var n=STORY_THEMES.length, r=Math.floor(Math.random()*n); if(n>1&&r===postTheme) r=(r+1)%n; setPostTheme(r); }
+  var _PT=STORY_THEMES[postTheme]||STORY_THEMES[0];
+  var bg=_PT.bg,dark=_PT.dark,red=_PT.red,blue=_PT.blue,sub=_PT.sub;
   var cardImg = c.imageUrl || c.cloudinaryUrl || "";
   var numStr = c.name && c.name.match(/\/([0-9]+)/) ? c.name.match(/\/([0-9]+)/)[1] : "";
   var [ef, setEf] = React.useState({
@@ -20234,6 +20255,11 @@ function PostModal({ card, onClose }) {
           React.createElement("div",{style:{fontWeight:700,fontSize:16}},selTpl?(selDef?selDef.label:"Plantilla"):"\uD83D\uDCF8 Crear post \u2014 "+(c.name||""))
         ),
         React.createElement("button",{onClick:onClose,style:{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#6b7280"}},"\u00D7")
+      ),
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:16,padding:"10px 12px",background:"#f9fafb",border:"1px solid #eef0f3",borderRadius:10}},
+        React.createElement("span",{style:{fontSize:11,fontWeight:700,color:"#6b7280",textTransform:"uppercase",letterSpacing:"0.06em"}},"🎨 Estilo"),
+        STORY_THEMES.map(function(t,i){ return React.createElement("button",{key:i,title:t.name,onClick:function(){setPostTheme(i);},style:{width:26,height:26,borderRadius:"50%",cursor:"pointer",padding:0,border:postTheme===i?"2.5px solid #111":"2px solid #fff",boxShadow:"0 0 0 1px #ddd",background:"linear-gradient(135deg,"+t.blue+" 50%,"+t.red+" 50%)"}}); }),
+        React.createElement("button",{onClick:randomPostTheme,style:{marginLeft:"auto",padding:"6px 12px",border:"1px solid #e5e7eb",borderRadius:8,background:"#fff",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"🎲 Aleatorio")
       ),
       selTpl===null?
         React.createElement("div",null,
