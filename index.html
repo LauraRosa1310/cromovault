@@ -19540,7 +19540,17 @@ function RedesTab({ cards, onOpenPost }) {
     var el=document.getElementById(id);
     if(!el||!window.html2canvas){alert("Espera un momento");return;}
     window.html2canvas(el,{scale:4,useCORS:true,allowTaint:true,backgroundColor:null}).then(function(c){
-      var a=document.createElement("a");a.download=fname+".png";a.href=c.toDataURL("image/png");a.click();
+      c.toBlob(function(blob){
+        if(!blob){return;}
+        try{
+          var file=new File([blob], fname+".png", {type:"image/png"});
+          if(navigator.canShare && navigator.canShare({files:[file]})){
+            navigator.share({files:[file], title:"The Card Girl"}).catch(function(){});
+            return;
+          }
+        }catch(e){}
+        var a=document.createElement("a");a.download=fname+".png";a.href=URL.createObjectURL(blob);document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+      }, "image/png");
     });
   }
   var ce = React.createElement;
@@ -19724,7 +19734,7 @@ function RedesTab({ cards, onOpenPost }) {
               )
             );
           }),
-          React.createElement("button",{onClick:function(){saveRedesToFirestore({top5:top5,top5titulo:top5titulo});dlEl("redes-top5","top5");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",marginTop:8}},"\u2B07 Descargar Top 5")
+          React.createElement("button",{onClick:function(){saveRedesToFirestore({top5:top5,top5titulo:top5titulo});dlEl("redes-top5","top5");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",marginTop:8}},"📲 Compartir Top 5")
         ),
         React.createElement("div",null,
           React.createElement("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
@@ -19737,7 +19747,7 @@ function RedesTab({ cards, onOpenPost }) {
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"NUMERACI\u00D3N (ej: 49)"),React.createElement("input",{value:ctFields.num,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{num:v});});},style:IS2})),
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"PRECIO REAL (\u20AC)"),React.createElement("input",{type:"number",value:ctFields.price,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{price:v});});},style:IS2})),
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"FOTO (URL)"),React.createElement("input",{value:ctFields.img,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{img:v});});},placeholder:"https://...",style:IS2})),
-          React.createElement("button",{onClick:function(){dlEl("ct-preview","cuanto-vale");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 Descargar")
+          React.createElement("button",{onClick:function(){dlEl("ct-preview","cuanto-vale");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"📲 Compartir imagen")
         ),
         React.createElement("div",null,
           React.createElement("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
@@ -19765,7 +19775,7 @@ function RedesTab({ cards, onOpenPost }) {
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"JUGADOR / CARTA"),React.createElement("input",{value:ctFields.name,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{name:v});});},style:IS2})),
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"GRADO PSA"),React.createElement("input",{value:ctFields.psa,placeholder:"10",onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{psa:v});});},style:IS2})),
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"FOTO (URL)"),React.createElement("input",{value:ctFields.img,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{img:v});});},placeholder:"https://...",style:IS2})),
-          React.createElement("button",{onClick:function(){dlEl("psa-preview","antes-despues-psa");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 Descargar")
+          React.createElement("button",{onClick:function(){dlEl("psa-preview","antes-despues-psa");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"📲 Compartir imagen")
         ),
         React.createElement("div",null,
           React.createElement("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
@@ -19790,7 +19800,7 @@ function RedesTab({ cards, onOpenPost }) {
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"JUGADOR / CARTA"),React.createElement("input",{value:ctFields.name,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{name:v});});},style:IS2})),
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"PRECIO AL QUE LA VEND\u00CD (\u20AC)"),React.createElement("input",{type:"number",value:ctFields.price,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{price:v});});},style:IS2})),
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"FOTO (URL)"),React.createElement("input",{value:ctFields.img,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{img:v});});},placeholder:"https://...",style:IS2})),
-          React.createElement("button",{onClick:function(){dlEl("ndv-preview","no-debi-vender");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 Descargar")
+          React.createElement("button",{onClick:function(){dlEl("ndv-preview","no-debi-vender");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"📲 Compartir imagen")
         ),
         React.createElement("div",null,
           React.createElement("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
@@ -19815,7 +19825,7 @@ function RedesTab({ cards, onOpenPost }) {
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"PRECIO COMPRA (\u20AC)"),React.createElement("input",{type:"number",value:ctFields.price,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{price:v});});},style:IS2})),
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"PRECIO ACTUAL (\u20AC)"),React.createElement("input",{type:"number",value:ctFields.precioActual,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{precioActual:v});});},style:IS2})),
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"FOTO (URL)"),React.createElement("input",{value:ctFields.img,onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{img:v});});},placeholder:"https://...",style:IS2})),
-          React.createElement("button",{onClick:function(){dlEl("comp-preview","comparativa-precio");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 Descargar")
+          React.createElement("button",{onClick:function(){dlEl("comp-preview","comparativa-precio");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"📲 Compartir imagen")
         ),
         React.createElement("div",null,
           React.createElement("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
@@ -19840,7 +19850,7 @@ function RedesTab({ cards, onOpenPost }) {
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"T\u00CDTULO DIRECTO"),React.createElement("input",{value:ctFields.name,placeholder:"ABRIMOS SOBRES",onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{name:v});});},style:IS2})),
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"TIEMPO (ej: 2H)"),React.createElement("input",{value:ctFields.countdown,placeholder:"2H",onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{countdown:v});});},style:IS2})),
           React.createElement("div",{style:{marginBottom:12}},React.createElement("label",{style:LBL},"HORA"),React.createElement("input",{value:ctFields.hora,placeholder:"21:00H",onChange:function(e){var v=e.target.value;setCtFields(function(p){return Object.assign({},p,{hora:v});});},style:IS2})),
-          React.createElement("button",{onClick:function(){dlEl("cd-preview","countdown-directo");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 Descargar")
+          React.createElement("button",{onClick:function(){dlEl("cd-preview","countdown-directo");},style:{width:"100%",padding:"10px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"📲 Compartir imagen")
         ),
         React.createElement("div",null,
           React.createElement("div",{style:{fontSize:10,color:sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}},"PREVISUALIZACIÓN"),
@@ -20968,7 +20978,7 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
             h("div", { style: { display: "flex", gap: 8 } },
                 (d.spots || []).length > 0 ? h(Btn, { sm: true, onClick: function () { setShowRoulette(true); setBanner(null); } }, "🎡 Ruleta") : null,
                 (d.spots || []).length > 0 ? h(Btn, { sm: true, v: "outline", onClick: function () { setBigScreen(true); } }, "🖥️ Pantalla") : null,
-                availSpots.length > 0 ? h(Btn, { sm: true, v: "outline", onClick: function () { var el = document.getElementById("cv-spots-story"); if (!el || !window.html2canvas) { alert("Espera un momento e inténtalo de nuevo"); return; } window.html2canvas(el, { scale: 3, backgroundColor: null }).then(function (cv) { var a = document.createElement("a"); a.download = "spots-disponibles.png"; a.href = cv.toDataURL("image/png"); a.click(); }); } }, "📸 Story") : null,
+                availSpots.length > 0 ? h(Btn, { sm: true, v: "outline", onClick: function () { var el = document.getElementById("cv-spots-story"); if (!el || !window.html2canvas) { alert("Espera un momento e inténtalo de nuevo"); return; } window.html2canvas(el, { scale: 3, backgroundColor: null }).then(function (cv) { cv.toBlob(function (blob) { if (!blob) return; try { var file = new File([blob], "spots-disponibles.png", { type: "image/png" }); if (navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: "The Card Girl" }).catch(function () {}); return; } } catch (e) {} var a = document.createElement("a"); a.download = "spots-disponibles.png"; a.href = URL.createObjectURL(blob); document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000); }, "image/png"); }); } }, "📲 Compartir story") : null,
                 h(Btn, { sm: true, v: "outline", onClick: addSpot }, "+ Añadir spot"))),
         (d.spots || []).length === 0 ? h("div", { style: { fontSize: 13, color: MUT, padding: "20px 0", textAlign: "center" } }, "Sin spots. Créalos desde el editor con el armador, o añádelos aquí a mano.") : null,
         (d.spots || []).map(function (s, i) {
