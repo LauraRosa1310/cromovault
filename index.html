@@ -2,10 +2,20 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="CromoVault">
+  <meta name="theme-color" content="#ffffff">
   <title>🃏 CromoVault</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style>
+  <style>
+    #cv-top-bar{padding-top:env(safe-area-inset-top);}
+    body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);}
+    #cv-toast-wrap{bottom:calc(24px + env(safe-area-inset-bottom))!important;}
+  </style>
   <style>
     :root{--bg:#fff;--bgs:#f7f8fa;--bdr:#e8eaed;--txt:#0a0a0a;--sub:#6b7280;--mut:#9ca3af;}
     body.dark{--bg:#0f172a;--bgs:#1e293b;--bdr:#334155;--txt:#f1f5f9;--sub:#94a3b8;--mut:#64748b;}
@@ -17755,7 +17765,7 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
     const recent = inv.slice().sort((a, b) => (b.buyDate || "").localeCompare(a.buyDate || "")).slice(0, 5);
 
     return (React.createElement("div", null,
-        uname?React.createElement("div",{style:{padding:"10px 20px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",null,React.createElement("div",{style:{fontSize:17,fontWeight:700,color:TXT,fontFamily:"Inter,sans-serif"}},"Hola, "+(uname.split(" ")[0])+" \uD83D\uDC4B"),React.createElement("div",{style:{fontSize:13,color:SUB,marginTop:2}},"Bienvenido a tu portfolio")),(localStorage.getItem("cv10_slug")||window._currentSlug)?React.createElement("a",{href:"https://laurarosa1310.github.io/cromovault/?p="+(localStorage.getItem("cv10_slug")||window._currentSlug),target:"_blank",style:{fontSize:12,color:BLUE,textDecoration:"none",fontFamily:"Inter,sans-serif",fontWeight:600,padding:"6px 12px",background:"#eff6ff",borderRadius:8,whiteSpace:"nowrap"}},"🔗 Ver mi perfil"):null):null,
+        uname?React.createElement("div",{style:{padding:"10px 20px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",null,React.createElement("div",{style:{fontSize:17,fontWeight:700,color:TXT,fontFamily:"Inter,sans-serif"}},"Hola, "+(uname.split(" ")[0])+" \uD83D\uDC4B"),React.createElement("div",{style:{fontSize:13,color:SUB,marginTop:2}},"Bienvenido a tu portfolio")),null):null,
         React.createElement(Card, { style: { marginBottom: 20, padding: "20px 24px" } },
             React.createElement(SL, { style: { marginBottom: 16 } }, "\uD83D\uDCB0 Balance de cartera"),
             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))", gap: 10, marginBottom: 10 } },
@@ -21041,6 +21051,7 @@ function _cvToast(msg, opts) {
   return close;
 }
 window._cvToast = _cvToast;
+try { ["apple-touch-icon", "icon"].forEach(function (rl) { var lk = document.createElement("link"); lk.rel = rl; lk.href = CV_LOGO; document.head.appendChild(lk); }); } catch (e) {}
 function _diasStock(d) { if (!d) return null; var dt = new Date(d + "T00:00:00"); if (isNaN(dt)) return null; return Math.max(0, Math.round((Date.now() - dt) / 86400000)); }
 window._diasStock = _diasStock;
 function _icsDownload(r) {
