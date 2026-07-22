@@ -19677,7 +19677,7 @@ function RedesTab({ cards, onOpenPost }) {
     ),
     activeSection==="post"?ce("div",null,
       ce("div",{style:{fontSize:13,fontWeight:700,marginBottom:12}},"Elige qué publicar"),
-      ce("div",{style:{display:"flex",flexDirection:"column",gap:6,maxWidth:420}},
+      ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(190px,1fr))",gap:8}},
         [["p-venta","💰 En venta"],["s-dia","🃏 Carta del día"],["s-guardo","🤔 ¿Vendo o guardo?"],["s-vendida","✅ Vendida"],["p-joya","💎 Nueva joya"],["c-cuanto","🔎 ¿Cuánto vale?"],["c-psa","🏆 Antes / después (PSA)"],["c-ndv","😩 No debí vender"],["c-comp","📈 Comparativa de precio"],["c-countdown","⏳ Countdown directo"],["top5list","📋 Top 5"],["lote","📦 Lote directo"]].map(function(o){
           var act=(contenidoSub===o[0]);
           return ce("button",{key:o[0],onClick:function(){ if(o[0]==="top5list"||o[0]==="lote"){ setContenidoSub(o[0]); } else { setContenidoSub(""); onOpenPost({},o[0]); } },style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 14px",border:"1px solid "+(act?blue:"#e8eaed"),borderRadius:9,background:act?"#eff4ff":"#fff",cursor:"pointer",fontFamily:"Inter,sans-serif",fontSize:13,fontWeight:600,color:"#1a1a2e"}}, ce("span",null,o[1]), ce("span",{style:{color:blue}},"→"));
@@ -20324,11 +20324,11 @@ function PostModal({ card, onClose, cards, initTpl }) {
         React.createElement("div",{style:{padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}},logoEl,React.createElement("div",{style:{fontSize:9,fontWeight:800,color:"#fff",padding:"5px 12px",borderRadius:20,background:red}},"EN VENTA")),
         React.createElement("div",{style:{flex:1,padding:"0 10px 8px",overflow:"hidden"}},
           slbl(ef.label1),
-          React.createElement("div",{style:{fontSize:w>200?26:15,fontWeight:900,lineHeight:0.9,letterSpacing:"-0.02em",color:dark,marginBottom:8,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden",wordBreak:"break-word"}},ef.name),
+          React.createElement("div",{style:{fontSize:w>200?28:16,fontWeight:900,lineHeight:0.88,letterSpacing:"-0.02em",color:dark,marginBottom:8}},ef.name),
           React.createElement("div",{style:{display:"flex",gap:8,alignItems:"flex-start"}},
-            React.createElement("div",{style:{flex:1,minWidth:0}},
+            React.createElement("div",{style:{flex:1}},
               slbl("FICHA"),
-              React.createElement("div",{style:{fontSize:9,fontWeight:700,color:dark,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},ef.set),
+              React.createElement("div",{style:{fontSize:9,fontWeight:700,color:dark}},ef.set),
               React.createElement("div",{style:{fontSize:8,color:sub,paddingBottom:6,borderBottom:"1px solid #d0d2da",marginBottom:6}},ef.num?"/"+ef.num:""),
               slbl("PRECIO"),
               React.createElement("div",{style:{fontSize:w>200?20:13,fontWeight:900,color:red,letterSpacing:"-0.02em",lineHeight:1}},ef.price?ef.price+"\u20AC":"")
@@ -21472,7 +21472,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v19")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v21")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
