@@ -20150,14 +20150,15 @@ function RedesTab({ cards, onOpenPost }) {
         faqEdit?ce("button",{onClick:function(){saveFaq(faqData.concat([{cat:"Nueva",q:"Nueva pregunta",a:"Respuesta"}]));},style:{padding:"9px",border:"1px dashed #cbd5e1",borderRadius:8,background:"#f9fafb",color:dark,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"+ Añadir pregunta"):null)):null
   );
 }
-function PostModal({ card, onClose }) {
+function PostModal({ card, onClose, cards }) {
   var c = card || {};
   var [selTpl, setSelTpl] = React.useState(null);
   var [postStyle, setPostStyle] = React.useState("original");
   var [postFmt, setPostFmt] = React.useState("post");
   var logoUrl = CV_LOGO;
   var bg="#e8eaf0",dark="#1a1a2e",red="#b5004a",blue="#1e3fa0",sub="#999";
-  var cardImg = c.imageUrl || c.cloudinaryUrl || "";
+  var _ci = React.useState(c.imageUrl || c.cloudinaryUrl || ""); var cardImg = _ci[0], setCardImg = _ci[1];
+  var [cardSearch, setCardSearch] = React.useState("");
   var numStr = c.name && c.name.match(/\/([0-9]+)/) ? c.name.match(/\/([0-9]+)/)[1] : "";
   var [ef, setEf] = React.useState({
     name: (c.name||"JUGADOR").toUpperCase(),
@@ -20197,8 +20198,8 @@ function PostModal({ card, onClose }) {
   function styleVertical(w,h,label){ var s=w/200; var bw=w*0.26;
     return React.createElement("div",{id:"tcg-tpl",style:{width:w,height:h,background:"#f2ecdd",borderRadius:4,overflow:"hidden",position:"relative",flexShrink:0,fontFamily:"Georgia,serif"}},
       React.createElement("div",{style:{position:"absolute",left:0,top:0,width:bw,height:"100%",background:blue,display:"flex",alignItems:"center",justifyContent:"center"}}, React.createElement("div",{style:{transform:"rotate(-90deg)",whiteSpace:"nowrap",color:"#fff",fontSize:(label.length>10?11:14)*s,fontWeight:800,letterSpacing:"1px",fontFamily:"Inter,sans-serif"}}, label)),
-      React.createElement("img",{src:logoUrl,style:{position:"absolute",top:8*s,right:8*s,width:20*s,height:20*s,borderRadius:"50%",objectFit:"cover"}}),
-      React.createElement("div",{style:{position:"absolute",top:h*0.12,left:bw+8*s,right:8*s,height:h*0.4,background:"#22304f",borderRadius:4,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center"}}, cardImg?React.createElement("img",{src:cardImg,style:{width:"100%",height:"100%",objectFit:"cover"}}):React.createElement("span",{style:{color:"#9fb3d8",fontSize:8*s,fontFamily:"Inter,sans-serif"}},"FOTO")),
+      React.createElement("img",{src:logoUrl,style:{position:"absolute",top:8*s,right:8*s,width:16*s,height:16*s,borderRadius:"50%",objectFit:"cover",zIndex:3}}),
+      React.createElement("div",{style:{position:"absolute",top:h*0.18,left:bw+8*s,right:8*s,height:h*0.38,background:"#22304f",borderRadius:4,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center"}}, cardImg?React.createElement("img",{src:cardImg,style:{width:"100%",height:"100%",objectFit:"cover"}}):React.createElement("span",{style:{color:"#9fb3d8",fontSize:8*s,fontFamily:"Inter,sans-serif"}},"FOTO")),
       React.createElement("div",{style:{position:"absolute",bottom:h*0.05,left:bw+8*s,right:8*s,textAlign:"right",fontFamily:"Inter,sans-serif"}},
         ef.name?React.createElement("div",{style:{color:dark,fontSize:13*s,fontWeight:800,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}, ef.name):null,
         ef.set?React.createElement("div",{style:{color:sub,fontSize:8*s,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}, ef.set+(ef.num?" · /"+ef.num:"")):null,
@@ -20216,7 +20217,7 @@ function PostModal({ card, onClose }) {
     ); }
   var POST_STYLE_LABELS={"p-venta":"EN VENTA","s-dia":"LA DEL DÍA","s-guardo":"VENDO O GUARDO","s-vendida":"VENDIDA","p-joya":"NUEVA JOYA","c-cuanto":"¿CUÁNTO VALE?","c-psa":"PSA 10","c-ndv":"NO DEBÍ VENDER","c-comp":"REVALORIZADA","c-countdown":"DIRECTO"};
   function _ph(wv,hv,extra){ return cardImg?React.createElement("img",{src:cardImg,style:Object.assign({width:wv,height:hv,objectFit:"cover",display:"block"},extra||{})}):React.createElement("div",{style:Object.assign({width:wv,height:hv,background:"#22304f",display:"flex",alignItems:"center",justifyContent:"center",color:"#9fb3d8",fontSize:9},extra||{})},"FOTO"); }
-  function _poll(st,w,h,s){ return React.createElement("div",{style:{display:"flex",gap:6}}, React.createElement("div",{style:{flex:1,background:blue,color:"#fff",fontSize:11*s,fontWeight:800,textAlign:"center",padding:"7px 4px",borderRadius:5}},"VENDER"), React.createElement("div",{style:{flex:1,background:red,color:"#fff",fontSize:11*s,fontWeight:800,textAlign:"center",padding:"7px 4px",borderRadius:5}},"GUARDAR")); }
+  function _poll(st,w,h,s){ return React.createElement("div",{style:{display:"flex",gap:6,width:"100%"}}, React.createElement("div",{style:{flex:1,background:blue,color:"#fff",fontSize:11*s,fontWeight:800,textAlign:"center",padding:"7px 4px",borderRadius:5}},"VENDER"), React.createElement("div",{style:{flex:1,background:red,color:"#fff",fontSize:11*s,fontWeight:800,textAlign:"center",padding:"7px 4px",borderRadius:5}},"GUARDAR")); }
   function guardoStyle(st,w,h){ var s=w/300;
     if(st==="collage"){ return React.createElement("div",{id:"tcg-tpl",style:{width:w,height:h,background:"#f3ecdd",borderRadius:4,overflow:"hidden",position:"relative",flexShrink:0,fontFamily:"Inter,sans-serif"}},
       React.createElement("div",{style:{position:"absolute",top:h*0.05,left:0,width:"100%",textAlign:"center",color:"#1a1414",fontSize:17*s,fontWeight:800,fontFamily:"'Comic Sans MS',cursive"}},"¿la vendo o la guardo?"),
@@ -20267,12 +20268,12 @@ function PostModal({ card, onClose }) {
       React.createElement("div",{style:{position:"absolute",bottom:h*0.08,right:w*0.06,background:"#e9b949",padding:"6px 12px",transform:"rotate(6deg)",boxShadow:"2px 2px 0 rgba(0,0,0,0.15)"}}, React.createElement("div",{style:{fontSize:8*s,color:"#7a5a10"}},"HOY"), React.createElement("div",{style:{fontSize:24*s,fontWeight:900,color:"#1a1414"}},b+"€")),
       React.createElement("div",{style:{position:"absolute",bottom:h*0.03,left:w*0.06,background:"#0b0b12",color:"#fff",fontSize:8*s,fontWeight:800,padding:"3px 8px",borderRadius:20,transform:"rotate(-3deg)"}},"@thecardgirl")); }
     if(st==="vertical"){ var bw=w*0.26; return React.createElement("div",{id:"tcg-tpl",style:{width:w,height:h,background:"#f2ecdd",borderRadius:4,overflow:"hidden",position:"relative",flexShrink:0,fontFamily:"Georgia,serif"}},
-      React.createElement("div",{style:{position:"absolute",left:0,top:0,width:bw,height:"100%",background:"#16a34a",display:"flex",alignItems:"center",justifyContent:"center"}}, React.createElement("div",{style:{transform:"rotate(-90deg)",whiteSpace:"nowrap",color:"#fff",fontSize:12*s,fontWeight:800,fontFamily:"Inter,sans-serif"}},"REVALORIZACIÓN")),
+      React.createElement("div",{style:{position:"absolute",left:0,top:0,width:bw,height:"100%",background:blue,display:"flex",alignItems:"center",justifyContent:"center"}}, React.createElement("div",{style:{transform:"rotate(-90deg)",whiteSpace:"nowrap",color:"#fff",fontSize:12*s,fontWeight:800,fontFamily:"Inter,sans-serif"}},"REVALORIZACIÓN")),
       React.createElement("div",{style:{position:"absolute",top:h*0.1,left:bw+8*s,right:8*s,textAlign:"center"}}, _ph("70%",h*0.38,{borderRadius:6,margin:"0 auto"})),
-      React.createElement("div",{style:{position:"absolute",bottom:h*0.06,left:bw+8*s,right:8*s,textAlign:"right",fontFamily:"Inter,sans-serif"}}, React.createElement("div",{style:{fontSize:8*s,color:sub}},"ANTES"), React.createElement("div",{style:{fontSize:18*s,fontWeight:800,color:sub,textDecoration:"line-through"}},a+"€"), React.createElement("div",{style:{fontSize:8*s,color:"#16a34a",marginTop:2}},"HOY"), React.createElement("div",{style:{fontSize:30*s,fontWeight:900,color:dark}},b+"€"))); }
+      React.createElement("div",{style:{position:"absolute",bottom:h*0.06,left:bw+8*s,right:8*s,textAlign:"right",fontFamily:"Inter,sans-serif"}}, React.createElement("div",{style:{fontSize:8*s,color:sub}},"ANTES"), React.createElement("div",{style:{fontSize:18*s,fontWeight:800,color:sub,textDecoration:"line-through"}},a+"€"), React.createElement("div",{style:{fontSize:8*s,color:blue,marginTop:2}},"HOY"), React.createElement("div",{style:{fontSize:30*s,fontWeight:900,color:dark}},b+"€"))); }
     return React.createElement("div",{id:"tcg-tpl",style:{width:w,height:h,background:"#0b0b12",borderRadius:4,overflow:"hidden",flexShrink:0,fontFamily:"Inter,sans-serif",display:"flex",flexDirection:"column"}},
-      React.createElement("div",{style:{height:18*s,background:"#16a34a",color:"#fff",fontSize:9*s,fontWeight:800,lineHeight:(18*s)+"px",whiteSpace:"nowrap",textAlign:"center",flexShrink:0,overflow:"hidden"}},"★ REVALORIZADA ★ THE CARD GIRL ★"),
-      React.createElement("div",{style:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6*s,padding:"8px"}}, _ph(w*0.34,w*0.44,{borderRadius:6}), React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10*s}}, React.createElement("span",{style:{color:"#8a8aa8",fontSize:18*s,fontWeight:800,textDecoration:"line-through"}},a+"€"), React.createElement("span",{style:{color:"#16a34a",fontSize:20*s}},"→"), React.createElement("span",{style:{color:"#fff",fontSize:28*s,fontWeight:900}},b+"€"))),
+      React.createElement("div",{style:{height:18*s,background:blue,color:"#fff",fontSize:9*s,fontWeight:800,lineHeight:(18*s)+"px",whiteSpace:"nowrap",textAlign:"center",flexShrink:0,overflow:"hidden"}},"★ REVALORIZADA ★ THE CARD GIRL ★"),
+      React.createElement("div",{style:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6*s,padding:"8px"}}, _ph(w*0.34,w*0.44,{borderRadius:6}), React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10*s}}, React.createElement("span",{style:{color:"#8a8aa8",fontSize:18*s,fontWeight:800,textDecoration:"line-through"}},a+"€"), React.createElement("span",{style:{color:blue,fontSize:20*s}},"→"), React.createElement("span",{style:{color:"#fff",fontSize:28*s,fontWeight:900}},b+"€"))),
       React.createElement("div",{style:{height:18*s,background:red,color:"#fff",fontSize:9*s,fontWeight:800,lineHeight:(18*s)+"px",whiteSpace:"nowrap",textAlign:"center",flexShrink:0,overflow:"hidden"}},"@THECARDGIRL")); }
   function ndvStyle(st,w,h){ var s=w/300; var p=(ef.price||"0");
     if(st==="collage"){ return React.createElement("div",{id:"tcg-tpl",style:{width:w,height:h,background:"#f3ecdd",borderRadius:4,overflow:"hidden",position:"relative",flexShrink:0,fontFamily:"Inter,sans-serif"}},
@@ -20521,6 +20522,10 @@ function PostModal({ card, onClose }) {
             selDef?(postStyle==="original"?selDef.render(isStory?270:300,isStory?480:300):styleRender(postStyle,isStory?270:300,isStory?480:300)):null
           ),
           React.createElement("div",{style:{flex:1,minWidth:180}},
+            React.createElement("div",{style:{marginBottom:14,padding:"10px 12px",background:"#f8faff",border:"1px solid #e5e7eb",borderRadius:8}},
+              React.createElement("div",{style:{fontSize:10,fontWeight:700,color:"#6b7280",marginBottom:6,textTransform:"uppercase",letterSpacing:"0.08em"}},"🖼️ Foto desde inventario/colección"),
+              React.createElement("input",{value:cardSearch,onChange:function(e){setCardSearch(e.target.value);},placeholder:"Buscar carta...",style:{width:"100%",border:"1px solid #e5e7eb",borderRadius:6,padding:"7px 10px",fontSize:12,fontFamily:"Inter,sans-serif",boxSizing:"border-box"}}),
+              cardSearch?React.createElement("div",{style:{maxHeight:170,overflowY:"auto",marginTop:6,background:"#fff",border:"1px solid #eef0f3",borderRadius:6}}, (cards||[]).filter(function(cc){ return (cc.imageUrl||cc.cloudinaryUrl) && (cc.name||"").toLowerCase().indexOf(cardSearch.toLowerCase())>=0; }).slice(0,10).map(function(cc){ return React.createElement("div",{key:cc.id,onClick:function(){ setCardImg(cc.imageUrl||cc.cloudinaryUrl||""); sEf("name",(cc.name||"").toUpperCase()); sEf("set",cc.series||cc.category||""); if(cc.condition)sEf("psa",cc.condition); var pr=cc.sellPrice||cc.targetPrice||cc.buyPrice; if(pr)sEf("price",String(pr)); setCardSearch(""); }, style:{display:"flex",alignItems:"center",gap:8,padding:"6px 8px",cursor:"pointer",borderBottom:"1px solid #f1f2f5"}}, React.createElement("img",{src:cc.imageUrl||cc.cloudinaryUrl,style:{width:28,height:36,objectFit:"cover",borderRadius:4,flexShrink:0}}), React.createElement("span",{style:{fontSize:12,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},cc.name||"")); })):null),
             React.createElement("div",{style:{fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:12}},"EDITAR TEXTOS"),
             selDef&&selDef.fields.map(function(fk){
               return React.createElement("div",{key:fk,style:{marginBottom:12}},
@@ -21482,7 +21487,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v15")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v16")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -21708,7 +21713,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
             )
           )
         ),
-        showPostModal && postCard && React.createElement(PostModal, { card: postCard, onClose: function(){ setShowPostModal(false); } }),
+        showPostModal && postCard && React.createElement(PostModal, { card: postCard, cards: cards, onClose: function(){ setShowPostModal(false); } }),
         showTop5Modal &&showTop5Modal && React.createElement("div", { onClick: function(){ setShowTop5Modal(false); }, style: { position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:1002,display:"flex",alignItems:"center",justifyContent:"center",padding:16 } },
           React.createElement("div", { onClick: function(e){ e.stopPropagation(); }, style: { background:"#fff",borderRadius:16,maxWidth:440,width:"100%",maxHeight:"90vh",overflowY:"auto",boxShadow:"0 20px 60px rgba(0,0,0,0.3)" } },
             React.createElement("div", { style: { padding:"16px 20px",borderBottom:"1px solid #e5e7eb",display:"flex",alignItems:"center",justifyContent:"space-between" } },
