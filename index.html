@@ -19599,28 +19599,37 @@ function RedesTab({ cards, onOpenPost }) {
   var top5Preview = top5Style==="bandas"?top5Bandas:top5Style==="vertical"?top5Vertical:top5Style==="collage"?top5Collage:top5Original;
   var cs2 = React.useState("original"), contStyle=cs2[0], setContStyle=cs2[1];
   function _gStyle(id,w,h,o){ var sc=w/200; var name=o.name||"", price=o.price||"", psa=o.psa||"", subtxt=o.sub||"", label=o.label||"THE CARD GIRL", photo=o.photo;
-    if(contStyle==="collage"){ var pw=Math.round(w*0.5); return React.createElement("div",{id:id,style:{width:w,height:h,background:"#f3ecdd",borderRadius:4,overflow:"hidden",position:"relative",fontFamily:"Inter,sans-serif"}},
-      React.createElement("div",{style:{position:"absolute",top:h*0.05,right:w*0.05,background:red,color:"#fff",fontSize:11*sc,fontWeight:800,padding:(4*sc)+"px "+(9*sc)+"px",transform:"rotate(7deg)",borderRadius:3,whiteSpace:"nowrap"}}, label),
-      React.createElement("div",{style:{position:"absolute",top:h*0.15,left:w*0.14,width:pw,background:"#fff",padding:5*sc,transform:"rotate(-5deg)",boxShadow:"3px 4px 0 rgba(0,0,0,0.15)"}},
-        photo?React.createElement("img",{src:photo,style:{width:"100%",height:pw*1.3,objectFit:"cover",display:"block"}}):React.createElement("div",{style:{width:"100%",height:pw*1.3,background:"#22304f",display:"flex",alignItems:"center",justifyContent:"center",color:"#9fb3d8",fontSize:8*sc}},"FOTO"),
-        React.createElement("div",{style:{fontFamily:"'Comic Sans MS',cursive",color:"#1a1414",fontSize:12*sc,textAlign:"center",marginTop:3*sc,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}, name)),
-      psa?React.createElement("div",{style:{position:"absolute",top:h*0.12,right:w*0.06,background:blue,color:"#fff",fontSize:8*sc,fontWeight:800,padding:"2px 6px",transform:"rotate(-8deg)"}},"PSA "+psa):null,
-      price?React.createElement("div",{style:{position:"absolute",bottom:h*0.16,right:w*0.07,background:"#e9b949",color:"#1a1414",fontSize:20*sc,fontWeight:800,padding:(5*sc)+"px "+(11*sc)+"px",transform:"rotate(6deg)",boxShadow:"2px 2px 0 rgba(0,0,0,0.15)"}}, price+"€"):null,
-      React.createElement("div",{style:{position:"absolute",bottom:h*0.04,left:w*0.09,background:"#0b0b12",color:"#fff",fontSize:8*sc,fontWeight:800,padding:"3px 8px",borderRadius:20,transform:"rotate(-4deg)"}},"@thecardgirl")
-    ); }
-    if(contStyle==="vertical"){ var bw=w*0.28; return React.createElement("div",{id:id,style:{width:w,height:h,background:"#f2ecdd",borderRadius:4,overflow:"hidden",position:"relative",fontFamily:"Georgia,serif"}},
-      React.createElement("div",{style:{position:"absolute",left:0,top:0,width:bw,height:"100%",background:blue,display:"flex",alignItems:"center",justifyContent:"center"}}, React.createElement("div",{style:{transform:"rotate(-90deg)",whiteSpace:"nowrap",color:"#fff",fontSize:14*sc,fontWeight:800,letterSpacing:"1px",fontFamily:"Inter,sans-serif"}}, label)),
-      React.createElement("div",{style:{position:"absolute",top:h*0.12,left:bw+8*sc,right:8*sc,height:h*0.44,background:"#22304f",borderRadius:4,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center"}}, photo?React.createElement("img",{src:photo,style:{width:"100%",height:"100%",objectFit:"cover"}}):React.createElement("span",{style:{color:"#9fb3d8",fontSize:8*sc,fontFamily:"Inter,sans-serif"}},"FOTO")),
-      React.createElement("div",{style:{position:"absolute",bottom:h*0.06,right:8*sc,textAlign:"right",fontFamily:"Inter,sans-serif"}}, name?React.createElement("div",{style:{color:dark,fontSize:13*sc,fontWeight:800}}, name):null, subtxt?React.createElement("div",{style:{color:sub,fontSize:8*sc}}, subtxt):null, price?React.createElement("div",{style:{color:red,fontSize:30*sc,fontWeight:800,lineHeight:0.9,fontFamily:"Georgia,serif"}}, price+"€"):(psa?React.createElement("div",{style:{color:blue,fontSize:22*sc,fontWeight:800}},"PSA "+psa):null))
-    ); }
-    return React.createElement("div",{id:id,style:{width:w,height:h,background:"#0b0b12",borderRadius:4,overflow:"hidden",position:"relative",fontFamily:"Inter,sans-serif"}},
-      React.createElement("div",{style:{position:"absolute",top:0,left:0,width:"100%",height:16*sc,background:blue,color:"#fff",fontSize:9*sc,fontWeight:800,lineHeight:(16*sc)+"px",overflow:"hidden",whiteSpace:"nowrap",textAlign:"center"}},"★ "+label+" ★ THE CARD GIRL ★"),
-      React.createElement("div",{style:{position:"absolute",bottom:0,left:0,width:"100%",height:16*sc,background:red,color:"#fff",fontSize:9*sc,fontWeight:800,lineHeight:(16*sc)+"px",overflow:"hidden",whiteSpace:"nowrap",textAlign:"center"}},"@THECARDGIRL"),
-      React.createElement("div",{style:{position:"absolute",top:h*0.16,left:"50%",transform:"translateX(-50%)",width:w*0.44,background:"#e9e9f0",borderRadius:5,padding:4*sc,boxSizing:"border-box"}}, React.createElement("div",{style:{background:"#22304f",borderRadius:3,height:w*0.58,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}, photo?React.createElement("img",{src:photo,style:{width:"100%",height:"100%",objectFit:"cover"}}):React.createElement("span",{style:{color:"#9fb3d8",fontSize:8*sc}},"FOTO"))),
-      React.createElement("div",{style:{position:"absolute",bottom:h*0.10,left:0,width:"100%",textAlign:"center"}}, name?React.createElement("div",{style:{color:"#9fb3d8",fontSize:9*sc}}, name):null, price?React.createElement("div",{style:{color:"#fff",fontSize:28*sc,fontWeight:800}}, price+"€"):(psa?React.createElement("div",{style:{color:"#fff",fontSize:24*sc,fontWeight:800}},"PSA "+psa):null))
+    if(contStyle==="collage"){ var pw=w*0.46; var lblFs=(label.length>10?8:10)*sc;
+      return React.createElement("div",{id:id,style:{width:w,height:h,background:"#f3ecdd",borderRadius:4,overflow:"hidden",position:"relative",fontFamily:"Inter,sans-serif"}},
+        React.createElement("div",{style:{position:"absolute",top:h*0.04,right:w*0.05,background:red,color:"#fff",fontSize:lblFs,fontWeight:800,padding:"4px 9px",transform:"rotate(5deg)",borderRadius:3,whiteSpace:"nowrap",maxWidth:w*0.7,overflow:"hidden",textOverflow:"ellipsis"}}, label),
+        psa?React.createElement("div",{style:{position:"absolute",top:h*0.05,left:w*0.05,background:blue,color:"#fff",fontSize:8*sc,fontWeight:800,padding:"2px 6px",transform:"rotate(-8deg)"}},"PSA "+psa):null,
+        React.createElement("div",{style:{position:"absolute",top:h*0.14,left:"50%",transform:"translateX(-50%) rotate(-4deg)",width:pw,background:"#fff",padding:5*sc,boxShadow:"3px 4px 0 rgba(0,0,0,0.15)"}},
+          photo?React.createElement("img",{src:photo,style:{width:"100%",height:pw*1.3,objectFit:"cover",display:"block"}}):React.createElement("div",{style:{width:"100%",height:pw*1.3,background:"#22304f",display:"flex",alignItems:"center",justifyContent:"center",color:"#9fb3d8",fontSize:8*sc}},"FOTO"),
+          React.createElement("div",{style:{fontFamily:"'Comic Sans MS',cursive",color:"#1a1414",fontSize:11*sc,textAlign:"center",marginTop:3*sc,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}, name)),
+        price?React.createElement("div",{style:{position:"absolute",bottom:h*0.05,right:w*0.06,background:"#e9b949",color:"#1a1414",fontSize:18*sc,fontWeight:800,padding:"5px 11px",transform:"rotate(5deg)",boxShadow:"2px 2px 0 rgba(0,0,0,0.15)"}}, price+"€"):null,
+        subtxt?React.createElement("div",{style:{position:"absolute",bottom:h*0.10,left:w*0.06,fontFamily:"'Comic Sans MS',cursive",color:blue,fontSize:9*sc,transform:"rotate(-3deg)",maxWidth:w*0.42,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}, subtxt):null,
+        React.createElement("div",{style:{position:"absolute",bottom:h*0.025,left:w*0.06,background:"#0b0b12",color:"#fff",fontSize:8*sc,fontWeight:800,padding:"3px 8px",borderRadius:20,transform:"rotate(-3deg)"}},"@thecardgirl")
+      ); }
+    if(contStyle==="vertical"){ var bw=w*0.26;
+      return React.createElement("div",{id:id,style:{width:w,height:h,background:"#f2ecdd",borderRadius:4,overflow:"hidden",position:"relative",fontFamily:"Georgia,serif"}},
+        React.createElement("div",{style:{position:"absolute",left:0,top:0,width:bw,height:"100%",background:blue,display:"flex",alignItems:"center",justifyContent:"center"}}, React.createElement("div",{style:{transform:"rotate(-90deg)",whiteSpace:"nowrap",color:"#fff",fontSize:(label.length>10?11:14)*sc,fontWeight:800,letterSpacing:"1px",fontFamily:"Inter,sans-serif"}}, label)),
+        React.createElement("div",{style:{position:"absolute",top:h*0.12,left:bw+8*sc,right:8*sc,height:h*0.4,background:"#22304f",borderRadius:4,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center"}}, photo?React.createElement("img",{src:photo,style:{width:"100%",height:"100%",objectFit:"cover"}}):React.createElement("span",{style:{color:"#9fb3d8",fontSize:8*sc,fontFamily:"Inter,sans-serif"}},"FOTO")),
+        React.createElement("div",{style:{position:"absolute",bottom:h*0.05,left:bw+8*sc,right:8*sc,textAlign:"right",fontFamily:"Inter,sans-serif"}},
+          name?React.createElement("div",{style:{color:dark,fontSize:13*sc,fontWeight:800,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}, name):null,
+          subtxt?React.createElement("div",{style:{color:sub,fontSize:8*sc,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}, subtxt):null,
+          price?React.createElement("div",{style:{color:red,fontSize:26*sc,fontWeight:800,lineHeight:1,fontFamily:"Georgia,serif",marginTop:2}}, price+"€"):(psa?React.createElement("div",{style:{color:blue,fontSize:20*sc,fontWeight:800}},"PSA "+psa):null))
+      ); }
+    var pw2=w*0.42;
+    return React.createElement("div",{id:id,style:{width:w,height:h,background:"#0b0b12",borderRadius:4,overflow:"hidden",fontFamily:"Inter,sans-serif",display:"flex",flexDirection:"column"}},
+      React.createElement("div",{style:{height:18*sc,background:blue,color:"#fff",fontSize:9*sc,fontWeight:800,lineHeight:(18*sc)+"px",overflow:"hidden",whiteSpace:"nowrap",textAlign:"center",flexShrink:0}},"★ "+label+" ★ THE CARD GIRL ★"),
+      React.createElement("div",{style:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6*sc,padding:"6px 8px",overflow:"hidden"}},
+        React.createElement("div",{style:{color:"#ff5a7a",fontSize:9*sc,fontWeight:800,letterSpacing:"2px"}},"● DISPONIBLE"),
+        React.createElement("div",{style:{width:pw2,background:"#e9e9f0",borderRadius:5,padding:4*sc,boxSizing:"border-box"}}, React.createElement("div",{style:{background:"#22304f",borderRadius:3,height:pw2*1.15,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}, photo?React.createElement("img",{src:photo,style:{width:"100%",height:"100%",objectFit:"cover"}}):React.createElement("span",{style:{color:"#9fb3d8",fontSize:8*sc}},"FOTO"))),
+        name?React.createElement("div",{style:{color:"#9fb3d8",fontSize:9*sc,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:w*0.8}}, name):null,
+        price?React.createElement("div",{style:{color:"#fff",fontSize:26*sc,fontWeight:800,lineHeight:1}}, price+"€"):(psa?React.createElement("div",{style:{color:"#fff",fontSize:22*sc,fontWeight:800}},"PSA "+psa):null)),
+      React.createElement("div",{style:{height:18*sc,background:red,color:"#fff",fontSize:9*sc,fontWeight:800,lineHeight:(18*sc)+"px",overflow:"hidden",whiteSpace:"nowrap",textAlign:"center",flexShrink:0}},"DM PARA COMPRAR · @THECARDGIRL")
     );
   }
-
   var dirPreview = ce("div",{id:"redes-dir",style:{width:280,background:bg,borderRadius:4,overflow:"hidden",display:"flex",flexDirection:"column"}},
     ce("div",{style:{padding:"10px 12px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}},logoEl,
       ce("div",{style:{fontSize:8,fontWeight:800,color:"#fff",padding:"4px 10px",borderRadius:20,background:red,display:"flex",alignItems:"center",gap:3}},
@@ -19826,7 +19835,7 @@ function RedesTab({ cards, onOpenPost }) {
             React.createElement("div",{style:{padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}},React.createElement("img",{src:logoUrl,style:{width:36,height:36,borderRadius:"50%",objectFit:"cover"}}),React.createElement("div",{style:{fontSize:8,fontWeight:800,color:"#fff",padding:"4px 10px",borderRadius:20,background:"#7c3aed"}},"PSA GRADE")),
             React.createElement("div",{style:{flex:1,padding:"0 10px 8px",display:"flex",flexDirection:"column",overflow:"hidden"}},
               React.createElement("div",{style:{fontSize:7,fontWeight:700,letterSpacing:"0.18em",textTransform:"uppercase",color:"#7c3aed",marginBottom:3}},"ANTES / DESPU\u00C9S"),
-              React.createElement("div",{style:{fontSize:14,fontWeight:900,lineHeight:0.9,color:dark,marginBottom:8}},ctFields.name||"JUGADOR"),
+              React.createElement("div",{style:{fontSize:14,fontWeight:900,lineHeight:0.9,color:dark,marginBottom:8,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},ctFields.name||"JUGADOR"),
               React.createElement("div",{style:{flex:1,display:"flex",gap:8,alignItems:"center"}},
                 React.createElement("div",{style:{flex:1,textAlign:"center"}},React.createElement("div",{style:{fontSize:7,fontWeight:700,color:sub,textTransform:"uppercase",marginBottom:3}},"RAW"),ctFields.img?React.createElement("img",{src:ctFields.img,style:{width:"100%",height:90,objectFit:"cover",borderRadius:6,display:"block",filter:"grayscale(40%)"}}):React.createElement("div",{style:{background:"#d4d6e0",height:90,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#aaa"}},"FOTO")),
                 React.createElement("div",{style:{fontSize:20,fontWeight:900,color:red}},"\u2192"),
@@ -19878,7 +19887,7 @@ function RedesTab({ cards, onOpenPost }) {
             React.createElement("div",{style:{padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}},React.createElement("img",{src:logoUrl,style:{width:36,height:36,borderRadius:"50%",objectFit:"cover"}}),React.createElement("div",{style:{fontSize:8,fontWeight:800,color:"#fff",padding:"4px 10px",borderRadius:20,background:"#16a34a"}},"\uD83D\uDCC8 REVALORIZADA")),
             React.createElement("div",{style:{flex:1,padding:"0 10px 8px",display:"flex",flexDirection:"column",overflow:"hidden"}},
               React.createElement("div",{style:{fontSize:7,fontWeight:700,letterSpacing:"0.18em",textTransform:"uppercase",color:"#16a34a",marginBottom:3}},"INVERSI\u00D3N"),
-              React.createElement("div",{style:{fontSize:16,fontWeight:900,lineHeight:0.9,color:dark,marginBottom:6}},ctFields.name||"JUGADOR"),
+              React.createElement("div",{style:{fontSize:16,fontWeight:900,lineHeight:0.9,color:dark,marginBottom:6,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},ctFields.name||"JUGADOR"),
               React.createElement("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center"}},ctFields.img?React.createElement("img",{src:ctFields.img,style:{width:100,height:128,objectFit:"cover",borderRadius:7}}):React.createElement("div",{style:{background:"#d4d6e0",width:100,height:128,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#aaa"}},"FOTO")),
               React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center",justifyContent:"center",marginTop:6}},
                 React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:7,color:sub,textTransform:"uppercase",letterSpacing:"0.08em"}},"Compr\u00E9 a"),React.createElement("div",{style:{fontSize:16,fontWeight:900,color:"#6b7280"}},ctFields.price?ctFields.price+"\u20AC":"?")),
@@ -20172,39 +20181,37 @@ function PostModal({ card, onClose }) {
   ); }
   function slbl(t){ return React.createElement("div",{style:{fontSize:8,fontWeight:700,letterSpacing:"0.18em",textTransform:"uppercase",color:red,marginBottom:3}},t); }
 
-  function styleCollage(w,h,label){ var s=w/200; var pw=Math.round(w*0.5); return React.createElement("div",{id:"tcg-tpl",style:{width:w,height:h,background:"#f3ecdd",borderRadius:4,overflow:"hidden",position:"relative",flexShrink:0,fontFamily:"Inter,sans-serif"}},
-    React.createElement("div",{style:{position:"absolute",top:h*0.05,right:w*0.05,background:red,color:"#fff",fontSize:11*s,fontWeight:800,padding:(4*s)+"px "+(9*s)+"px",transform:"rotate(7deg)",borderRadius:3,whiteSpace:"nowrap"}}, label),
-    React.createElement("div",{style:{position:"absolute",top:h*0.16,left:w*0.10,width:w*0.34,height:9*s,background:"rgba(233,185,73,0.7)",transform:"rotate(-9deg)"}}),
-    React.createElement("div",{style:{position:"absolute",top:h*0.14,left:w*0.14,width:pw,background:"#fff",padding:5*s,transform:"rotate(-5deg)",boxShadow:"3px 4px 0 rgba(0,0,0,0.15)"}},
-      cardImg?React.createElement("img",{src:cardImg,style:{width:"100%",height:pw*1.3,objectFit:"cover",display:"block"}}):React.createElement("div",{style:{width:"100%",height:pw*1.3,background:"#22304f",display:"flex",alignItems:"center",justifyContent:"center",color:"#9fb3d8",fontSize:8*s}},"FOTO"),
-      React.createElement("div",{style:{fontFamily:"'Comic Sans MS',cursive",color:"#1a1414",fontSize:12*s,textAlign:"center",marginTop:3*s,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}, ef.name||"")
-    ),
-    ef.psa?React.createElement("div",{style:{position:"absolute",top:h*0.11,right:w*0.06,background:blue,color:"#fff",fontSize:8*s,fontWeight:800,padding:"2px 6px",transform:"rotate(-8deg)"}},"PSA "+ef.psa):null,
-    ef.price?React.createElement("div",{style:{position:"absolute",bottom:h*0.17,right:w*0.07,background:"#e9b949",color:"#1a1414",fontSize:20*s,fontWeight:800,padding:(5*s)+"px "+(11*s)+"px",transform:"rotate(6deg)",boxShadow:"2px 2px 0 rgba(0,0,0,0.15)"}}, ef.price+"€"):null,
-    ef.set?React.createElement("div",{style:{position:"absolute",bottom:h*0.13,left:w*0.09,fontFamily:"'Comic Sans MS',cursive",color:blue,fontSize:11*s,transform:"rotate(-3deg)",whiteSpace:"nowrap"}}, ef.set):null,
-    React.createElement("div",{style:{position:"absolute",bottom:h*0.035,left:w*0.09,background:"#0b0b12",color:"#fff",fontSize:8*s,fontWeight:800,padding:"3px 8px",borderRadius:20,transform:"rotate(-4deg)"}},"@thecardgirl")
-  ); }
-  function styleVertical(w,h,label){ var s=w/200; var bw=w*0.28; return React.createElement("div",{id:"tcg-tpl",style:{width:w,height:h,background:"#f2ecdd",borderRadius:4,overflow:"hidden",position:"relative",flexShrink:0,fontFamily:"Georgia,serif"}},
-    React.createElement("div",{style:{position:"absolute",left:0,top:0,width:bw,height:"100%",background:blue,display:"flex",alignItems:"center",justifyContent:"center"}},
-      React.createElement("div",{style:{transform:"rotate(-90deg)",whiteSpace:"nowrap",color:"#fff",fontSize:15*s,fontWeight:800,letterSpacing:"1px",fontFamily:"Inter,sans-serif"}}, label)),
-    React.createElement("img",{src:logoUrl,style:{position:"absolute",top:8*s,right:8*s,width:22*s,height:22*s,borderRadius:"50%",objectFit:"cover"}}),
-    React.createElement("div",{style:{position:"absolute",top:h*0.14,left:bw+8*s,right:8*s,height:h*0.42,background:"#22304f",borderRadius:4,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center"}},
-      cardImg?React.createElement("img",{src:cardImg,style:{width:"100%",height:"100%",objectFit:"cover"}}):React.createElement("span",{style:{color:"#9fb3d8",fontSize:8*s,fontFamily:"Inter,sans-serif"}},"FOTO")),
-    React.createElement("div",{style:{position:"absolute",bottom:h*0.06,right:8*s,textAlign:"right",fontFamily:"Inter,sans-serif"}},
-      ef.name?React.createElement("div",{style:{color:dark,fontSize:13*s,fontWeight:800}}, ef.name):null,
-      ef.set?React.createElement("div",{style:{color:sub,fontSize:8*s}}, ef.set+(ef.num?" · /"+ef.num:"")):null,
-      ef.price?React.createElement("div",{style:{color:red,fontSize:32*s,fontWeight:800,lineHeight:0.9,fontFamily:"Georgia,serif"}}, ef.price+"€"):null)
-  ); }
-  function styleBandas(w,h,label){ var s=w/200; return React.createElement("div",{id:"tcg-tpl",style:{width:w,height:h,background:"#0b0b12",borderRadius:4,overflow:"hidden",position:"relative",flexShrink:0,fontFamily:"Inter,sans-serif"}},
-    React.createElement("div",{style:{position:"absolute",top:0,left:0,width:"100%",height:16*s,background:blue,color:"#fff",fontSize:9*s,fontWeight:800,lineHeight:(16*s)+"px",overflow:"hidden",whiteSpace:"nowrap",textAlign:"center"}},"★ "+label+" ★ THE CARD GIRL ★"),
-    React.createElement("div",{style:{position:"absolute",bottom:0,left:0,width:"100%",height:16*s,background:red,color:"#fff",fontSize:9*s,fontWeight:800,lineHeight:(16*s)+"px",overflow:"hidden",whiteSpace:"nowrap",textAlign:"center"}},"DM PARA COMPRAR · @THECARDGIRL"),
-    React.createElement("div",{style:{position:"absolute",top:24*s,left:0,width:"100%",textAlign:"center",color:"#ff5a7a",fontSize:9*s,fontWeight:800,letterSpacing:"2px"}},"● DISPONIBLE"),
-    React.createElement("div",{style:{position:"absolute",top:h*0.20,left:"50%",transform:"translateX(-50%)",width:w*0.42,background:"#e9e9f0",borderRadius:5,padding:4*s,boxSizing:"border-box"}},
-      React.createElement("div",{style:{background:"#22304f",borderRadius:3,height:w*0.55,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}, cardImg?React.createElement("img",{src:cardImg,style:{width:"100%",height:"100%",objectFit:"cover"}}):React.createElement("span",{style:{color:"#9fb3d8",fontSize:8*s}},"FOTO"))),
-    React.createElement("div",{style:{position:"absolute",bottom:h*0.11,left:0,width:"100%",textAlign:"center"}},
-      ef.set?React.createElement("div",{style:{color:"#9fb3d8",fontSize:8*s}}, ef.set):null,
-      ef.price?React.createElement("div",{style:{color:"#fff",fontSize:30*s,fontWeight:800}}, ef.price+"€"):null)
-  ); }
+  function styleCollage(w,h,label){ var s=w/200; var pw=w*0.46; var lblFs=(label.length>10?8:10)*s;
+    return React.createElement("div",{id:"tcg-tpl",style:{width:w,height:h,background:"#f3ecdd",borderRadius:4,overflow:"hidden",position:"relative",flexShrink:0,fontFamily:"Inter,sans-serif"}},
+      React.createElement("div",{style:{position:"absolute",top:h*0.04,right:w*0.05,background:red,color:"#fff",fontSize:lblFs,fontWeight:800,padding:"4px 9px",transform:"rotate(5deg)",borderRadius:3,whiteSpace:"nowrap",maxWidth:w*0.7,overflow:"hidden",textOverflow:"ellipsis"}}, label),
+      ef.psa?React.createElement("div",{style:{position:"absolute",top:h*0.05,left:w*0.05,background:blue,color:"#fff",fontSize:8*s,fontWeight:800,padding:"2px 6px",transform:"rotate(-8deg)"}},"PSA "+ef.psa):null,
+      React.createElement("div",{style:{position:"absolute",top:h*0.14,left:"50%",transform:"translateX(-50%) rotate(-4deg)",width:pw,background:"#fff",padding:5*s,boxShadow:"3px 4px 0 rgba(0,0,0,0.15)"}},
+        cardImg?React.createElement("img",{src:cardImg,style:{width:"100%",height:pw*1.3,objectFit:"cover",display:"block"}}):React.createElement("div",{style:{width:"100%",height:pw*1.3,background:"#22304f",display:"flex",alignItems:"center",justifyContent:"center",color:"#9fb3d8",fontSize:8*s}},"FOTO"),
+        React.createElement("div",{style:{fontFamily:"'Comic Sans MS',cursive",color:"#1a1414",fontSize:11*s,textAlign:"center",marginTop:3*s,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}, ef.name||"")),
+      ef.price?React.createElement("div",{style:{position:"absolute",bottom:h*0.05,right:w*0.06,background:"#e9b949",color:"#1a1414",fontSize:18*s,fontWeight:800,padding:"5px 11px",transform:"rotate(5deg)",boxShadow:"2px 2px 0 rgba(0,0,0,0.15)"}}, ef.price+"€"):null,
+      ef.set?React.createElement("div",{style:{position:"absolute",bottom:h*0.10,left:w*0.06,fontFamily:"'Comic Sans MS',cursive",color:blue,fontSize:9*s,transform:"rotate(-3deg)",maxWidth:w*0.42,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}, ef.set):null,
+      React.createElement("div",{style:{position:"absolute",bottom:h*0.025,left:w*0.06,background:"#0b0b12",color:"#fff",fontSize:8*s,fontWeight:800,padding:"3px 8px",borderRadius:20,transform:"rotate(-3deg)"}},"@thecardgirl")
+    ); }
+  function styleVertical(w,h,label){ var s=w/200; var bw=w*0.26;
+    return React.createElement("div",{id:"tcg-tpl",style:{width:w,height:h,background:"#f2ecdd",borderRadius:4,overflow:"hidden",position:"relative",flexShrink:0,fontFamily:"Georgia,serif"}},
+      React.createElement("div",{style:{position:"absolute",left:0,top:0,width:bw,height:"100%",background:blue,display:"flex",alignItems:"center",justifyContent:"center"}}, React.createElement("div",{style:{transform:"rotate(-90deg)",whiteSpace:"nowrap",color:"#fff",fontSize:(label.length>10?11:14)*s,fontWeight:800,letterSpacing:"1px",fontFamily:"Inter,sans-serif"}}, label)),
+      React.createElement("img",{src:logoUrl,style:{position:"absolute",top:8*s,right:8*s,width:20*s,height:20*s,borderRadius:"50%",objectFit:"cover"}}),
+      React.createElement("div",{style:{position:"absolute",top:h*0.12,left:bw+8*s,right:8*s,height:h*0.4,background:"#22304f",borderRadius:4,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center"}}, cardImg?React.createElement("img",{src:cardImg,style:{width:"100%",height:"100%",objectFit:"cover"}}):React.createElement("span",{style:{color:"#9fb3d8",fontSize:8*s,fontFamily:"Inter,sans-serif"}},"FOTO")),
+      React.createElement("div",{style:{position:"absolute",bottom:h*0.05,left:bw+8*s,right:8*s,textAlign:"right",fontFamily:"Inter,sans-serif"}},
+        ef.name?React.createElement("div",{style:{color:dark,fontSize:13*s,fontWeight:800,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}, ef.name):null,
+        ef.set?React.createElement("div",{style:{color:sub,fontSize:8*s,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}, ef.set+(ef.num?" · /"+ef.num:"")):null,
+        ef.price?React.createElement("div",{style:{color:red,fontSize:26*s,fontWeight:800,lineHeight:1,fontFamily:"Georgia,serif",marginTop:2}}, ef.price+"€"):null)
+    ); }
+  function styleBandas(w,h,label){ var s=w/200; var pw=w*0.42;
+    return React.createElement("div",{id:"tcg-tpl",style:{width:w,height:h,background:"#0b0b12",borderRadius:4,overflow:"hidden",flexShrink:0,fontFamily:"Inter,sans-serif",display:"flex",flexDirection:"column"}},
+      React.createElement("div",{style:{height:18*s,background:blue,color:"#fff",fontSize:9*s,fontWeight:800,lineHeight:(18*s)+"px",overflow:"hidden",whiteSpace:"nowrap",textAlign:"center",flexShrink:0}},"★ "+label+" ★ THE CARD GIRL ★"),
+      React.createElement("div",{style:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6*s,padding:"6px 8px",overflow:"hidden"}},
+        React.createElement("div",{style:{color:"#ff5a7a",fontSize:9*s,fontWeight:800,letterSpacing:"2px"}},"● DISPONIBLE"),
+        React.createElement("div",{style:{width:pw,background:"#e9e9f0",borderRadius:5,padding:4*s,boxSizing:"border-box"}}, React.createElement("div",{style:{background:"#22304f",borderRadius:3,height:pw*1.15,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}, cardImg?React.createElement("img",{src:cardImg,style:{width:"100%",height:"100%",objectFit:"cover"}}):React.createElement("span",{style:{color:"#9fb3d8",fontSize:8*s}},"FOTO"))),
+        ef.name?React.createElement("div",{style:{color:"#9fb3d8",fontSize:9*s,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:w*0.8}}, ef.name):null,
+        ef.price?React.createElement("div",{style:{color:"#fff",fontSize:26*s,fontWeight:800,lineHeight:1}}, ef.price+"€"):(ef.psa?React.createElement("div",{style:{color:"#fff",fontSize:22*s,fontWeight:800}},"PSA "+ef.psa):null)),
+      React.createElement("div",{style:{height:18*s,background:red,color:"#fff",fontSize:9*s,fontWeight:800,lineHeight:(18*s)+"px",overflow:"hidden",whiteSpace:"nowrap",textAlign:"center",flexShrink:0}},"DM PARA COMPRAR · @THECARDGIRL")
+    ); }
   var POST_STYLE_LABELS={"p-venta":"EN VENTA","s-dia":"LA DEL DÍA","s-guardo":"VENDO O GUARDO","s-vendida":"VENDIDA","p-joya":"NUEVA JOYA"};
   function styleRender(st,w,h){ var lbl=(POST_STYLE_LABELS[selTpl]||ef.label1||"THE CARD GIRL"); return st==="collage"?styleCollage(w,h,lbl):st==="vertical"?styleVertical(w,h,lbl):styleBandas(w,h,lbl); }
   var tplDefs = [
@@ -20213,11 +20220,11 @@ function PostModal({ card, onClose }) {
         React.createElement("div",{style:{padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}},logoEl,React.createElement("div",{style:{fontSize:9,fontWeight:800,color:"#fff",padding:"5px 12px",borderRadius:20,background:red}},"EN VENTA")),
         React.createElement("div",{style:{flex:1,padding:"0 10px 8px",overflow:"hidden"}},
           slbl(ef.label1),
-          React.createElement("div",{style:{fontSize:w>200?28:16,fontWeight:900,lineHeight:0.88,letterSpacing:"-0.02em",color:dark,marginBottom:8}},ef.name),
+          React.createElement("div",{style:{fontSize:w>200?26:15,fontWeight:900,lineHeight:0.9,letterSpacing:"-0.02em",color:dark,marginBottom:8,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden",wordBreak:"break-word"}},ef.name),
           React.createElement("div",{style:{display:"flex",gap:8,alignItems:"flex-start"}},
-            React.createElement("div",{style:{flex:1}},
+            React.createElement("div",{style:{flex:1,minWidth:0}},
               slbl("FICHA"),
-              React.createElement("div",{style:{fontSize:9,fontWeight:700,color:dark}},ef.set),
+              React.createElement("div",{style:{fontSize:9,fontWeight:700,color:dark,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},ef.set),
               React.createElement("div",{style:{fontSize:8,color:sub,paddingBottom:6,borderBottom:"1px solid #d0d2da",marginBottom:6}},ef.num?"/"+ef.num:""),
               slbl("PRECIO"),
               React.createElement("div",{style:{fontSize:w>200?20:13,fontWeight:900,color:red,letterSpacing:"-0.02em",lineHeight:1}},ef.price?ef.price+"\u20AC":"")
@@ -20318,14 +20325,14 @@ function PostModal({ card, onClose }) {
       ),
       selTpl===null?
         React.createElement("div",null,
-          React.createElement("div",{style:{fontSize:12,color:"#6b7280",marginBottom:16}},"Elige una plantilla para editar y descargar."),
-          React.createElement("div",{style:{display:"flex",gap:16,flexWrap:"wrap",justifyContent:"center"}},
+          React.createElement("div",{style:{fontSize:12,color:"#6b7280",marginBottom:16}},"Elige el tipo de post:"),
+          React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10,maxWidth:420,margin:"0 auto"}},
             tplDefs.map(function(t){
-              var isSt=t.id.startsWith("s-");
-              return React.createElement("div",{key:t.id,style:{display:"flex",flexDirection:"column",gap:8,alignItems:"center",cursor:"pointer"},
-                onClick:function(){ setSelTpl(t.id); setPostStyle("original"); setEf({name:(c.name||"JUGADOR").toUpperCase(),set:c.series||c.category||"",price:String(c.sellPrice||c.targetPrice||c.buyPrice||""),num:numStr,psa:c.condition||"",label1:"LA CARTA DEL D\u00CDA",cta:"DM PARA COMPRAR"}); }},
-                t.render(isSt?130:200,isSt?230:200),
-                React.createElement("div",{style:{fontSize:9,color:"#6b7280",letterSpacing:"0.1em",textTransform:"uppercase",textAlign:"center"}},t.label)
+              return React.createElement("button",{key:t.id,
+                onClick:function(){ setSelTpl(t.id); setPostStyle("original"); setEf({name:(c.name||"JUGADOR").toUpperCase(),set:c.series||c.category||"",price:String(c.sellPrice||c.targetPrice||c.buyPrice||""),num:numStr,psa:c.condition||"",label1:"LA CARTA DEL D\u00CDA",cta:"DM PARA COMPRAR"}); },
+                style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 16px",border:"1px solid #e5e7eb",borderRadius:10,background:"#fff",cursor:"pointer",fontFamily:"Inter,sans-serif",fontSize:14,fontWeight:700,color:"#1a1a2e"}},
+                React.createElement("span",null,t.label),
+                React.createElement("span",{style:{color:"#3b82f6",fontSize:16}},"\u2192")
               );
             })
           )
