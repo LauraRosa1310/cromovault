@@ -20477,6 +20477,89 @@ function recommendBreak(teams, desiredN, wAuto, wCard) {
     return found;
 }
 
+function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, directos, saveDirectos }) {
+  var h = React.createElement;
+  var ds = useState("directo"), sub = ds[0], setSub = ds[1];
+  var os = useState(null), openId = os[0], setOpenId = os[1];
+  var cs = useState(false), creating = cs[0], setCreating = cs[1];
+  var fs = useState({ name:"", date:new Date().toISOString().slice(0,10), src:"lote", lote:"", mes:new Date().toISOString().slice(0,7) }), form = fs[0], setForm = fs[1];
+  var qs = useState(""), addQ = qs[0], setAddQ = qs[1];
+  var its = useState(""), impTxt = its[0], setImpTxt = its[1];
+  var ims = useState(false), showImp = ims[0], setShowImp = ims[1];
+  function fldLbl(t){ return h("label",{style:{fontSize:10,fontWeight:700,color:SUB,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:4}},t); }
+  function fld(label,val,on){ return h("div",null, fldLbl(label), h("input",{type:"text",inputMode:"decimal",value:val||"",onChange:function(e){ on(e.target.value.replace(",",".").replace(/[^0-9.]/g,"")); },placeholder:"0",style:IS})); }
+  function kpi(l,v,c){ return h(Card,{key:l,style:{padding:"12px 14px"}}, h("div",{style:{fontSize:10,color:SUB,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em"}},l), h("div",{style:{fontSize:18,fontWeight:800,color:c||TXT,marginTop:2}},v)); }
+  function upd(id,ch){ saveDirectos((directos||[]).map(function(x){ return x.id===id?Object.assign({},x,ch):x; })); }
+  var dir = (directos||[]).find(function(x){ return x.id===openId; });
+  function doCreate(){
+    var name = form.name.trim() || ("Directo "+form.date);
+    var ids;
+    if(form.src==="lote"){ ids = cards.filter(function(c){ return c.mode==="inventory" && c.lotId===form.lote; }).map(function(c){return c.id;}); }
+    else { ids = cards.filter(function(c){ return c.mode==="inventory" && (c.buyDate||"").slice(0,7)===form.mes; }).map(function(c){return c.id;}); }
+    var d = { id:uid(), name:name, date:form.date, cardIds:ids, envio:"", aduanas:"", irpf:"15", autonomos:"" };
+    saveDirectos([d].concat(directos||[]));
+    setCreating(false); setForm({ name:"", date:new Date().toISOString().slice(0,10), src:"lote", lote:"", mes:new Date().toISOString().slice(0,7) });
+    setOpenId(d.id);
+    if(window._cvToast) window._cvToast(ids.length+" cartas cargadas al directo");
+  }
+  function importFactura(){
+    if(!dir) return;
+    var dc = cards.filter(function(c){ return (dir.cardIds||[]).indexOf(c.id)>=0; });
+    var lines = (impTxt||"").split(/\r?\n/).map(function(l){return l.trim();}).filter(function(l){return l.length>1;});
+    var upds = {};
+    lines.forEach(function(line){
+      var nums = line.match(/[0-9]+[.,]?[0-9]*/g)||[];
+      var price = nums.length? (parseFloat(nums[nums.length-1].replace(",","."))||0) : 0;
+      var ll = line.toLowerCase();
+      var m = dc.find(function(c){ var cn=(c.name||"").toLowerCase().trim(); return cn && ll.indexOf(cn)>=0; });
+      if(!m) m = dc.find(function(c){ var cn=(c.name||"").toLowerCase().trim(); return cn && cn.length>4 && ll.indexOf(cn.slice(0,18))>=0; });
+      if(m && price) upds[m.id]=price;
+    });
+    var n = Object.keys(upds).length;
+    setCards(function(p){ return p.map(function(c){ return upds[c.id]!=null ? Object.assign({},c,{ sellPrice:upds[c.id], status:"sold", sellDate:dir.date }) : c; }); });
+    setShowImp(false); setImpTxt("");
+    if(window._cvToast) window._cvToast(n+" cartas emparejadas con precio de venta");
+  }
+  var subnav = h("div",{style:{display:"flex",gap:6,marginBottom:18,flexWrap:"wrap"}}, [["directo","🎬 Directos"],["breaks","🎁 Breaks de caja"]].map(function(o){ return h(Btn,{key:o[0],sm:true,v:sub===o[0]?"primary":"outline",onClick:function(){setSub(o[0]);}},o[1]); }));
+  if(sub==="breaks") return h("div",null, subnav, h(BreaksTab,{breaks:breaks, saveBreaks:saveBreaks}));
+  if(dir){
+    var dc = cards.filter(function(c){ return (dir.cardIds||[]).indexOf(c.id)>=0; });
+    var gastoCartas = dc.reduce(function(a,c){ return a + (c.buyPrice||0)*(c.quantity||1); },0);
+    var recibido = dc.reduce(function(a,c){ return a + (c.sellPrice||0); },0);
+    var envio = parseFloat(dir.envio)||0, aduanas = parseFloat(dir.aduanas)||0;
+    var gasto = gastoCartas + envio + aduanas;
+    var rebu = dc.reduce(function(a,c){ var m=(c.sellPrice||0)-(c.buyPrice||0); return a + (m>0? m*21/121 : 0); },0);
+    var benAntes = recibido - gasto - rebu;
+    var irpf = benAntes>0 ? benAntes*(parseFloat(dir.irpf)||0)/100 : 0;
+    var autonomos = parseFloat(dir.autonomos)||0;
+    var neto = benAntes - irpf - autonomos;
+    var vendidas = dc.filter(function(c){ return (c.sellPrice||0)>0; }).length;
+    var addable = cards.filter(function(c){ return c.mode==="inventory" && (dir.cardIds||[]).indexOf(c.id)<0 && addQ && (c.name||"").toLowerCase().indexOf(addQ.toLowerCase())>=0; }).slice(0,8);
+    return h("div",null, subnav,
+      h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}},
+        h("div",null, h("div",{style:{fontSize:18,fontWeight:800}},dir.name), h("div",{style:{fontSize:12,color:SUB}},dir.date+" · "+dc.length+" cartas · "+vendidas+" con precio")),
+        h("div",{style:{display:"flex",gap:6}}, h(Btn,{sm:true,v:"outline",onClick:function(){setOpenId(null);}},"← Directos"), h(Btn,{sm:true,onClick:function(){setShowImp(true);}},"📥 Importar factura Geek"))),
+      h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:10,marginBottom:16}},
+        kpi("Recibido", eu(recibido), TXT), kpi("Coste cartas", eu(gastoCartas), TXT), kpi("Gasto total", eu(gasto), RED), kpi("IVA REBU", eu(rebu), RED), kpi("IRPF ("+(dir.irpf||0)+"%)", eu(irpf), RED), kpi("Autónomos", eu(autonomos), RED), kpi("Beneficio neto", (neto>=0?"+":"")+eu(neto), neto>=0?GREEN:RED)),
+      h(Card,{style:{padding:14,marginBottom:16}}, h(SL,null,"Gastos e impuestos del directo"),
+        h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:10}}, fld("Envío (€)",dir.envio,function(v){upd(dir.id,{envio:v});}), fld("Aduanas (€)",dir.aduanas,function(v){upd(dir.id,{aduanas:v});}), fld("IRPF (%)",dir.irpf,function(v){upd(dir.id,{irpf:v});}), fld("Cuota autónomos (€)",dir.autonomos,function(v){upd(dir.id,{autonomos:v});}))),
+      h(Card,{style:{padding:14,marginBottom:16}}, h(SL,null,"Añadir carta al directo"),
+        h("input",{value:addQ,onChange:function(e){setAddQ(e.target.value);},placeholder:"Buscar carta del inventario...",style:IS}),
+        addQ? h("div",{style:{marginTop:8}}, addable.length===0? h("div",{style:{fontSize:12,color:MUT,padding:"6px 2px"}},"Sin resultados") : addable.map(function(c){ return h("div",{key:c.id,onClick:function(){ upd(dir.id,{cardIds:(dir.cardIds||[]).concat([c.id])}); setAddQ(""); },style:{padding:"8px 10px",cursor:"pointer",borderBottom:"1px solid "+BDR,fontSize:13}}, "+ "+c.name); })):null),
+      h(Card,{style:{padding:0}}, dc.length===0? h(Empty,{icon:"🎬",title:"Sin cartas",sub:"Añade cartas o crea el directo desde un lote/mes"}) : dc.map(function(c,i){ return h("div",{key:c.id,style:{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderBottom:i<dc.length-1?"1px solid "+BDR:"none"}}, h("div",{style:{flex:1,minWidth:0}}, h("div",{style:{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},c.name), h("div",{style:{fontSize:11,color:SUB}},"Coste "+eu(c.buyPrice||0)+((c.sellPrice||0)>0?(" · Venta "+eu(c.sellPrice)):" · sin precio"))), h("button",{onClick:function(){ upd(dir.id,{cardIds:(dir.cardIds||[]).filter(function(x){return x!==c.id;})}); },title:"Quitar del directo",style:{border:"none",background:"none",color:RED,cursor:"pointer",fontSize:17}},"×")); })),
+      showImp? h("div",{style:{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16},onClick:function(){setShowImp(false);}}, h("div",{onClick:function(e){e.stopPropagation();},style:{background:BG,borderRadius:14,padding:20,maxWidth:460,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.2)"}}, h("div",{style:{fontWeight:700,fontSize:16,marginBottom:6}},"📥 Importar factura de Geek"), h("div",{style:{fontSize:12,color:SUB,marginBottom:10}},"Pega el texto de la factura (una carta por línea). Empareja por nombre con las cartas del directo y toma el último número como precio de venta."), h("textarea",{value:impTxt,onChange:function(e){setImpTxt(e.target.value);},rows:8,placeholder:"Iván Zamorano Auto ... 40\\nMbappé Prizm ... 25",style:Object.assign({},IS,{width:"100%",resize:"vertical",fontFamily:"monospace",boxSizing:"border-box"})}), h("div",{style:{display:"flex",gap:8,marginTop:10}}, h(Btn,{v:"outline",onClick:function(){setShowImp(false);}},"Cancelar"), h(Btn,{full:true,onClick:importFactura},"Emparejar y poner precios")))):null
+    );
+  }
+  return h("div",null, subnav,
+    creating? h(Card,{style:{padding:16,marginBottom:16}}, h(SL,null,"Nuevo directo"),
+      h("div",{style:{marginBottom:10}}, fldLbl("Nombre"), h("input",{value:form.name,onChange:function(e){setForm(Object.assign({},form,{name:e.target.value}));},placeholder:"Directo Geek — junio",style:IS})),
+      h("div",{style:{marginBottom:10}}, fldLbl("Fecha"), h("input",{type:"date",value:form.date,onChange:function(e){setForm(Object.assign({},form,{date:e.target.value}));},style:IS})),
+      h("div",{style:{marginBottom:10}}, fldLbl("Cargar cartas por"), h("div",{style:{display:"flex",gap:6}}, [["lote","Lote"],["mes","Mes de compra"]].map(function(o){ return h(Btn,{key:o[0],sm:true,v:form.src===o[0]?"primary":"outline",onClick:function(){setForm(Object.assign({},form,{src:o[0]}));}},o[1]); }))),
+      form.src==="lote"? h("div",{style:{marginBottom:10}}, fldLbl("Lote"), h("select",{value:form.lote,onChange:function(e){setForm(Object.assign({},form,{lote:e.target.value}));},style:IS}, h("option",{value:""},"Elige un lote..."), (lots||[]).map(function(l){ return h("option",{key:l.id,value:l.id},l.name); }))) : h("div",{style:{marginBottom:10}}, fldLbl("Mes"), h("input",{type:"month",value:form.mes,onChange:function(e){setForm(Object.assign({},form,{mes:e.target.value}));},style:IS})),
+      h("div",{style:{display:"flex",gap:8}}, h(Btn,{v:"outline",onClick:function(){setCreating(false);}},"Cancelar"), h(Btn,{full:true,onClick:doCreate},"Crear directo")))
+    : h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}, h("div",null, h("div",{style:{fontSize:20,fontWeight:700}},"🎬 Directos"), h("div",{style:{fontSize:12,color:SUB,marginTop:2}},"Carga las cartas, importa la factura de Geek y mira el balance")), h(Btn,{onClick:function(){setCreating(true);}},"+ Nuevo directo")),
+    ((directos||[]).length===0 && !creating)? h(Empty,{icon:"🎬",title:"Aún no hay directos",sub:"Crea un directo, carga las cartas y importa la factura de Geek"}) : h("div",{style:{display:"flex",flexDirection:"column",gap:8}}, (directos||[]).map(function(d){ var dc=cards.filter(function(c){return (d.cardIds||[]).indexOf(c.id)>=0;}); var rec=dc.reduce(function(a,c){return a+(c.sellPrice||0);},0); return h(Card,{key:d.id,style:{padding:"12px 14px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"},onClick:function(){setOpenId(d.id);}}, h("div",null, h("div",{style:{fontSize:14,fontWeight:700}},d.name), h("div",{style:{fontSize:11,color:SUB}},d.date+" · "+dc.length+" cartas")), h("div",{style:{textAlign:"right"}}, h("div",{style:{fontSize:14,fontWeight:800,color:BLUE}},eu(rec)), h("div",{style:{fontSize:10,color:SUB}},"recibido"))); })));
+}
 function BreaksTab({ breaks, saveBreaks }) {
     var h = React.createElement;
     var vs = useState("create"), view = vs[0], setView = vs[1];
@@ -21236,6 +21319,8 @@ function App() {
     function saveLots(l) { setLots(l); localStorage.setItem("cv10_lots", JSON.stringify(l)); if(window._saveToFirestore) window._saveToFirestore({ lotsData: l }); }
     const [breaks, setBreaks] = useState(() => { try { return JSON.parse(localStorage.getItem("cv10_breaks") || "[]"); } catch (e) { return []; } });
     function saveBreaks(b) { setBreaks(b); localStorage.setItem("cv10_breaks", JSON.stringify(b)); if(window._saveToFirestore) window._saveToFirestore({ breaksData: b }); }
+    const [directos, setDirectos] = useState(function(){ try { return JSON.parse(localStorage.getItem("cv10_directos") || "[]"); } catch (e) { return []; } });
+    function saveDirectos(d) { setDirectos(d); localStorage.setItem("cv10_directos", JSON.stringify(d)); if(window._saveToFirestore) window._saveToFirestore({ directosData: d }); }
 
     const [showSettings, setShowSettings] = useState(false);
     const [showPrefs, setShowPrefs] = useState(false);
@@ -21317,7 +21402,7 @@ function App() {
     function dup(c) { setDupCard(c); }
     function bulkUpd(ids, changes) { setCards(function (p) { return p.map(function (c) { return ids.indexOf(c.id) >= 0 ? Object.assign({}, c, changes) : c; }); }); if (window._cvToast) window._cvToast(ids.length + " cartas actualizadas"); }
     function bulkDel(ids) { var removed = cards.filter(function (c) { return ids.indexOf(c.id) >= 0; }); setCards(function (p) { return p.filter(function (c) { return ids.indexOf(c.id) < 0; }); }); if (window._cvToast) window._cvToast(removed.length + " cartas eliminadas", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { setCards(function (p) { return removed.concat(p); }); } }); }
-    const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Análisis"], ["lots", "Lotes"], ["breaks", "🎁 Breaks"], ["redes", "📱 Redes"], ["psa", "PSA/BGS"]];
+    const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Análisis"], ["lots", "Lotes"], ["breaks", "🎬 Directos"], ["redes", "📱 Redes"], ["psa", "PSA/BGS"]];
     return (React.createElement("div", { style: { minHeight: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14 } },
         React.createElement("style", null, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');"),
         React.createElement("div", { id: "cv-top-bar", style: { background: BG, borderBottom: "3px solid #3b82f6", position: "sticky", top: 0, zIndex: 50, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" } },
@@ -21326,7 +21411,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v23")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v24")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -21874,7 +21959,7 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
             tab === "invoices" && false,
             tab === "analytics" && false,
             tab === "lots" && React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards }),
-            tab === "breaks" && React.createElement(BreaksTab, { breaks: breaks, saveBreaks: saveBreaks }),
+            tab === "breaks" && React.createElement(DirectosTab, { breaks: breaks, saveBreaks: saveBreaks, cards: cards, setCards: setCards, lots: lots, directos: directos, saveDirectos: saveDirectos }),
             
             tab === "redes" && React.createElement(RedesTab, { cards: cards, onOpenPost: function(c,tpl){ setPostCard(c); setPostInitTpl(tpl||null); setShowPostModal(true); } }),
             tab === "psa" && (isPremium() ? React.createElement(PSATab, null) : React.createElement("div",{style:{maxWidth:500,margin:"80px auto",textAlign:"center",padding:40}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"\uD83D\uDD12"),React.createElement("div",{style:{fontSize:20,fontWeight:700,marginBottom:8}},"Función Premium"),React.createElement("div",{style:{color:SUB,marginBottom:24}},"PSA/BGS es una función Premium"),React.createElement("button",{onClick:function(){setShowSettings(true);},style:{padding:"12px 24px",background:BLUE,border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B50 Hazte Premium")))),
