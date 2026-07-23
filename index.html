@@ -17491,7 +17491,7 @@ function SellModal({ card, onSave, onClose }) {
                 "📋 Copiar mensaje para el comprador"),
                 React.createElement(Btn, { v: "success", full: true, onClick: confirm, disabled: !pr }, "Confirmar venta")))));
 }
-function CardForm({ onSave, onClose, editCard, defMode, lots }) {
+function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots }) {
     const blank = { name: "", category: (localStorage.getItem("cv10_lastcat")||"trading"), series: "", rarity: "Común", condition: "Raw", quantity: 1, buyPrice: "", buyDate: new Date().toISOString().slice(0, 10), notes: "", tags: [], marketPrice: "", images: [], status: "holding", sellPrice: "", sellDate: "", platformFee: "", shippingCost: "", platform: (localStorage.getItem("cv10_lastplat")||"eBay"), isFavorite: false, mode: defMode || "inventory", targetPrice: "", listingDate: "", location: (localStorage.getItem("cv10_lastloc")||""), imageUrl: "" };
     const init = editCard ? Object.assign(Object.assign({}, editCard), { buyPrice: String(editCard.buyPrice || ""), sellPrice: String(editCard.sellPrice || ""), platformFee: String(editCard.platformFee || ""), shippingCost: String(editCard.shippingCost || ""), targetPrice: String(editCard.targetPrice || ""), marketPrice: String(editCard.marketPrice || ""), tags: editCard.tags || [] }) : blank;
     const [f, setF] = useState(init), [imgs, setImgs] = useState((editCard === null || editCard === void 0 ? void 0 : editCard.images) || []), [tab, setTab] = useState("info");
@@ -17574,7 +17574,8 @@ function CardForm({ onSave, onClose, editCard, defMode, lots }) {
                                 React.createElement("input", { value: displayVal, onChange: function(e){ sf("_lotSearch", e.target.value); sf("lotId",""); }, onFocus: function(){ sf("_lotSearch", currentLotName); }, onBlur: function(){ setTimeout(function(){ sf("_lotSearch",undefined); },200); }, placeholder: "Buscar lote...", style: IS }),
                                 f._lotSearch !== undefined ? React.createElement("div", { style: { position:"absolute",top:"100%",left:0,right:0,background:BG,border:"1px solid "+BDR,borderRadius:8,zIndex:10,maxHeight:140,overflowY:"auto",boxShadow:"0 4px 12px rgba(0,0,0,0.1)" } },
                                   React.createElement("div", { onMouseDown: function(){ sf("lotId",""); sf("_lotSearch",undefined); }, style: { padding:"8px 12px",cursor:"pointer",fontSize:13,color:SUB } }, "Sin lote"),
-                                  allLots.filter(function(l){ return !f._lotSearch||l.name.toLowerCase().includes(f._lotSearch.toLowerCase()); }).map(function(l){ return React.createElement("div", { key:l.id, onMouseDown: function(){ sf("lotId",l.id); sf("_lotSearch",undefined); }, style: { padding:"8px 12px",cursor:"pointer",fontSize:13,borderTop:"1px solid "+BDR } }, l.name); })
+                                  allLots.filter(function(l){ return !f._lotSearch||l.name.toLowerCase().includes(f._lotSearch.toLowerCase()); }).map(function(l){ return React.createElement("div", { key:l.id, onMouseDown: function(){ sf("lotId",l.id); sf("_lotSearch",undefined); }, style: { padding:"8px 12px",cursor:"pointer",fontSize:13,borderTop:"1px solid "+BDR } }, l.name); }),
+                                  (f._lotSearch && f._lotSearch.trim() && !allLots.some(function(l){return l.name.toLowerCase()===f._lotSearch.trim().toLowerCase();})) ? React.createElement("div", { onMouseDown: function(){ var nm=f._lotSearch.trim(); var nl={id:uid(),name:nm}; if(saveLots) saveLots(allLots.concat([nl])); sf("lotId",nl.id); sf("_lotSearch",undefined); }, style: { padding:"8px 12px",cursor:"pointer",fontSize:13,borderTop:"1px solid "+BDR,color:BLUE,fontWeight:600 } }, "+ Crear lote \"" + f._lotSearch.trim() + "\"") : null
                                 ) : null
                               );
                             })()
@@ -21418,7 +21419,7 @@ function App() {
     function dup(c) { setDupCard(c); }
     function bulkUpd(ids, changes) { setCards(function (p) { return p.map(function (c) { return ids.indexOf(c.id) >= 0 ? Object.assign({}, c, changes) : c; }); }); if (window._cvToast) window._cvToast(ids.length + " cartas actualizadas"); }
     function bulkDel(ids) { var removed = cards.filter(function (c) { return ids.indexOf(c.id) >= 0; }); setCards(function (p) { return p.filter(function (c) { return ids.indexOf(c.id) < 0; }); }); if (window._cvToast) window._cvToast(removed.length + " cartas eliminadas", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { setCards(function (p) { return removed.concat(p); }); } }); }
-    const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Análisis"], ["lots", "Lotes"], ["breaks", "🎬 Directos"], ["redes", "📱 Redes"], ["psa", "PSA/BGS"]];
+    const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Análisis"], ["breaks", "🎬 Directos"], ["redes", "📱 Redes"], ["psa", "PSA/BGS"]];
     return (React.createElement("div", { style: { minHeight: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14 } },
         React.createElement("style", null, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');"),
         React.createElement("div", { id: "cv-top-bar", style: { background: BG, borderBottom: "3px solid #3b82f6", position: "sticky", top: 0, zIndex: 50, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" } },
@@ -21427,7 +21428,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v29")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v30")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -21979,13 +21980,13 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
             
             tab === "redes" && React.createElement(RedesTab, { cards: cards, onOpenPost: function(c,tpl){ setPostCard(c); setPostInitTpl(tpl||null); setShowPostModal(true); } }),
             tab === "psa" && (isPremium() ? React.createElement(PSATab, null) : React.createElement("div",{style:{maxWidth:500,margin:"80px auto",textAlign:"center",padding:40}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"\uD83D\uDD12"),React.createElement("div",{style:{fontSize:20,fontWeight:700,marginBottom:8}},"Función Premium"),React.createElement("div",{style:{color:SUB,marginBottom:24}},"PSA/BGS es una función Premium"),React.createElement("button",{onClick:function(){setShowSettings(true);},style:{padding:"12px 24px",background:BLUE,border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B50 Hazte Premium")))),
-        sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); }, editCard: ec, defMode: dm, lots: lots }),
+        sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); }, editCard: ec, defMode: dm, lots: lots, saveLots: saveLots }),
         showLot && React.createElement(LotModal, { cards: cards, onSell: ups, onClose: () => setShowLot(false) }),
         sc && React.createElement(SellModal, { card: sc, onSave: ups, onClose: () => setSc(null) }),
         dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onClose: () => setDupCard(null) }),
         React.createElement("div", { id: "cv-bottom-nav" },
             React.createElement("div", { id: "cv-bottom-nav-inner" },
-                [["dashboard","\uD83D\uDCCA","Inicio"],["inventory","\uD83D\uDCE6","Inv."],["collection","\u2B50","Colec."],["fiscal","\uD83D\uDCCA","An\u00E1l."],["lots","\uD83D\uDCCB","Lotes"],["breaks","\uD83C\uDFAC","Direct."],["redes","\uD83D\uDCF1","Redes"],["psa","\uD83C\uDFC6","PSA"]].map(function(item) {
+                [["dashboard","\uD83D\uDCCA","Inicio"],["inventory","\uD83D\uDCE6","Inv."],["collection","\u2B50","Colec."],["fiscal","\uD83D\uDCCA","An\u00E1l."],["breaks","\uD83C\uDFAC","Direct."],["redes","\uD83D\uDCF1","Redes"],["psa","\uD83C\uDFC6","PSA"]].map(function(item) {
                     return React.createElement("button", { key: item[0], className: tab === item[0] ? "active" : "", onClick: function() { setTab(item[0]); } },
                         React.createElement("span", { className: "icon" }, item[1]),
                         React.createElement("span", { className: "label" }, item[2]));
