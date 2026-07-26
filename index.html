@@ -20218,12 +20218,11 @@ function PostModal({ card, onClose, cards, initTpl }) {
           )); } },
     { id:"s-dia", label:"Carta del día", fields:[],
       render:function(w,h){ var k=w/1080, st=h>w*1.3, S=function(v){return v*k;};
-        var phH=st?1300:680, embP=st?110:90, tFs=st?76:60, hFs=st?28:22, gap=st?14:12, rt=st?120:56, rl=st?-150:-140, rw=st?600:520, rpv=st?18:14, rFs=st?34:30, cTop=st?40:30;
-        return E("div",{id:"tcg-tpl",style:CSTYLE(w,h,"#0a0a0a")},
-          E("div",{style:AB({left:0,top:0,width:w,height:S(phH)})}, PH(0,"Foto de la carta","cover")),
-          E("div",{style:AB({left:0,right:0,top:S(phH),bottom:0,background:"linear-gradient(120deg,#004D98,#0a0a0a 55%,#A50044)"})}),
+        var phH=st?1400:740, cTop=st?1460:790, embP=st?110:90, tFs=st?76:60, hFs=st?28:22, gap=st?14:12, rt=st?120:56, rl=st?-150:-140, rw=st?600:520, rpv=st?18:14, rFs=st?34:30;
+        return E("div",{id:"tcg-tpl",style:CSTYLE(w,h,"linear-gradient(160deg,#004D98 0%,#0a0a0a 46%,#0a0a0a 62%,#A50044 100%)")},
+          E("div",{style:AB({left:0,top:0,width:w,height:S(phH)})}, PH(0,"Foto de la carta",st?"cover":"contain",undefined,"transparent")),
           E("div",{style:AB({top:S(rt),left:S(rl),width:S(rw),padding:S(rpv)+"px 0",background:"#A50044",transform:"rotate(-40deg)",textAlign:"center",boxShadow:"0 8px 20px rgba(0,0,0,.35)"})}, E("span",{style:SAIRA(S(rFs),"#fff",{letterSpacing:"0.06em"})},"Hoy destacamos")),
-          E("div",{style:AB({left:0,right:0,top:S(phH+cTop),display:"flex",flexDirection:"column",alignItems:"center",gap:S(gap)})},
+          E("div",{style:AB({left:0,right:0,top:S(cTop),display:"flex",flexDirection:"column",alignItems:"center",gap:S(gap)})},
             EMB(S(embP)), E("div",{style:SAIRA(S(tFs),"#fff",{textAlign:"center"})},"Carta del día"), HND(S(hFs)))); } },
     { id:"s-guardo", label:"¿Vendo o guardo?", fields:[],
       render:function(w,h){ var k=w/1080, st=h>w*1.3, S=function(v){return v*k;};
@@ -20256,7 +20255,7 @@ function PostModal({ card, onClose, cards, initTpl }) {
           E("div",{style:AB({left:0,right:0,bottom:S(botT),display:"flex",flexDirection:"column",alignItems:"center",gap:S(8)})}, E("div",{style:SAIRA(st?S(72):S(56),"#fff",{textAlign:"center"})},"Nueva joya"), E("div",{style:{font:"600 "+S(botFs)+"px 'Space Grotesk'",letterSpacing:"0.16em",color:"#d7dade"}},"RECIÉN LLEGADA · @thecardgirl"))); } },
     { id:"c-cuanto", label:"¿Cuánto vale?", fields:["price"],
       render:function(w,h){ var k=w/1080, st=h>w*1.3, S=function(v){return v*k;};
-        var embP=st?120:100, embT=st?130:50, chT=st?300:150, chFs=st?56:42, cL=st?172:260, cT=st?410:230, cW=st?736:560, cH=st?920:700, capT=st?1400:950, capFs=st?56:44, optT=st?1500:1010, optFs=st?32:26, optPad=st?S(16)+"px "+S(32)+"px":S(12)+"px "+S(26)+"px", optRad=st?34:30, gap=st?22:18;
+        var embP=st?120:100, embT=st?130:56, chT=st?300:160, chFs=st?56:50, cL=st?172:270, cT=st?410:250, cW=st?736:540, cH=st?920:600, capT=st?1400:890, capFs=st?56:52, optT=st?1500:955, optFs=st?32:34, optPad=st?S(16)+"px "+S(32)+"px":S(16)+"px "+S(34)+"px", optRad=st?34:34, gap=st?22:20;
         var p=parseFloat(ef.price)||100; var opts=[Math.round(p*0.6),p,Math.round(p*1.5)];
         function pill(v,bg,bd){ return E("div",{style:{background:bg,border:bd||"none",borderRadius:optRad,padding:optPad,font:"700 "+S(optFs)+"px 'Space Grotesk'",color:"#fff",whiteSpace:"nowrap"}},v+"€"); }
         return E("div",{id:"tcg-tpl",style:CSTYLE(w,h,GRAD)},
@@ -20368,7 +20367,7 @@ function PostModal({ card, onClose, cards, initTpl }) {
         ):
         React.createElement("div",{style:{display:"flex",gap:20,flexWrap:"wrap"}},
           React.createElement("div",{style:{flex:"0 0 auto"}},
-            React.createElement("div",{style:{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}, [].map(function(o){ return React.createElement("button",{key:o[0],onClick:function(){setPostStyle(o[0]);},style:{padding:"5px 10px",borderRadius:20,border:"1.5px solid "+(postStyle===o[0]?blue:"#e5e7eb"),background:postStyle===o[0]?"#eff4ff":"#fff",color:postStyle===o[0]?blue:sub,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},o[1]); })),
+            
             ((storyOnly||postOnly)?React.createElement("div",{style:{fontSize:10,color:sub,marginBottom:10,fontStyle:"italic"}},postOnly?"Solo formato Post (1:1)":"Solo formato Story (9:16)"):React.createElement("div",{style:{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}, [["post","▢ Post 1:1"],["story","▯ Story 9:16"]].map(function(o){ return React.createElement("button",{key:o[0],onClick:function(){setPostFmt(o[0]);},style:{padding:"5px 10px",borderRadius:20,border:"1.5px solid "+(fmt===o[0]?"#004D98":"#e5e7eb"),background:fmt===o[0]?"#f0fdf4":"#fff",color:fmt===o[0]?"#004D98":sub,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},o[1]); }))),
             selDef?(postStyle==="original"?selDef.render(isStory?270:300,isStory?480:300):styleRender(postStyle,isStory?270:300,isStory?480:300)):null
           ),
@@ -21444,7 +21443,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v44")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v45")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
