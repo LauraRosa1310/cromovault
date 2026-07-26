@@ -20018,6 +20018,7 @@ function PostModal({ card, onClose, cards, initTpl }) {
   var logoUrl = CV_LOGO;
   var bg="#0a0a0a",dark="#ffffff",red="#A50044",blue="#004D98",sub="#9aa3ad",chip="#1b1b22";
   var _ci = React.useState(c.imageUrl || c.cloudinaryUrl || ""); var cardImg = _ci[0], setCardImg = _ci[1];
+  var _ci2 = React.useState(""); var cardImg2 = _ci2[0], setCardImg2 = _ci2[1];
   var [cardSearch, setCardSearch] = React.useState("");
   var numStr = c.name && c.name.match(/\/([0-9]+)/) ? c.name.match(/\/([0-9]+)/)[1] : "";
   var [ef, setEf] = React.useState({
@@ -20197,7 +20198,7 @@ function PostModal({ card, onClose, cards, initTpl }) {
   function CSTYLE(w,h,bg){ return {fontFamily:"'Space Grotesk','Saira Condensed',sans-serif",position:"relative",width:w,height:h,background:bg,overflow:"hidden",flexShrink:0}; }
   function AB(o){ o.position="absolute"; return o; }
   function EMB(px){ px=Math.round(px); return E("div",{style:{width:px,height:px,borderRadius:"50%",padding:Math.max(2,Math.round(px*0.045)),boxSizing:"border-box",background:GLINE,flexShrink:0}}, E("img",{src:CV_LOGO,style:{width:"100%",height:"100%",borderRadius:"50%",objectFit:"cover",display:"block",border:"2px solid #0a0a0a",boxSizing:"border-box"}})); }
-  function PH(rad,label,fit){ var base={width:"100%",height:"100%",boxSizing:"border-box",borderRadius:rad,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",background:"#0a0a0a"}; if(cardImg){ return E("div",{style:base}, E("img",{src:cardImg,style:{width:"100%",height:"100%",objectFit:fit||"cover",display:"block"}})); } base.background="rgba(255,255,255,.05)"; base.border="2px dashed rgba(255,255,255,.22)"; return E("div",{style:base}, E("span",{style:{font:"600 13px 'Space Grotesk'",color:"rgba(255,255,255,.45)",padding:8}},label||"Foto de la carta")); }
+  function PH(rad,label,fit,img){ var im=(img!==undefined?img:cardImg); var base={width:"100%",height:"100%",boxSizing:"border-box",borderRadius:rad,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",background:"#0a0a0a"}; if(im){ return E("div",{style:base}, E("img",{src:im,style:{width:"100%",height:"100%",objectFit:fit||"cover",display:"block"}})); } base.background="rgba(255,255,255,.05)"; base.border="2px dashed rgba(255,255,255,.22)"; return E("div",{style:base}, E("span",{style:{font:"600 13px 'Space Grotesk'",color:"rgba(255,255,255,.45)",padding:8}},label||"Foto de la carta")); }
   function CHIP(text,fs){ return E("div",{style:{display:"inline-flex",flexDirection:"column",alignItems:"center",gap:Math.round(fs*0.28)}}, E("span",{style:{fontFamily:"'Saira Condensed',sans-serif",fontWeight:800,color:"#fff",textTransform:"uppercase",fontSize:fs,letterSpacing:"0.01em",lineHeight:1,textAlign:"center",whiteSpace:"nowrap"}},text), E("div",{style:{width:Math.round(fs*1.25),height:Math.max(3,Math.round(fs*0.09)),background:GLINE}})); }
   function SEPH(text,fs,sepw){ return E("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",gap:Math.round(fs*0.6)}}, E("div",{style:{width:sepw,height:2,background:GLINE}}), E("div",{style:{font:"700 "+fs+"px 'Space Grotesk'",color:"#fff",letterSpacing:"0.03em",whiteSpace:"nowrap"}},text), E("div",{style:{width:sepw,height:2,background:GLINE}})); }
   function SAIRA(fs,color,extra){ var o={fontFamily:"'Saira Condensed',sans-serif",fontWeight:800,fontSize:fs,color:color||"#fff",textTransform:"uppercase",lineHeight:0.92}; if(extra)Object.assign(o,extra); return o; }
@@ -20208,7 +20209,7 @@ function PostModal({ card, onClose, cards, initTpl }) {
       render:function(w,h){ var k=w/1080, st=h>w*1.3, S=function(v){return v*k;};
         var phH=st?1420:760, cTop=st?1470:800, embP=st?110:90, tFs=st?88:70, subFs=st?26:24, gap=st?18:14;
         return E("div",{id:"tcg-tpl",style:CSTYLE(w,h,"#0a0a0a")},
-          E("div",{style:AB({left:0,top:0,width:w,height:S(phH)})}, PH(0,"Foto de la carta")),
+          E("div",{style:AB({left:0,top:0,width:w,height:S(phH)})}, PH(0,"Foto de la carta","contain")),
           E("div",{style:AB({left:0,right:0,top:S(phH),bottom:0,background:"linear-gradient(120deg,#004D98,#0a0a0a 55%,#A50044)"})}),
           E("div",{style:AB({left:0,right:0,top:S(cTop),display:"flex",flexDirection:"column",alignItems:"center",gap:S(gap)})},
             EMB(S(embP)),
@@ -20252,7 +20253,7 @@ function PostModal({ card, onClose, cards, initTpl }) {
           E("div",{style:AB({left:"50%",top:"50%",transform:"translate(-50%,-56%) rotate(-90deg)",fontFamily:"'Saira Condensed',sans-serif",fontWeight:800,fontSize:S(giant),letterSpacing:S(4),color:"rgba(165,0,68,.30)",whiteSpace:"nowrap"})},"NUEVA JOYA"),
           E("div",{style:AB({left:"50%",top:"52%",transform:"translate(-50%,-50%) rotate(-6deg)",width:S(cW),height:S(cH),boxShadow:"0 30px 70px rgba(0,0,0,.6)",borderRadius:S(16),overflow:"hidden"})}, PH(S(16),"Foto de la carta")),
           E("div",{style:AB({top:S(embXY),left:S(embXY)})}, EMB(S(embP))),
-          E("div",{style:AB({left:0,right:0,bottom:S(botT),textAlign:"center",font:"600 "+S(botFs)+"px 'Space Grotesk'",letterSpacing:"0.16em",color:"#fff"})},"RECIÉN LLEGADA · @thecardgirl")); } },
+          E("div",{style:AB({left:0,right:0,bottom:S(botT),display:"flex",flexDirection:"column",alignItems:"center",gap:S(8)})}, E("div",{style:SAIRA(st?S(72):S(56),"#fff",{textAlign:"center"})},"Nueva joya"), E("div",{style:{font:"600 "+S(botFs)+"px 'Space Grotesk'",letterSpacing:"0.16em",color:"#d7dade"}},"RECIÉN LLEGADA · @thecardgirl"))); } },
     { id:"c-cuanto", label:"¿Cuánto vale?", fields:["price"],
       render:function(w,h){ var k=w/1080, st=h>w*1.3, S=function(v){return v*k;};
         var embP=st?120:100, embT=st?130:60, chT=st?300:190, chFs=st?56:42, cL=st?172:316, cT=st?410:270, cW=st?736:448, cH=st?920:560, capT=st?1400:860, capFs=st?56:44, optT=st?1500:930, optFs=st?32:26, optPad=st?S(16)+"px "+S(32)+"px":S(12)+"px "+S(26)+"px", optRad=st?34:30, gap=st?22:18;
@@ -20271,7 +20272,7 @@ function PostModal({ card, onClose, cards, initTpl }) {
           E("div",{style:AB({top:S(embT),left:"50%",transform:"translateX(-50%)"})}, EMB(S(embP))),
           E("div",{style:AB({top:S(chT),left:"50%",transform:"translateX(-50%)"})}, CHIP("ANTES / DESPUÉS",S(chFs))),
           E("div",{style:AB({left:S(lA),top:S(cT),width:S(cW),height:S(cH)})}, PH(S(18),"RAW")),
-          E("div",{style:AB({left:S(lB),top:S(cT),width:S(cW),height:S(cH)})}, PH(S(18),"PSA")),
+          E("div",{style:AB({left:S(lB),top:S(cT),width:S(cW),height:S(cH)})}, PH(S(18),"PSA","cover",cardImg2)),
           E("div",{style:AB({left:S(lA),top:S(labT),width:S(cW),textAlign:"center",font:"700 "+S(labFs)+"px 'Space Grotesk'",letterSpacing:"0.1em",color:"#9aa3ad"})},"RAW"),
           E("div",{style:AB({left:S(lB),top:S(labT),width:S(cW),textAlign:"center",font:"700 "+S(labFs)+"px 'Space Grotesk'",letterSpacing:"0.1em",color:"#9aa3ad"})},"PSA"),
           E("div",{style:AB({left:0,right:0,top:S(hT)})}, SEPH("@thecardgirl",S(hFs),S(sepw)))); } },
@@ -20292,7 +20293,7 @@ function PostModal({ card, onClose, cards, initTpl }) {
           E("div",{style:AB({top:S(embT),left:"50%",transform:"translateX(-50%)"})}, EMB(S(embP))),
           E("div",{style:AB({top:S(chT),left:"50%",transform:"translateX(-50%)"})}, CHIP("COMPARATIVA DE PRECIO",S(chFs))),
           E("div",{style:AB({left:S(aL),top:S(cT),width:S(cW),height:S(cH)})}, PH(S(18),"Foto A")),
-          E("div",{style:AB({left:S(bL),top:S(cT),width:S(cW),height:S(cH)})}, PH(S(18),"Foto B")),
+          E("div",{style:AB({left:S(bL),top:S(cT),width:S(cW),height:S(cH)})}, PH(S(18),"Foto B","cover",cardImg2)),
           E("div",{style:AB({left:S(bA),top:S(barT),width:S(400),textAlign:"center",background:"#1c1c1c",borderRadius:S(14),padding:barPad+"px 0"})}, E("span",{style:SAIRA(S(barFs),"#9aa3ad")},antes)),
           E("div",{style:AB({left:S(bB),top:S(barT),width:S(400),textAlign:"center",background:"#A50044",borderRadius:S(14),padding:barPad+"px 0"})}, E("span",{style:SAIRA(S(barFs),"#fff")},ahora)),
           E("div",{style:AB({left:0,right:0,top:S(hT)})}, SEPH("@thecardgirl",S(hFs),S(sepw)))); } },
@@ -20375,6 +20376,7 @@ function PostModal({ card, onClose, cards, initTpl }) {
               React.createElement("div",{style:{fontSize:10,fontWeight:700,color:"#6b7280",marginBottom:6,textTransform:"uppercase",letterSpacing:"0.08em"}},"🖼️ Foto desde inventario/colección"),
               React.createElement("input",{value:cardSearch,onChange:function(e){setCardSearch(e.target.value);},placeholder:"Buscar carta...",style:{width:"100%",border:"1px solid #e5e7eb",borderRadius:6,padding:"7px 10px",fontSize:12,fontFamily:"Inter,sans-serif",boxSizing:"border-box"}}),
               cardSearch?React.createElement("div",{style:{maxHeight:170,overflowY:"auto",marginTop:6,background:"#fff",border:"1px solid #141418",borderRadius:6}}, (cards||[]).filter(function(cc){ return (cc.name||"").toLowerCase().indexOf(cardSearch.toLowerCase())>=0; }).slice(0,12).map(function(cc){ var im=cc.imageUrl||cc.cloudinaryUrl||""; return React.createElement("div",{key:cc.id,onClick:function(){ if(im)setCardImg(im); sEf("name",(cc.name||"").toUpperCase()); sEf("set",cc.series||cc.category||""); if(cc.condition)sEf("psa",cc.condition); var pr=cc.sellPrice||cc.targetPrice||cc.buyPrice; if(pr)sEf("price",String(pr)); setCardSearch(""); }, style:{display:"flex",alignItems:"center",gap:8,padding:"6px 8px",cursor:"pointer",borderBottom:"1px solid #f1f2f5"}}, im?React.createElement("img",{src:im,style:{width:28,height:36,objectFit:"cover",borderRadius:4,flexShrink:0}}):React.createElement("div",{style:{width:28,height:36,background:"#e5e7eb",borderRadius:4,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}},"🃏"), React.createElement("span",{style:{fontSize:12,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},cc.name||"")); })):null),
+            (selTpl==="c-psa"||selTpl==="c-comp")?React.createElement("div",{style:{marginBottom:14,padding:"10px 12px",background:"#f8faff",border:"1px solid #e5e7eb",borderRadius:8}}, React.createElement("div",{style:{fontSize:10,fontWeight:700,color:"#6b7280",marginBottom:6,textTransform:"uppercase",letterSpacing:"0.08em"}}, selTpl==="c-psa"?"🖼️ Segunda foto — la PSA (súbela tú)":"🖼️ Segunda foto — Foto B (súbela tú)"), React.createElement("input",{type:"file",accept:"image/*",onChange:function(e){ var f=e.target.files&&e.target.files[0]; if(!f)return; var r=new FileReader(); r.onload=function(ev){ setCardImg2(ev.target.result); }; r.readAsDataURL(f); },style:{fontSize:12,fontFamily:"Inter,sans-serif"}}), cardImg2?React.createElement("div",{style:{marginTop:6,display:"flex",alignItems:"center",gap:8}}, React.createElement("img",{src:cardImg2,style:{width:34,height:44,objectFit:"cover",borderRadius:4}}), React.createElement("button",{onClick:function(){setCardImg2("");},style:{border:"1px solid #e5e7eb",background:"#fff",borderRadius:6,fontSize:11,padding:"4px 8px",cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Quitar")):null):null,
             React.createElement("div",{style:{fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:12}},"EDITAR TEXTOS"),
             selDef&&selDef.fields.map(function(fk){
               return React.createElement("div",{key:fk,style:{marginBottom:12}},
@@ -21441,7 +21443,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v41")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v42")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
