@@ -20495,6 +20495,8 @@ function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, dire
   var os = useState(null), openId = os[0], setOpenId = os[1];
   var lvs = useState(false), live = lvs[0], setLive = lvs[1];
   var lqs = useState(""), liveQ = lqs[0], setLiveQ = lqs[1];
+  var clq = useState(""), cliQ=clq[0], setCliQ=clq[1];
+  var exb = useState(null), expBuyer=exb[0], setExpBuyer=exb[1];
   var ltb = useState("quedan"), liveTab=ltb[0], setLiveTab=ltb[1];
   var lsel = useState(null), liveSel=lsel[0], setLiveSel=lsel[1];
   var lcl = useState(false), liveClose=lcl[0], setLiveClose=lcl[1];
@@ -20560,8 +20562,39 @@ function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, dire
     setShowImp(false); setImpStep("input"); setImpTxt(""); setImpMatches([]);
     if(window._cvToast) window._cvToast(n+" cartas con precio de venta");
   }
-  var subnav = h("div",{style:{display:"flex",gap:6,marginBottom:18,flexWrap:"wrap"}}, [["directo","🎬 Directos"],["breaks","🎁 Breaks de caja"]].map(function(o){ return h(Btn,{key:o[0],sm:true,v:sub===o[0]?"primary":"outline",onClick:function(){setSub(o[0]);}},o[1]); }));
+  var subnav = h("div",{style:{display:"flex",gap:6,marginBottom:18,flexWrap:"wrap"}}, [["directo","🎬 Directos"],["breaks","🎁 Breaks de caja"],["clientes","👥 Compradores"]].map(function(o){ return h(Btn,{key:o[0],sm:true,v:sub===o[0]?"primary":"outline",onClick:function(){setSub(o[0]);}},o[1]); }));
   if(sub==="breaks") return h("div",null, subnav, h(BreaksTab,{breaks:breaks, saveBreaks:saveBreaks}));
+  if(sub==="clientes"){
+    var byBuyer={};
+    function _addB(name,date,item){ var key=(name||"").trim().toLowerCase(); if(!key) return; if(!byBuyer[key]) byBuyer[key]={n:(name||"").trim(),total:0,count:0,days:{}}; byBuyer[key].total+=item.price; byBuyer[key].count++; var dd=date||"Sin fecha"; if(!byBuyer[key].days[dd]) byBuyer[key].days[dd]={items:[],total:0}; byBuyer[key].days[dd].items.push(item); byBuyer[key].days[dd].total+=item.price; }
+    (cards||[]).forEach(function(c){ if((c.sellPrice||0)>0 && c.soldTo){ var d=(directos||[]).find(function(x){return (x.cardIds||[]).indexOf(c.id)>=0;}); _addB(c.soldTo,c.sellDate,{type:"carta",name:c.name,price:(c.sellPrice||0),ctx:(d?d.name:"Directo"),img:(c.imageUrl||c.cloudinaryUrl||"")}); } });
+    (breaks||[]).forEach(function(b){ (b.spots||[]).forEach(function(sp){ if((sp.buyer||"").trim()){ _addB(sp.buyer,b.date,{type:"spot",name:(sp.team||"Spot"),price:(+sp.price||0),ctx:(b.name||"Break"),img:""}); } }); });
+    var clist=Object.keys(byBuyer).map(function(k){return byBuyer[k];}).sort(function(a,b){return b.total-a.total;});
+    var totalAll=clist.reduce(function(a,g){return a+g.total;},0);
+    var shown=clist.filter(function(g){ return !cliQ || g.n.toLowerCase().indexOf(cliQ.toLowerCase())>=0; });
+    function fday(d){ if(!d||d==="Sin fecha") return "Sin fecha"; var p=d.split("-"); return p.length===3?(p[2]+"/"+p[1]+"/"+p[0]):d; }
+    return h("div",null, subnav,
+      h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:12,flexWrap:"wrap",gap:8}},
+        h("div",null, h("div",{style:{fontSize:18,fontWeight:800}},"👥 Compradores"), h("div",{style:{fontSize:12,color:SUB,marginTop:2}},clist.length+" compradores · "+eu(totalAll)+" en ventas")),
+        h("input",{value:cliQ,onChange:function(e){setCliQ(e.target.value);},placeholder:"Buscar comprador...",style:{padding:"8px 12px",border:"1px solid "+BDR,borderRadius:8,fontSize:13,fontFamily:"Inter,sans-serif",minWidth:180}})),
+      clist.length===0? h(Empty,{icon:"👥",title:"Aún no hay compradores",sub:"Marca ventas con comprador (en el modo en vivo) y asigna compradores a los spots de breaks"}) :
+      h("div",{style:{display:"flex",flexDirection:"column",gap:8}}, shown.map(function(g){
+        var open=expBuyer===g.n;
+        var dayKeys=Object.keys(g.days).sort(function(a,b){return b.localeCompare(a);});
+        return h("div",{key:g.n,style:{border:"1px solid "+BDR,borderRadius:12,overflow:"hidden",background:BG}},
+          h("div",{onClick:function(){setExpBuyer(open?null:g.n);},style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"13px 16px",cursor:"pointer"}},
+            h("div",{style:{display:"flex",alignItems:"center",gap:10,minWidth:0}}, h("div",{style:{width:38,height:38,borderRadius:"50%",background:"linear-gradient(135deg,#004D98,#A50044)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:15,flexShrink:0}}, (g.n||"?").replace("@","").slice(0,1).toUpperCase()), h("div",{style:{minWidth:0}}, h("div",{style:{fontWeight:700,fontSize:15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},g.n), h("div",{style:{fontSize:12,color:SUB}},g.count+(g.count===1?" artículo":" artículos")+" · "+dayKeys.length+(dayKeys.length===1?" día":" días")))),
+            h("div",{style:{display:"flex",alignItems:"center",gap:10,flexShrink:0}}, h("div",{style:{color:GREEN,fontWeight:900,fontSize:17}},eu(g.total)), h("span",{style:{color:MUT,fontSize:14}},open?"▲":"▼"))),
+          open? h("div",{style:{borderTop:"1px solid "+BDR}}, dayKeys.map(function(dk){ var day=g.days[dk];
+            return h("div",{key:dk},
+              h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 16px",background:"#f0f2f6"}}, h("span",{style:{fontSize:12,fontWeight:800,color:TXT}},"📅 "+fday(dk)), h("span",{style:{fontSize:12,fontWeight:700,color:GREEN}},eu(day.total))),
+              day.items.map(function(it,i){ return h("div",{key:i,style:{display:"flex",alignItems:"center",gap:10,padding:"9px 16px",borderBottom:"1px solid "+BDR}},
+                it.img?h("img",{src:it.img,style:{width:30,height:40,objectFit:"cover",borderRadius:4,flexShrink:0}}):h("div",{style:{width:30,height:40,background:(it.type==="spot"?"#004D98":"#A50044"),borderRadius:4,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}, it.type==="spot"?"🎁":"🎬"),
+                h("div",{style:{flex:1,minWidth:0}}, h("div",{style:{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},(it.type==="spot"?"Spot · ":"")+it.name), h("div",{style:{fontSize:11,color:SUB}},(it.type==="spot"?"Break: ":"Directo: ")+it.ctx)),
+                h("div",{style:{color:GREEN,fontWeight:700,fontSize:13,flexShrink:0}},eu(it.price))); }));
+          })) : null);
+      })));
+  }
   if(dir){
     var dc = cards.filter(function(c){ return (dir.cardIds||[]).indexOf(c.id)>=0; });
     var gastoCartas = dc.reduce(function(a,c){ return a + (c.buyPrice||0)*(c.quantity||1); },0);
@@ -21513,7 +21546,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v50")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v52")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
