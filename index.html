@@ -19687,7 +19687,7 @@ function RedesTab({ cards, onOpenPost }) {
       ce("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(190px,1fr))",gap:8}},
         [["p-venta","💰 En venta"],["s-dia","🃏 Carta del día"],["s-guardo","🤔 ¿Vendo o guardo?"],["s-vendida","✅ Vendida"],["p-joya","💎 Nueva joya"],["c-cuanto","🔎 ¿Cuánto vale?"],["c-psa","🏆 Antes / después (PSA)"],["c-ndv","😩 No debí vender"],["c-comp","📈 Comparativa de precio"],["c-countdown","⏳ Countdown directo"],["top5list","📋 Top 5"],["lote","📦 Lote directo"]].map(function(o){
           var act=(contenidoSub===o[0]);
-          return ce("button",{key:o[0],onClick:function(){ var mp={top5list:"c-top5",lote:"p-lote"}; setContenidoSub(""); onOpenPost({}, mp[o[0]]||o[0]); },style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 14px",border:"1px solid "+(act?blue:"#e8eaed"),borderRadius:9,background:act?"#eff4ff":"#fff",cursor:"pointer",fontFamily:"Inter,sans-serif",fontSize:13,fontWeight:600,color:"#1a1a2e"}}, ce("span",null,o[1]), ce("span",{style:{color:blue}},"→"));
+          return ce("button",{key:o[0],onClick:function(){ if(o[0]==="lote"){ setContenidoSub("lote"); } else { var mp={top5list:"c-top5"}; setContenidoSub(""); onOpenPost({}, mp[o[0]]||o[0]); } },style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 14px",border:"1px solid "+(act?blue:"#e8eaed"),borderRadius:9,background:act?"#eff4ff":"#fff",cursor:"pointer",fontFamily:"Inter,sans-serif",fontSize:13,fontWeight:600,color:"#1a1a2e"}}, ce("span",null,o[1]), ce("span",{style:{color:blue}},"→"));
         })
       )
     ):null,
@@ -20493,6 +20493,8 @@ function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, dire
   var h = React.createElement;
   var ds = useState("directo"), sub = ds[0], setSub = ds[1];
   var os = useState(null), openId = os[0], setOpenId = os[1];
+  var lvs = useState(false), live = lvs[0], setLive = lvs[1];
+  var lqs = useState(""), liveQ = lqs[0], setLiveQ = lqs[1];
   var cs = useState(false), creating = cs[0], setCreating = cs[1];
   var nls = useState(""), newLote = nls[0], setNewLote = nls[1];
   function crearLote(nm){ nm=(nm||"").trim(); if(!nm) return null; var ex=(lots||[]).find(function(l){return (l.name||"").toLowerCase()===nm.toLowerCase();}); if(ex) return ex.id; var nl={id:uid(),name:nm}; if(saveLots) saveLots((lots||[]).concat([nl])); if(window._cvToast) window._cvToast("Lote \""+nm+"\" creado"); return nl.id; }
@@ -20564,9 +20566,31 @@ function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, dire
     var vendidas = dc.filter(function(c){ return (c.sellPrice||0)>0; }).length;
     var addable = cards.filter(function(c){ return c.mode==="inventory" && (dir.cardIds||[]).indexOf(c.id)<0 && addQ && (c.name||"").toLowerCase().indexOf(addQ.toLowerCase())>=0; }).slice(0,8);
     return h("div",null, subnav,
+      live? h("div",{style:{position:"fixed",top:0,left:0,right:0,bottom:0,background:"#0a0a0a",zIndex:3000,display:"flex",flexDirection:"column",fontFamily:"Inter,sans-serif"}},
+        h("div",{style:{flexShrink:0,padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"linear-gradient(90deg,#004D98,#A50044)"}},
+          h("div",null,
+            h("div",{style:{color:"#fff",fontWeight:800,fontSize:16,display:"flex",alignItems:"center",gap:8}}, h("span",{style:{width:10,height:10,borderRadius:"50%",background:"#ff3b3b",display:"inline-block"}}), "EN DIRECTO · "+dir.name),
+            h("div",{style:{color:"rgba(255,255,255,.85)",fontSize:12,marginTop:2}}, vendidas+" vendidas · "+(dc.length-vendidas)+" quedan")),
+          h("div",{style:{display:"flex",alignItems:"center",gap:12}},
+            h("div",{style:{textAlign:"right"}}, h("div",{style:{color:"rgba(255,255,255,.8)",fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em"}},"Vendido"), h("div",{style:{color:"#fff",fontWeight:900,fontSize:22}},eu(recibido))),
+            h("button",{onClick:function(){setLive(false);},style:{background:"rgba(255,255,255,.18)",border:"none",color:"#fff",fontSize:20,width:42,height:42,borderRadius:10,cursor:"pointer"}},"✕"))),
+        h("div",{style:{flexShrink:0,padding:"10px 16px"}}, h("input",{value:liveQ,onChange:function(e){setLiveQ(e.target.value);},placeholder:"Buscar carta...",style:{width:"100%",boxSizing:"border-box",padding:"13px 14px",borderRadius:10,border:"1px solid #2a2a33",background:"#151515",color:"#fff",fontSize:15,fontFamily:"Inter,sans-serif"}})),
+        h("div",{style:{flex:1,overflowY:"auto",padding:"0 16px 24px",display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:12,alignContent:"start"}},
+          dc.filter(function(c){ return !liveQ || (c.name||"").toLowerCase().indexOf(liveQ.toLowerCase())>=0; }).map(function(c){
+            var pr=(c.sellPrice||0), sold=pr>0, img=c.imageUrl||c.cloudinaryUrl||"";
+            return h("div",{key:c.id,style:{background:"#151515",border:"2px solid "+(sold?GREEN:"#2a2a33"),borderRadius:14,overflow:"hidden",display:"flex",flexDirection:"column"}},
+              h("div",{style:{position:"relative",height:150,background:"#0a0a0a"}},
+                img?h("img",{src:img,style:{width:"100%",height:"100%",objectFit:"cover"}}):h("div",{style:{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",color:"#555",fontSize:11}},"sin foto"),
+                sold?h("div",{style:{position:"absolute",top:6,right:6,background:GREEN,color:"#fff",fontWeight:800,fontSize:12,padding:"3px 8px",borderRadius:20}},"✓ "+eu(pr)):null),
+              h("div",{style:{padding:"8px 10px",flex:1,display:"flex",flexDirection:"column",gap:7}},
+                h("div",{style:{color:"#fff",fontSize:12,fontWeight:600,lineHeight:1.2,minHeight:30,overflow:"hidden"}},c.name),
+                h("div",{style:{display:"flex",gap:6,alignItems:"center"}},
+                  h("input",{id:"live-"+c.id,type:"text",inputMode:"decimal",defaultValue:pr>0?String(pr):((c.targetPrice||c.buyPrice)?String(c.targetPrice||c.buyPrice):""),placeholder:"€",style:{width:58,padding:"10px 6px",borderRadius:8,border:"1px solid #2a2a33",background:"#0a0a0a",color:"#fff",fontSize:15,textAlign:"center",fontFamily:"Inter,sans-serif"}}),
+                  h("button",{onClick:function(){ var inp=document.getElementById("live-"+c.id); var np=sold?0:(parseFloat(((inp&&inp.value)||"").replace(",","."))||0); var cid=c.id, dd=dir.date; var d0=(directos||[]).find(function(x){return x.id===openId;}); var pmap=Object.assign({},(d0&&d0.priced)||{}); if(pmap[cid]==null){ pmap[cid]={p:(c.sellPrice||0),s:(c.status||"holding"),dt:(c.sellDate||"")}; upd(dir.id,{priced:pmap}); } setCards(function(p){ return p.map(function(x){ return x.id===cid? Object.assign({},x,{sellPrice:np,status:(np>0?"sold":"holding"),sellDate:(np>0?(x.sellDate||dd):"")}) : x; }); }); if(window._cvToast && !sold && np>0) window._cvToast("¡Vendida! "+eu(np),{icon:"💸"}); },style:{flex:1,padding:"10px 6px",borderRadius:8,border:"none",background:sold?"#333":GREEN,color:"#fff",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"Inter,sans-serif"}}, sold?"Deshacer":"Vender"))))
+          }))) : null,
       h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}},
         h("div",null, h("div",{style:{fontSize:18,fontWeight:800}},dir.name), h("div",{style:{fontSize:12,color:SUB}},dir.date+" · "+dc.length+" cartas · "+vendidas+" con precio")),
-        h("div",{style:{display:"flex",gap:6}}, h(Btn,{sm:true,v:"outline",onClick:function(){setOpenId(null);}},"← Directos"), h(Btn,{sm:true,v:"outline",onClick:function(){ var el=document.getElementById("cv-directo-dash"); if(!el||!window.html2canvas){ if(window._cvToast) window._cvToast("Espera un momento",{icon:"⏳"}); return; } window.html2canvas(el,{scale:2,backgroundColor:"#ffffff"}).then(function(c){ var a=document.createElement("a"); a.download="directo-"+(dir.date||"")+".png"; a.href=c.toDataURL("image/png"); a.click(); if(window._cvToast) window._cvToast("Balance descargado"); }); }},"🖼️"), h(Btn,{sm:true,onClick:function(){setShowImp(true);}},"📥 Importar factura Geek"), h(Btn,{sm:true,v:"ghost",style:{color:RED},onClick:function(){ if(confirm("¿Eliminar este directo? No borra las cartas.")){ saveDirectos((directos||[]).filter(function(x){return x.id!==dir.id;})); setOpenId(null); if(window._cvToast) window._cvToast("Directo eliminado",{icon:"🗑️"}); } }},"🗑️"))),
+        h("div",{style:{display:"flex",gap:6}}, h(Btn,{sm:true,v:"outline",onClick:function(){setOpenId(null);}},"← Directos"), h(Btn,{sm:true,onClick:function(){setLive(true);setLiveQ("");},style:{background:RED,color:"#fff"}},"🔴 En vivo"), h(Btn,{sm:true,v:"outline",onClick:function(){ var el=document.getElementById("cv-directo-dash"); if(!el||!window.html2canvas){ if(window._cvToast) window._cvToast("Espera un momento",{icon:"⏳"}); return; } window.html2canvas(el,{scale:2,backgroundColor:"#ffffff"}).then(function(c){ var a=document.createElement("a"); a.download="directo-"+(dir.date||"")+".png"; a.href=c.toDataURL("image/png"); a.click(); if(window._cvToast) window._cvToast("Balance descargado"); }); }},"🖼️"), h(Btn,{sm:true,onClick:function(){setShowImp(true);}},"📥 Importar factura Geek"), h(Btn,{sm:true,v:"ghost",style:{color:RED},onClick:function(){ if(confirm("¿Eliminar este directo? No borra las cartas.")){ saveDirectos((directos||[]).filter(function(x){return x.id!==dir.id;})); setOpenId(null); if(window._cvToast) window._cvToast("Directo eliminado",{icon:"🗑️"}); } }},"🗑️"))),
       h("div",{id:"cv-directo-dash",style:{background:BG,padding:14,borderRadius:12,marginBottom:16,border:"1px solid "+BDR}},
         h("div",{style:{background:(neto>=0?"#f0fdf8":"#fff5f5"),border:"1px solid "+(neto>=0?GREEN:RED),borderRadius:10,padding:"14px 16px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,flexWrap:"wrap"}},
           h("div",null, h("div",{style:{fontSize:11,color:SUB,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em"}},"Beneficio del directo"), h("div",{style:{fontSize:12,color:SUB,marginTop:3}},"Recibido "+eu(recibido)+"  ·  Gastos "+eu(gasto))),
@@ -21442,7 +21466,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v47")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v49")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
