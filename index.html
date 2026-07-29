@@ -17463,7 +17463,7 @@ function SellModal({ card, onSave, onClose }) {
                     React.createElement("div", null,
                         React.createElement("label", { style: LS }, "Plataforma"),
                         React.createElement("select", { value: pl, onChange: e => setPl(e.target.value), style: IS }, PLATS.map(p => React.createElement("option", { key: p, value: p }, p))))),
-                pr && React.createElement("div", { style: { background: n >= 0 ? "#f0fdf8" : "#fff5f5", borderRadius: 10, padding: "12px 14px", marginBottom: 10 } }, [["Ingresos", eu(sell), TXT], ["Comisión", "-" + eu(fa), RED], ["Envío", "-" + eu(sa), RED], ["Coste", "-" + eu(buy), SUB], ["Beneficio neto", (n >= 0 ? "+" : "") + eu(n), cl(n)]].map(([l, v, c]) => (React.createElement("div", { key: l, style: { display: "flex", justifyContent: "space-between", marginBottom: 4 } },
+                pr && React.createElement("div", { style: { background: n >= 0 ? "#f0fdf8" : "#fff5f5", borderRadius: 10, padding: "12px 14px", marginBottom: 10 } }, [["Ingresos", eu(sell), TXT], ["Comisión", "-" + eu(fa), RED], ["Envío", "-" + eu(sa), RED], ["Coste", "-" + eu(buy), SUB], ["Beneficio neto", (n >= 0 ? "+" : "") + eu(n), cl(n)], ["ROI", (roi >= 0 ? "+" : "") + roi.toFixed(1) + "%", cl(roi)]].map(([l, v, c]) => (React.createElement("div", { key: l, style: { display: "flex", justifyContent: "space-between", marginBottom: 4 } },
                     React.createElement("span", { style: { fontSize: 12, color: SUB } }, l),
                     React.createElement("span", { style: { fontSize: 13, fontWeight: l === "Beneficio neto" ? 700 : 500, color: c } }, v))))),
                 belowMin && React.createElement("div", { style: { background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 8, padding: "9px 12px", marginBottom: 10, fontSize: 12, color: RED } },
@@ -19761,7 +19761,7 @@ function RedesTab({ cards, onOpenPost }) {
             var el=document.getElementById("redes-lote");
             if(!el||!window.html2canvas){alert("Espera un momento");return;}
             window.html2canvas(el,{scale:4,useCORS:true,allowTaint:true,backgroundColor:null}).then(function(c){
-              var a=document.createElement("a");a.download="lote-directo.png";a.href=c.toDataURL("image/png");a.click();
+              _saveImg(c,"lote-directo.png");
             });
           },style:{width:"100%",marginTop:8,padding:"8px",border:"none",borderRadius:8,background:dark,color:"#fff",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 Descargar story")
         ):null
@@ -20340,7 +20340,7 @@ function PostModal({ card, onClose, cards, initTpl }) {
     var el = document.getElementById("tcg-tpl");
     if(!el||!window.html2canvas){ alert("Cargando... intenta en un momento"); return; }
     window.html2canvas(el,{scale:isStory?4:3.6,useCORS:true,allowTaint:true,backgroundColor:null}).then(function(c){
-      var a=document.createElement("a"); a.download=(selDef?selDef.label:"post")+(isStory?"-story":"-post")+".png"; a.href=c.toDataURL("image/png"); a.click();
+      _saveImg(c, (selDef?selDef.label:"post")+(isStory?"-story":"-post")+".png");
     });
   }
 
@@ -21524,6 +21524,9 @@ function SpotManager({ brk, breaks, saveBreaks, onClose, onEdit, startRoulette }
 }
 // =================== FIN BREAKS ===================
 
+function _dlBlob(blob, filename){ var url=URL.createObjectURL(blob); var a=document.createElement("a"); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); setTimeout(function(){ try{URL.revokeObjectURL(url); a.remove();}catch(e){} },1500); if(window._cvToast) window._cvToast("Imagen guardada"); }
+function _shareOrDl(blob, filename){ var file=null; try{ file=new File([blob], filename, {type:"image/png"}); }catch(e){} if(file && navigator.canShare && navigator.canShare({files:[file]})){ navigator.share({files:[file], title:"The Card Girl"}).then(function(){}).catch(function(err){ if(!(err&&err.name==="AbortError")) _dlBlob(blob, filename); }); } else { _dlBlob(blob, filename); } }
+function _saveImg(cv, filename){ try{ if(cv.toBlob){ cv.toBlob(function(blob){ if(!blob){ try{var a=document.createElement("a");a.download=filename;a.href=cv.toDataURL("image/png");a.click();}catch(e){} return; } _shareOrDl(blob, filename); }, "image/png"); } else { var a2=document.createElement("a");a2.download=filename;a2.href=cv.toDataURL("image/png");a2.click(); } }catch(e){} }
 function _cvToast(msg, opts) {
   opts = opts || {};
   var wrap = document.getElementById("cv-toast-wrap");
@@ -21701,7 +21704,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v77")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v79")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
