@@ -17494,7 +17494,9 @@ function SellModal({ card, onSave, onClose }) {
                 "📋 Copiar mensaje para el comprador"),
                 React.createElement(Btn, { v: "success", full: true, onClick: confirm, disabled: !pr }, "Confirmar venta")))));
 }
-function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots }) {
+function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards }) {
+    var _distL=(function(){var seen={},a=[];(cards||[]).forEach(function(c){var v=(c.league||"").trim();if(v&&!seen[v.toLowerCase()]){seen[v.toLowerCase()]=1;a.push(v);}});return a.sort();})();
+    var _distT=(function(){var seen={},a=[];(cards||[]).forEach(function(c){var v=(c.team||"").trim();if(v&&!seen[v.toLowerCase()]){seen[v.toLowerCase()]=1;a.push(v);}});return a.sort();})();
     const blank = { name: "", category: (localStorage.getItem("cv10_lastcat")||"trading"), series: "", rarity: "Común", condition: "Raw", quantity: 1, buyPrice: "", buyDate: new Date().toISOString().slice(0, 10), notes: "", tags: [], marketPrice: "", images: [], status: "holding", sellPrice: "", sellDate: "", platformFee: "", shippingCost: "", platform: (localStorage.getItem("cv10_lastplat")||"eBay"), isFavorite: false, mode: defMode || "inventory", targetPrice: "", listingDate: "", location: (localStorage.getItem("cv10_lastloc")||""), imageUrl: "" };
     const init = editCard ? Object.assign(Object.assign({}, editCard), { buyPrice: String(editCard.buyPrice || ""), sellPrice: String(editCard.sellPrice || ""), platformFee: String(editCard.platformFee || ""), shippingCost: String(editCard.shippingCost || ""), targetPrice: String(editCard.targetPrice || ""), marketPrice: String(editCard.marketPrice || ""), tags: editCard.tags || [] }) : blank;
     const [f, setF] = useState(init), [imgs, setImgs] = useState((editCard === null || editCard === void 0 ? void 0 : editCard.images) || []), [tab, setTab] = useState("info");
@@ -17564,7 +17566,7 @@ function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots }) {
                             React.createElement("label", { style: LS }, "Condici\u00F3n"),
                             React.createElement("select", { value: f.condition, onChange: e => sf("condition", e.target.value), style: IS }, CONDS.map(c => React.createElement("option", { key: c, value: c }, c))))),
                     
-                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } }, React.createElement("div", null, React.createElement("label", { style: LS }, "Liga"), React.createElement("input", { value: f.league || "", onChange: function(e){ sf("league", e.target.value); }, placeholder: "Premier League", style: IS })), React.createElement("div", null, React.createElement("label", { style: LS }, "Equipo"), React.createElement("input", { value: f.team || "", onChange: function(e){ sf("team", e.target.value); }, placeholder: "FC Barcelona", style: IS }))),
+                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } }, React.createElement("div", null, React.createElement("label", { style: LS }, "Liga"), React.createElement("input", { value: f.league || "", onChange: function(e){ sf("league", e.target.value); }, placeholder: "Premier League", list: "cv-leagues", style: IS }), React.createElement("datalist", { id: "cv-leagues" }, _distL.map(function(v){ return React.createElement("option", { key: v, value: v }); }))), React.createElement("div", null, React.createElement("label", { style: LS }, "Equipo"), React.createElement("input", { value: f.team || "", onChange: function(e){ sf("team", e.target.value); }, placeholder: "FC Barcelona", list: "cv-teams", style: IS }), React.createElement("datalist", { id: "cv-teams" }, _distT.map(function(v){ return React.createElement("option", { key: v, value: v }); })))),
                     
                     React.createElement("div", null,
                         React.createElement("label", { style: LS }, "Lote"),
@@ -18398,7 +18400,10 @@ function InvoicesTab({ invoices, setInvoices }) {
                             React.createElement("td", { style: { padding: "10px 12px", textAlign: "right", fontSize: 13, color: AMBER } }, eu(tG)),
                             React.createElement("td", null)))))));
 }
-function AnalyticsTab({ cards }) {
+function AnalyticsTab({ cards, lots, saveLots, setCards }) {
+    var _asubS = React.useState("analisis"); var aSub=_asubS[0], setASub=_asubS[1];
+    var _asubnav = React.createElement("div",{style:{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}, [["analisis","📊 Análisis"],["lotes","📦 Lotes"]].map(function(o){ return React.createElement(Btn,{key:o[0],sm:true,v:aSub===o[0]?"primary":"outline",onClick:function(){setASub(o[0]);}},o[1]); }));
+    if(aSub==="lotes") return React.createElement("div",null,_asubnav, React.createElement(LotsTab,{lots:(lots||[]),saveLots:saveLots,cards:cards,setCards:setCards}));
     const sold = cards.filter(c => c.mode === "inventory" && c.status === "sold");
     // Avg days to sell by category
     const catStats = Object.entries(CATS).map(([k, label]) => {
@@ -18491,7 +18496,7 @@ function AnalyticsTab({ cards }) {
                 const minSell = buy > 0 ? (buy * (1 + roi / 100) + ship) / (1 - fee / 100) : 0;
                 const netIncome = minSell * (1 - fee / 100) - ship;
                 const realRoi = buy > 0 ? ((netIncome - buy) / buy * 100) : 0;
-                return React.createElement("div", null,
+                return React.createElement("div", null, _asubnav,
                     React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 } },
                         React.createElement("div", null, React.createElement("label", { style: LS }, "Precio de compra (\u20AC)"), React.createElement("input", { type: "number", min: "0", step: "0.01", value: cBuy, onChange: e => setCBuy(e.target.value), placeholder: "0.00", style: IS })),
                         React.createElement("div", null, React.createElement("label", { style: LS }, "ROI m\u00EDnimo (%)"), React.createElement("input", { type: "number", min: "0", step: "1", value: cRoi, onChange: e => setCRoi(e.target.value), placeholder: "30", style: IS }))),
@@ -21699,7 +21704,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v71")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v73")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -22243,7 +22248,7 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
             tab === "dashboard" && React.createElement(DashTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
             tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup, onBulk: bulkUpd, onBulkDel: bulkDel }),
             tab === "collection" && React.createElement(ColTab, { cards: cards, onEdit: oe, onDelete: del, onDuplicate: dup, onBulk: bulkUpd, onBulkDel: bulkDel }),
-            tab === "fiscal" && React.createElement(AnalyticsTab, { cards: cards }),
+            tab === "fiscal" && React.createElement(AnalyticsTab, { cards: cards, lots: lots, saveLots: saveLots, setCards: setCards }),
             tab === "invoices" && false,
             tab === "analytics" && false,
             tab === "lots" && React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards }),
@@ -22251,7 +22256,7 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
             
             tab === "redes" && React.createElement(RedesTab, { cards: cards, onOpenPost: function(c,tpl){ setPostCard(c); setPostInitTpl(tpl||null); setShowPostModal(true); } }),
             tab === "psa" && (isPremium() ? React.createElement(PSATab, null) : React.createElement("div",{style:{maxWidth:500,margin:"80px auto",textAlign:"center",padding:40}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"\uD83D\uDD12"),React.createElement("div",{style:{fontSize:20,fontWeight:700,marginBottom:8}},"Función Premium"),React.createElement("div",{style:{color:SUB,marginBottom:24}},"PSA/BGS es una función Premium"),React.createElement("button",{onClick:function(){setShowSettings(true);},style:{padding:"12px 24px",background:BLUE,border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B50 Hazte Premium")))),
-        sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); }, editCard: ec, defMode: dm, lots: lots, saveLots: saveLots }),
+        sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); }, editCard: ec, defMode: dm, lots: lots, saveLots: saveLots, cards: cards }),
         showLot && React.createElement(LotModal, { cards: cards, onSell: ups, onClose: () => setShowLot(false) }),
         sc && React.createElement(SellModal, { card: sc, onSave: ups, onClose: () => setSc(null) }),
         dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onClose: () => setDupCard(null) }),
