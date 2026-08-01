@@ -18,6 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Saira+Condensed:wght@600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
   <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style>
   <style>
     #cv-top-bar{padding-top:env(safe-area-inset-top);}
@@ -20337,17 +20338,23 @@ function PostModal({ card, onClose, cards, initTpl }) {
   var isStory = (fmt==="story");
 
   function dlPost(){
-    if(!window.html2canvas||!selDef){ alert("Cargando... intenta en un momento"); return; }
+    if(!selDef){ return; }
     var W=1080, H=isStory?1920:1080;
     var holder=document.createElement("div");
-    holder.style.cssText="position:fixed;left:-99999px;top:0;width:"+W+"px;height:"+H+"px;overflow:hidden;z-index:-1;";
+    holder.style.cssText="position:fixed;left:-99999px;top:0;width:"+W+"px;height:"+H+"px;overflow:hidden;z-index:-1;background:transparent;";
     document.body.appendChild(holder);
     var root=ReactDOM.createRoot(holder);
     root.render(selDef.render(W,H));
     var fname=(selDef?selDef.label:"post")+(isStory?"-story":"-post")+".png";
-    function cap(){ var node=holder.firstElementChild||holder; window.html2canvas(node,{scale:1,useCORS:true,allowTaint:true,backgroundColor:null,width:W,height:H,windowWidth:W,windowHeight:H}).then(function(c){ _saveImg(c,fname); }).catch(function(){ if(window._cvToast) window._cvToast("No se pudo generar la imagen",{icon:"⚠️"}); }).then(function(){ try{ root.unmount(); holder.remove(); }catch(e){} }); }
+    function cleanup(){ try{ root.unmount(); holder.remove(); }catch(e){} }
+    function go(){
+      var node=holder.firstElementChild||holder;
+      if(window.htmlToImage){
+        window.htmlToImage.toBlob(node,{width:W,height:H,pixelRatio:1}).then(function(blob){ if(blob){ _shareOrDl(blob,fname); } else if(window.html2canvas){ window.html2canvas(node,{scale:1,useCORS:true,backgroundColor:null,width:W,height:H}).then(function(c){_saveImg(c,fname);}); } cleanup(); }).catch(function(){ if(window.html2canvas){ window.html2canvas(node,{scale:1,useCORS:true,backgroundColor:null,width:W,height:H}).then(function(c){_saveImg(c,fname);}).then(cleanup); } else { cleanup(); } });
+      } else if(window.html2canvas){ window.html2canvas(node,{scale:1,useCORS:true,backgroundColor:null,width:W,height:H}).then(function(c){_saveImg(c,fname);}).then(cleanup); } else { cleanup(); }
+    }
     var wait=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
-    wait.then(function(){ setTimeout(cap, 450); });
+    wait.then(function(){ setTimeout(go, 350); });
   }
 
   return React.createElement("div",{ onClick:onClose, style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:1002,display:"flex",alignItems:"center",justifyContent:"center",padding:16,overflowY:"auto"} },
@@ -21710,7 +21717,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v80")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v82")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -22307,6 +22314,7 @@ window._signOut = function() {
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Saira+Condensed:wght@600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
   <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif}</style>
 </head>
 <body>
