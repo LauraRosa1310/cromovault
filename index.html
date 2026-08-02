@@ -20349,7 +20349,7 @@ function PostModal({ card, onClose, cards, initTpl }) {
     function cleanup(){ try{ root.unmount(); holder.remove(); }catch(e){} }
     function fallbackH2C(node){ if(window.html2canvas){ window.html2canvas(node,{scale:1,useCORS:true,backgroundColor:null,width:W,height:H}).then(function(c){_saveImg(c,fname);}).then(cleanup).catch(cleanup); } else cleanup(); }
     function shoot(){ var node=holder.firstElementChild||holder;
-      if(window.htmlToImage){ window.htmlToImage.toBlob(node,{width:W,height:H,pixelRatio:1}).then(function(blob){ if(blob){ _shareOrDl(blob,fname); cleanup(); } else { fallbackH2C(node); } }).catch(function(){ fallbackH2C(node); }); }
+      if(window.htmlToImage){ var opt={width:W,height:H,pixelRatio:1}; window.htmlToImage.toBlob(node,opt).then(function(){ return window.htmlToImage.toBlob(node,opt); }).then(function(){ return window.htmlToImage.toBlob(node,opt); }).then(function(blob){ if(blob){ _shareOrDl(blob,fname); cleanup(); } else { fallbackH2C(node); } }).catch(function(){ fallbackH2C(node); }); }
       else { fallbackH2C(node); } }
     function preload(url,done){ if(!url){ done(); return; } var im=new Image(); im.crossOrigin="anonymous"; im.onload=function(){ var durl=url; try{ var cv=document.createElement("canvas"); cv.width=im.naturalWidth||1080; cv.height=im.naturalHeight||1080; cv.getContext("2d").drawImage(im,0,0); durl=cv.toDataURL("image/png"); }catch(e){} try{ Array.prototype.forEach.call(holder.querySelectorAll("img"),function(x){ if(x.src===url||x.getAttribute("src")===url){ x.src=durl; } }); }catch(e){} done(); }; im.onerror=function(){ done(); }; im.src=url; }
     var wait=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
@@ -21716,7 +21716,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v86")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v87")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
