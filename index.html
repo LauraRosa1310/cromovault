@@ -20511,7 +20511,7 @@ var _GBX_MAIN=_gbxDec(_GBX_A.main);
 function _gbxInitOnce(){if(window.__GBX_INIT)return;window.__GBX_INIT=true;var st=document.createElement("style");st.id="gbx-style";st.textContent=_gbxDec(_GBX_A.css);document.head.appendChild(st);var po=document.createElement("div");po.id="gbxPortal";po.className="gbx";po.style.cssText="background:none;min-height:0;margin:0";po.innerHTML=_gbxDec(_GBX_A.ov);document.body.appendChild(po);if(!document.getElementById("printArea")){var pa=document.createElement("div");pa.id="printArea";document.body.appendChild(pa);}}
 function _gbxLoadJSOnce(){if(window.__GBX_JS)return;window.__GBX_JS=true;var sc=document.createElement("script");sc.textContent=_gbxDec(_GBX_A.js);document.body.appendChild(sc);}
 function _gbxRef(el){if(!el)return;_gbxInitOnce();el.innerHTML=_GBX_MAIN;if(!window.__GBX_JS){_gbxLoadJSOnce();}else{try{if(window.render)window.render();}catch(e){}}}
-function GestorBreaksNative(){return React.createElement("div",{className:"gbx",ref:_gbxRef,style:{width:"100%"}});}
+function GestorBreaksNative(){return React.createElement("div",{className:"gbx",ref:_gbxRef,style:{width:"100vw",position:"relative",left:"50%",right:"50%",marginLeft:"-50vw",marginRight:"-50vw",marginTop:6}});}
 function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, directos, saveDirectos }) {
   var h = React.createElement;
   var ds = useState("directo"), sub = ds[0], setSub = ds[1];
@@ -21723,7 +21723,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v90")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v91")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
