@@ -17503,6 +17503,11 @@ function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards })
     const [f, setF] = useState(init), [imgs, setImgs] = useState((editCard === null || editCard === void 0 ? void 0 : editCard.images) || []), [tab, setTab] = useState("info");
     const fr = { current: null };
     function sf(k, v) { setF(p => (Object.assign(Object.assign({}, p), { [k]: v }))); }
+    // Cambiar el estado fuera de "sold" limpia los campos de venta (precio, fecha, comisión, envío).
+    // Si no se limpian, una carta puede quedar con sellPrice>0 pero status!=="sold": no cuenta
+    // como vendida en Lotes (que mira status) pero sí aparece "vendida" en un directo nuevo
+    // (que mira sellPrice>0), dando cifras contradictorias entre pantallas.
+    function setStatus(k) { setF(p => { var n = Object.assign({}, p, { status: k }); if (k !== "sold") { n.sellPrice = ""; n.sellDate = ""; n.platformFee = ""; n.shippingCost = ""; } return n; }); }
     function addImgs(files) { Array.from(files).forEach(file => { const r = new FileReader(); r.onload = e => setImgs(p => [...p, e.target.result]); r.readAsDataURL(file); }); }
     var _allc = (function(){ try { return JSON.parse(localStorage.getItem("cv10")||"[]"); } catch(e){ return []; } })();
     var _names=[],_series=[],_sn={},_ss={}; _allc.forEach(function(c){ var n=(c.name||"").trim(); if(n&&!_sn[n.toLowerCase()]){_sn[n.toLowerCase()]=1;_names.push(n);} var se=(c.series||"").trim(); if(se&&!_ss[se.toLowerCase()]){_ss[se.toLowerCase()]=1;_series.push(se);} });
@@ -17524,7 +17529,7 @@ function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards })
                 tab === "info" && (React.createElement("div", null,
                     f.mode === "inventory" && (React.createElement("div", { style: { marginBottom: 14 } },
                         React.createElement("label", { style: LS }, "Estado"),
-                        React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 8 } }, [["holding", "En cartera", BLUE], ["listed", "En venta", AMBER], ["sold", "Vendida", GREEN]].map(([k, l, ac]) => (React.createElement("button", { key: k, onClick: () => sf("status", k), style: { flex: 1, padding: "8px 0", borderRadius: 8, cursor: "pointer", border: "1.5px solid " + (f.status === k ? ac : BDR), background: f.status === k ? ac + "18" : "transparent", color: f.status === k ? ac : SUB, fontFamily: "Inter,sans-serif", fontWeight: 500, fontSize: 11 } }, l)))),
+                        React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 8 } }, [["holding", "En cartera", BLUE], ["listed", "En venta", AMBER], ["sold", "Vendida", GREEN]].map(([k, l, ac]) => (React.createElement("button", { key: k, onClick: () => setStatus(k), style: { flex: 1, padding: "8px 0", borderRadius: 8, cursor: "pointer", border: "1.5px solid " + (f.status === k ? ac : BDR), background: f.status === k ? ac + "18" : "transparent", color: f.status === k ? ac : SUB, fontFamily: "Inter,sans-serif", fontWeight: 500, fontSize: 11 } }, l)))),
                         React.createElement("button", { onClick: () => sf("reserved", !f.reserved), style: { marginBottom: 8, padding: "6px 12px", borderRadius: 8, border: "1.5px solid " + (f.reserved ? "#0891b2" : BDR), background: f.reserved ? "rgba(8,145,178,0.10)" : "transparent", color: f.reserved ? "#0891b2" : SUB, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, f.reserved ? "🔖 Reservada (clic para quitar)" : "🔖 Marcar reservada"),
                         f.status === "sold" && (f.quantity || 1) > 1 && (React.createElement("div", { style: { background: "#f0fdf8", border: "1px solid #d1fae5", borderRadius: 8, padding: "10px 12px" } },
                             React.createElement("label", { style: Object.assign(Object.assign({}, LS), { marginBottom: 6 }) }, "\u00BFCu\u00E1ntas unidades vendes?"),
