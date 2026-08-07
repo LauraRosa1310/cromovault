@@ -17495,10 +17495,10 @@ function SellModal({ card, onSave, onClose }) {
                 "📋 Copiar mensaje para el comprador"),
                 React.createElement(Btn, { v: "success", full: true, onClick: confirm, disabled: !pr }, "Confirmar venta")))));
 }
-function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards }) {
+function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards, prefillName }) {
     var _distL=(function(){var seen={},a=[];(cards||[]).forEach(function(c){var v=(c.league||"").trim();if(v&&!seen[v.toLowerCase()]){seen[v.toLowerCase()]=1;a.push(v);}});return a.sort();})();
     var _distT=(function(){var seen={},a=[];(cards||[]).forEach(function(c){var v=(c.team||"").trim();if(v&&!seen[v.toLowerCase()]){seen[v.toLowerCase()]=1;a.push(v);}});return a.sort();})();
-    const blank = { name: "", category: (localStorage.getItem("cv10_lastcat")||"trading"), series: "", rarity: "Común", condition: "Raw", quantity: 1, buyPrice: "", buyDate: new Date().toISOString().slice(0, 10), notes: "", tags: [], marketPrice: "", images: [], status: "holding", sellPrice: "", sellDate: "", platformFee: "", shippingCost: "", platform: (localStorage.getItem("cv10_lastplat")||"eBay"), isFavorite: false, mode: defMode || "inventory", targetPrice: "", listingDate: "", location: (localStorage.getItem("cv10_lastloc")||""), imageUrl: "" };
+    const blank = { name: prefillName || "", category: (localStorage.getItem("cv10_lastcat")||"trading"), series: "", rarity: "Común", condition: "Raw", quantity: 1, buyPrice: "", buyDate: new Date().toISOString().slice(0, 10), notes: "", tags: [], marketPrice: "", images: [], status: "holding", sellPrice: "", sellDate: "", platformFee: "", shippingCost: "", platform: (localStorage.getItem("cv10_lastplat")||"eBay"), isFavorite: false, mode: defMode || "inventory", targetPrice: "", listingDate: "", location: (localStorage.getItem("cv10_lastloc")||""), imageUrl: "" };
     const init = editCard ? Object.assign(Object.assign({}, editCard), { buyPrice: String(editCard.buyPrice || ""), sellPrice: String(editCard.sellPrice || ""), platformFee: String(editCard.platformFee || ""), shippingCost: String(editCard.shippingCost || ""), targetPrice: String(editCard.targetPrice || ""), marketPrice: String(editCard.marketPrice || ""), tags: editCard.tags || [] }) : blank;
     const [f, setF] = useState(init), [imgs, setImgs] = useState((editCard === null || editCard === void 0 ? void 0 : editCard.images) || []), [tab, setTab] = useState("info");
     const fr = { current: null };
@@ -18745,12 +18745,15 @@ function RainbowSection({ rainbows, saveRainbows }) {
                     slot.owned && React.createElement("div", { style: { position: "absolute", top: 4, right: 4, background: GREEN, borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#fff", fontWeight: 700 } }, "\u2713")),
                 React.createElement("div", { style: { padding: "6px 8px", textAlign: "center", fontSize: 13, fontWeight: 700, color: slot.owned ? GREEN : MUT } }, slot.label || "✓"))))))))));
 }
-function LotsTab({ lots, saveLots, cards, setCards, onEdit }) {
+function LotsTab({ lots, saveLots, cards, setCards, onEdit, onAddNew }) {
     const [showForm, setShowForm] = useState(false);
     const [stockLotId, setStockLotId] = useState(null);
     const [stockTab, setStockTab] = useState("pendientes");
     function openLotCards(id) { setStockLotId(id); setStockTab("pendientes"); }
     const [editIdx, setEditIdx] = useState(null);
+    const [invSearch, setInvSearch] = useState("");
+    const invQ = invSearch.trim().toLowerCase();
+    const invMatches = invQ ? (cards || []).filter((c) => c.mode === "inventory" && (c.name || "").toLowerCase().includes(invQ)) : [];
     const [showGeekModal, setShowGeekModal] = useState(false);
     const [geekLotId, setGeekLotId] = useState("");
     const [geekType, setGeekType] = useState("Subasta");
@@ -18866,6 +18869,19 @@ function LotsTab({ lots, saveLots, cards, setCards, onEdit }) {
         React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
             React.createElement("div", { style: { fontSize: 13, color: SUB } }, "Agrupa tus cartas por lote de compra y analiza el rendimiento de cada uno"),
             React.createElement(Btn, { onClick: () => { setForm(blank); setEditIdx(null); setShowForm(true); } }, "+ Nuevo lote")),
+        React.createElement(Card, { style: { padding: 14, marginBottom: 16 } },
+            React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: SUB, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" } }, "🔍 Buscar carta en el inventario"),
+            React.createElement("input", { value: invSearch, onChange: (e) => setInvSearch(e.target.value), placeholder: "Nombre del jugador o carta...", style: IS }),
+            invQ && (invMatches.length === 0 ? React.createElement("div", { style: { textAlign: "center", padding: "14px 0 4px" } },
+                React.createElement("div", { style: { fontSize: 12, color: MUT, marginBottom: 10 } }, "No tienes ninguna carta con ese nombre en el inventario"),
+                React.createElement(Btn, { sm: true, onClick: () => { if (onAddNew) onAddNew("inventory", invSearch.trim()); } }, "+ Añadir \"" + invSearch.trim() + "\" al inventario"))
+                : React.createElement("div", { style: { marginTop: 8 } },
+                    invMatches.slice(0, 8).map((c) => (React.createElement("div", { key: c.id, onClick: () => { if (onEdit) onEdit(c); }, style: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "8px 4px", borderBottom: "1px solid " + BDR, cursor: onEdit ? "pointer" : "default" } },
+                        React.createElement("div", { style: { minWidth: 0 } },
+                            React.createElement("div", { style: { fontSize: 13, fontWeight: 600, color: onEdit ? BLUE : TXT, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, c.name),
+                            React.createElement("div", { style: { fontSize: 11, color: SUB, marginTop: 1 } }, c.status === "sold" ? "Vendida" : c.status === "listed" ? "En venta" : "En cartera")),
+                        React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: TXT, flexShrink: 0 } }, eu(c.buyPrice || 0))))),
+                    invMatches.length > 8 && React.createElement("div", { style: { fontSize: 11, color: MUT, textAlign: "center", padding: "6px 0 0" } }, "+" + (invMatches.length - 8) + " más")))),
         showForm && React.createElement(Card, { style: { padding: 20, marginBottom: 20 } },
             React.createElement("div", { style: { fontSize: 14, fontWeight: 700, marginBottom: 14 } }, editIdx !== null ? "Editar lote" : "Nuevo lote"),
             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } },
@@ -20826,11 +20842,12 @@ function App() {
         } catch(e) {}
     }, []);
     const [tab, setTab] = useState("dashboard"), [sf, setSF] = useState(false), [dm, setDm] = useState("inventory"), [ec, setEc] = useState(null), [sc, setSc] = useState(null);
+    const [prefillName, setPrefillName] = useState("");
     useEffect(() => { localStorage.setItem("cv10", JSON.stringify(cards)); if (window._currentUser && cards.length > 0) window._saveToFirestore && window._saveToFirestore({ cards: cards }); var slug=localStorage.getItem("cv10_slug"); if(slug&&window._db&&window._currentUser&&cards.length>0){ var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";}); var sold=cards.filter(function(c){return c.status==="sold";}); var vc=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;}); window._db.ref("public/"+slug+"/cards").set(listed); window._db.ref("public/"+slug+"/validCodes").set(vc); } }, [cards]);
     useEffect(() => { localStorage.setItem("cv10i", JSON.stringify(invoices)); if (window._currentUser) window._saveToFirestore && window._saveToFirestore({ invoices: invoices }); }, [invoices]);
     function ups(c) { setCards(p => p.find(x => x.id === c.id) ? p.map(x => x.id === c.id ? c : x) : [c, ...p]); if (window._cvToast) window._cvToast("Guardado"); }
     function del(id) { var idx = cards.findIndex(function (c) { return c.id === id; }); var removed = idx >= 0 ? cards[idx] : null; setCards(function (p) { return p.filter(function (c) { return c.id !== id; }); }); if (removed && window._cvToast) window._cvToast("Carta eliminada", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { setCards(function (p) { var np = p.slice(); np.splice(Math.min(idx, np.length), 0, removed); return np; }); } }); }
-    function oa(m) { setDm(m); setEc(null); setSF(true); }
+    function oa(m, name) { setDm(m); setEc(null); setPrefillName(name || ""); setSF(true); }
     function oe(c) { setEc(c); setDm(c.mode); setSF(true); }
     function dup(c) { setDupCard(c); }
     function bulkUpd(ids, changes) { setCards(function (p) { return p.map(function (c) { return ids.indexOf(c.id) >= 0 ? Object.assign({}, c, changes) : c; }); }); if (window._cvToast) window._cvToast(ids.length + " cartas actualizadas"); }
@@ -20844,7 +20861,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v101")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v102")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -21389,15 +21406,15 @@ showPublicProfile && React.createElement("div", { onClick: function() { setShowP
             tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup, onBulk: bulkUpd, onBulkDel: bulkDel }),
             tab === "collection" && React.createElement(ColTab, { cards: cards, onEdit: oe, onDelete: del, onDuplicate: dup, onBulk: bulkUpd, onBulkDel: bulkDel }),
             tab === "fiscal" && React.createElement(AnalyticsTab, { cards: cards }),
-            tab === "lotes" && React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards, onEdit: oe }),
+            tab === "lotes" && React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards, onEdit: oe, onAddNew: oa }),
             tab === "invoices" && false,
             tab === "analytics" && false,
-            tab === "lots" && React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards, onEdit: oe }),
+            tab === "lots" && React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards, onEdit: oe, onAddNew: oa }),
             tab === "breaks" && React.createElement(DirectosTab, { breaks: breaks, saveBreaks: saveBreaks, cards: cards, setCards: setCards, lots: lots, saveLots: saveLots, directos: directos, saveDirectos: saveDirectos, onEdit: oe }),
             
             tab === "redes" && React.createElement(RedesTab, { cards: cards, onOpenPost: function(c,tpl){ setPostCard(c); setPostInitTpl(tpl||null); setShowPostModal(true); } }),
             tab === "psa" && (isPremium() ? React.createElement(PSATab, null) : React.createElement("div",{style:{maxWidth:500,margin:"80px auto",textAlign:"center",padding:40}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"\uD83D\uDD12"),React.createElement("div",{style:{fontSize:20,fontWeight:700,marginBottom:8}},"Función Premium"),React.createElement("div",{style:{color:SUB,marginBottom:24}},"PSA/BGS es una función Premium"),React.createElement("button",{onClick:function(){setShowSettings(true);},style:{padding:"12px 24px",background:BLUE,border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B50 Hazte Premium")))),
-        sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); }, editCard: ec, defMode: dm, lots: lots, saveLots: saveLots, cards: cards }),
+        sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); setPrefillName(""); }, editCard: ec, defMode: dm, lots: lots, saveLots: saveLots, cards: cards, prefillName: prefillName }),
         showLot && React.createElement(LotModal, { cards: cards, onSell: ups, onClose: () => setShowLot(false) }),
         sc && React.createElement(SellModal, { card: sc, onSave: ups, onClose: () => setSc(null) }),
         dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onClose: () => setDupCard(null) }),
