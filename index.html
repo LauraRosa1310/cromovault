@@ -18760,6 +18760,11 @@ function LotsTab({ lots, saveLots, cards, setCards, onEdit, onAddNew }) {
     const [lotFy, setLotFy] = useState("all"), [lotFm, setLotFm] = useState("all");
     const LOT_MONTHS = [['all', 'Mes'], ['01', 'Ene'], ['02', 'Feb'], ['03', 'Mar'], ['04', 'Abr'], ['05', 'May'], ['06', 'Jun'], ['07', 'Jul'], ['08', 'Ago'], ['09', 'Sep'], ['10', 'Oct'], ['11', 'Nov'], ['12', 'Dic']];
     const lotYears = ['all', ...new Set(lots.map((l) => (l.buyDate || '').slice(0, 4)).filter(Boolean)).values()].sort((a, b) => b.localeCompare(a));
+    function ov(l) {
+        if (typeof l.order === 'number' && !isNaN(l.order)) return l.order;
+        var t = Date.parse(l.buyDate || '');
+        return isNaN(t) ? 0 : t;
+    }
     const visibleLots = lots.filter((l) => {
         if (lotFy !== 'all' && (l.buyDate || '').slice(0, 4) !== lotFy) return false;
         if (lotFm !== 'all' && (l.buyDate || '').slice(5, 7) !== lotFm) return false;
@@ -18767,8 +18772,7 @@ function LotsTab({ lots, saveLots, cards, setCards, onEdit, onAddNew }) {
     }).slice().sort((a, b) => {
         var pa = a.pinned ? 1 : 0, pb = b.pinned ? 1 : 0;
         if (pa !== pb) return pb - pa;
-        function dv(l) { var t = Date.parse(l.buyDate || ''); return isNaN(t) ? 0 : t; }
-        return dv(b) - dv(a);
+        return ov(b) - ov(a);
     });
     function toggleLotPin(id) { saveLots(lots.map(function (l) { return l.id === id ? Object.assign({}, l, { pinned: !l.pinned }) : l; })); }
     const lotsRef = useRef(lots);
@@ -18791,6 +18795,8 @@ function LotsTab({ lots, saveLots, cards, setCards, onEdit, onAddNew }) {
             var next = cur.slice();
             var moved = next.splice(from, 1)[0];
             next.splice(to, 0, moved);
+            var base = Date.now();
+            next = next.map(function (l, i) { return Object.assign({}, l, { order: base - i }); });
             saveLots(next);
         }
         function onUp() { setDragId(null); }
@@ -20957,7 +20963,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v114")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v115")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
