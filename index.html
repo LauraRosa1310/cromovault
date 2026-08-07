@@ -18896,7 +18896,8 @@ function LotsTab({ lots, saveLots, cards, setCards, onEdit, onAddNew }) {
             const pctSold = lotCards.length > 0 ? (sold.length / lotCards.length * 100) : 0;
             const avgDays = sold.filter((c) => c.buyDate && c.sellDate).length > 0 ?
                 sold.filter((c) => c.buyDate && c.sellDate).reduce((a, c) => a + (new Date(c.sellDate).getTime() - new Date(c.buyDate).getTime()) / 86400000, 0) / sold.filter((c) => c.buyDate && c.sellDate).length : null;
-            const stockMatches = stockQ.trim() ? lotCards.filter((c) => (c.name || "").toLowerCase().includes(stockQ.trim().toLowerCase())) : [];
+            const invAll = cards.filter((c) => c.mode === "inventory");
+            const stockMatches = stockQ.trim() ? invAll.filter((c) => (c.name || "").toLowerCase().includes(stockQ.trim().toLowerCase())) : [];
             function renderStockRow(c) {
                 var isSold = c.status === "sold";
                 var label = isSold ? ("Vendida " + (c.sellDate || "") + (c.soldTo ? " · " + c.soldTo : "")) : ((c.series || CATS[c.category] || "") + (c.status === "listed" ? " · En venta" : ""));
@@ -18909,6 +18910,21 @@ function LotsTab({ lots, saveLots, cards, setCards, onEdit, onAddNew }) {
                     React.createElement("div", { style: { textAlign: "right", flexShrink: 0 } },
                         React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: isSold ? GREEN : TXT } }, eu(price)),
                         isSold && React.createElement("div", { style: { fontSize: 10, color: cl(profit) } }, (profit >= 0 ? "+" : "") + eu(profit))));
+            }
+            function addCardToLot(c) {
+                setCards(function (prev) { return prev.map(function (x) { return x.id === c.id ? Object.assign({}, x, { lotId: lot.id }) : x; }); });
+                if (window._cvToast) window._cvToast("Añadida a " + lot.name, { icon: "📦" });
+            }
+            function renderSearchRow(c) {
+                var inLot = c.lotId === lot.id;
+                var otherLotObj = !inLot && c.lotId ? (lots.find(function (l) { return l.id === c.lotId; }) || null) : null;
+                var statusLabel = c.status === "sold" ? "Vendida" : c.status === "listed" ? "En venta" : "En cartera";
+                var whereLabel = inLot ? ("✓ En este lote · " + statusLabel) : (otherLotObj ? ("En lote: " + otherLotObj.name + " · " + statusLabel) : ("Sin lote · " + statusLabel));
+                return React.createElement("div", { key: c.id, style: { display: "flex", alignItems: "center", gap: 10, padding: "10px 10px", borderBottom: "1px solid " + BDR } },
+                    React.createElement("div", { onClick: function () { if (onEdit) { onEdit(c); setStockLotId(null); } }, style: { flex: 1, minWidth: 0, cursor: onEdit ? "pointer" : "default" } },
+                        React.createElement("div", { style: { fontSize: 13, fontWeight: 600, color: onEdit ? BLUE : TXT, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, c.name || "Sin nombre"),
+                        React.createElement("div", { style: { fontSize: 11, color: inLot ? GREEN : SUB, marginTop: 1 } }, whereLabel)),
+                    inLot ? null : React.createElement(Btn, { sm: true, onClick: function () { addCardToLot(c); } }, "+ Añadir aquí"));
             }
             return (React.createElement(Card, { key: lot.id, style: { padding: 18, marginBottom: 16 } },
                 React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 } },
@@ -18952,14 +18968,14 @@ function LotsTab({ lots, saveLots, cards, setCards, onEdit, onAddNew }) {
                                         React.createElement("div", { style: { fontWeight: 700, fontSize: 15 } }, "\uD83D\uDCE6 " + lot.name),
                                         React.createElement("div", { style: { fontSize: 11, color: SUB, marginTop: 2 } }, lotCards.length + " cartas en total")),
                                     React.createElement("button", { onClick: () => setStockLotId(null), style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB } }, "\u00D7")),
-                                React.createElement("input", { value: stockQ, onChange: (e) => setStockQ(e.target.value), placeholder: "\uD83D\uDD0D Buscar carta en este lote...", style: Object.assign({}, IS, { marginBottom: 10 }) }),
+                                React.createElement("input", { value: stockQ, onChange: (e) => setStockQ(e.target.value), placeholder: "\uD83D\uDD0D Buscar carta en tu inventario...", style: Object.assign({}, IS, { marginBottom: 10 }) }),
                                 !stockQ.trim() && React.createElement("div", { style: { display: "flex", gap: 4 } },
                                     [["pendientes", "Pendientes (" + inStock.length + ")"], ["vendidas", "Vendidas (" + sold.length + ")"]].map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setStockTab(k), style: { padding: "8px 4px", flex: 1, border: "none", background: "none", borderBottom: "2px solid " + (stockTab === k ? BLUE : "transparent"), color: stockTab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: stockTab === k ? 700 : 500, fontSize: 13, cursor: "pointer" } }, l))))),
                             React.createElement("div", { style: { overflowY: "auto", flex: 1, padding: "6px 10px" } },
                                 stockQ.trim() ?
                                     (stockMatches.length === 0 ? React.createElement("div", { style: { textAlign: "center", padding: "22px 8px" } },
-                                        React.createElement("div", { style: { fontSize: 12, color: MUT, marginBottom: 10 } }, "No hay ninguna carta con ese nombre en este lote"),
-                                        React.createElement(Btn, { sm: true, onClick: () => { if (onAddNew) onAddNew("inventory", stockQ.trim(), lot.id); setStockLotId(null); } }, "+ A\u00F1adir \"" + stockQ.trim() + "\" a este lote")) : stockMatches.map(renderStockRow))
+                                        React.createElement("div", { style: { fontSize: 12, color: MUT, marginBottom: 10 } }, "No hay ninguna carta con ese nombre en tu inventario"),
+                                        React.createElement(Btn, { sm: true, onClick: () => { if (onAddNew) onAddNew("inventory", stockQ.trim(), lot.id); setStockLotId(null); } }, "+ Crear \"" + stockQ.trim() + "\" y a\u00F1adirla a este lote")) : stockMatches.map(renderSearchRow))
                                     :
                                     ((stockTab === "pendientes" ? inStock : sold).length === 0 ? React.createElement("div", { style: { fontSize: 12, color: MUT, textAlign: "center", padding: "24px 0" } }, stockTab === "pendientes" ? "No quedan cartas pendientes" : "A\u00FAn no hay cartas vendidas") : (stockTab === "pendientes" ? inStock : sold).map(renderStockRow))
         )))))))})));
@@ -20860,7 +20876,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v103")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v104")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
