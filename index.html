@@ -17374,7 +17374,7 @@ function Btn({ children, onClick, disabled, v, sm, full, style }) {
 function Bdg({ children, color: c, bg, dot }) { return (React.createElement("span", { style: { display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 20, background: bg || BGS, color: c || SUB, fontSize: 11, fontWeight: 500, whiteSpace: "nowrap" } },
     dot && React.createElement("span", { style: { width: 6, height: 6, borderRadius: "50%", background: c, flexShrink: 0 } }),
     children)); }
-function Card({ children, style }) { return React.createElement("div", { style: Object.assign({ background: BG, border: "1px solid " + BDR, borderRadius: 12 }, (style || {})) }, children); }
+function Card({ children, style, ...rest }) { return React.createElement("div", Object.assign({}, rest, { style: Object.assign({ background: BG, border: "1px solid " + BDR, borderRadius: 12 }, (style || {})) }), children); }
 function SL({ children, style }) { return React.createElement("div", { style: Object.assign({ fontSize: 11, fontWeight: 600, color: MUT, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 12 }, (style || {})) }, children); }
 function Empty({ icon, title, sub, cta, onCta }) { return (React.createElement("div", { style: { padding: "48px 20px", textAlign: "center" } },
     React.createElement("div", { style: { fontSize: 36, marginBottom: 12 } }, icon),
@@ -18977,7 +18977,7 @@ function LotsTab({ lots, saveLots, cards, setCards, onEdit, onAddNew }) {
                             lotAllCount,
                             lotColCards.length > 0 ? (" cartas (" + lotColCards.length + " colecci\u00F3n)") : " cartas")),
                     React.createElement("div", { style: { display: "flex", gap: 6, alignItems: "center" } },
-                        React.createElement("div", { title: "Arrastra para reordenar", draggable: true, onDragStart: () => setDragId(lot.id), onDragEnd: () => setDragId(null), style: { cursor: "grab", padding: "4px 6px", color: SUB, fontSize: 16, userSelect: "none" } }, "\u22EE\u22EE"),
+                        React.createElement("div", { title: "Arrastra para reordenar", draggable: true, onDragStart: (e) => { setDragId(lot.id); try { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", lot.id); } catch (err) {} }, onDragEnd: () => setDragId(null), style: { cursor: "grab", padding: "4px 6px", color: SUB, fontSize: 16, userSelect: "none" } }, "\u22EE\u22EE"),
                         React.createElement(Btn, { sm: true, v: "outline", onClick: () => openEdit(lot.id) }, "\u270F\uFE0F"),
                         React.createElement(Btn, { sm: true, v: "outline", style: { color: RED, borderColor: "#fecaca" }, onClick: () => deleteLot(lot.id) }, "\u2715"))),
                 lotAllCount === 0 ? (React.createElement("div", { style: { fontSize: 12, color: MUT, textAlign: "center", padding: "12px 0" } }, "Sin cartas asignadas \u2014 edita tus cartas y selecciona este lote")) : (React.createElement("div", null,
@@ -20915,7 +20915,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v110")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v111")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
