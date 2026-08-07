@@ -18748,6 +18748,8 @@ function RainbowSection({ rainbows, saveRainbows }) {
 function LotsTab({ lots, saveLots, cards, setCards, onEdit }) {
     const [showForm, setShowForm] = useState(false);
     const [stockLotId, setStockLotId] = useState(null);
+    const [stockTab, setStockTab] = useState("pendientes");
+    function openLotCards(id) { setStockLotId(id); setStockTab("pendientes"); }
     const [editIdx, setEditIdx] = useState(null);
     const [showGeekModal, setShowGeekModal] = useState(false);
     const [geekLotId, setGeekLotId] = useState("");
@@ -18925,26 +18927,28 @@ function LotsTab({ lots, saveLots, cards, setCards, onEdit }) {
                                 avgDays ? " · media " + Math.round(avgDays) + "d" : "")),
                         React.createElement("div", { style: { height: 6, borderRadius: 3, background: BDR, overflow: "hidden" } },
                             React.createElement("div", { style: { height: "100%", width: pctSold + "%", background: pctSold > 80 ? GREEN : pctSold > 40 ? AMBER : BLUE, borderRadius: 3, transition: "width 0.3s" } }))),
-                    inStock.length > 0 && React.createElement("div", { style: { marginTop: 10, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 } },
-                        React.createElement("div", { style: { fontSize: 11, color: SUB } },
-                            "En stock (",
-                            inStock.length,
-                            ")"),
-                        React.createElement(Btn, { sm: true, v: "outline", onClick: () => setStockLotId(lot.id) }, "\uD83D\uDCCB Ver pendientes (" + inStock.length + ")")),
+                    lotCards.length > 0 && React.createElement("div", { style: { marginTop: 10 } },
+                        React.createElement(Btn, { sm: true, v: "outline", full: true, onClick: () => openLotCards(lot.id) }, "\uD83D\uDDC2\uFE0F Cartas (" + lotCards.length + ")")),
                     stockLotId === lot.id && React.createElement("div", { onClick: () => setStockLotId(null), style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 } },
                         React.createElement("div", { onClick: (e) => e.stopPropagation(), style: { background: "#fff", borderRadius: 16, padding: 0, maxWidth: 460, width: "100%", maxHeight: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" } },
-                            React.createElement("div", { style: { padding: "16px 20px", borderBottom: "1px solid " + BDR, display: "flex", alignItems: "center", justifyContent: "space-between" } },
-                                React.createElement("div", null,
-                                    React.createElement("div", { style: { fontWeight: 700, fontSize: 15 } }, "\uD83D\uDCE6 " + lot.name),
-                                    React.createElement("div", { style: { fontSize: 11, color: SUB, marginTop: 2 } }, inStock.length + " cartas pendientes de vender")),
-                                React.createElement("button", { onClick: () => setStockLotId(null), style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB } }, "\u00D7")),
+                            React.createElement("div", { style: { padding: "16px 20px 0", borderBottom: "1px solid " + BDR } },
+                                React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 } },
+                                    React.createElement("div", null,
+                                        React.createElement("div", { style: { fontWeight: 700, fontSize: 15 } }, "\uD83D\uDCE6 " + lot.name),
+                                        React.createElement("div", { style: { fontSize: 11, color: SUB, marginTop: 2 } }, lotCards.length + " cartas en total")),
+                                    React.createElement("button", { onClick: () => setStockLotId(null), style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB } }, "\u00D7")),
+                                React.createElement("div", { style: { display: "flex", gap: 4 } },
+                                    [["pendientes", "Pendientes (" + inStock.length + ")"], ["vendidas", "Vendidas (" + sold.length + ")"]].map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setStockTab(k), style: { padding: "8px 4px", flex: 1, border: "none", background: "none", borderBottom: "2px solid " + (stockTab === k ? BLUE : "transparent"), color: stockTab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: stockTab === k ? 700 : 500, fontSize: 13, cursor: "pointer" } }, l))))),
                             React.createElement("div", { style: { overflowY: "auto", flex: 1, padding: "6px 10px" } },
-                                inStock.map((c) => (React.createElement("div", { key: c.id, onClick: () => { if (onEdit) { onEdit(c); setStockLotId(null); } }, style: { display: "flex", alignItems: "center", gap: 10, padding: "10px 10px", borderBottom: "1px solid " + BDR, cursor: onEdit ? "pointer" : "default" } },
+                                (stockTab === "pendientes" ? inStock : sold).length === 0 ? React.createElement("div", { style: { fontSize: 12, color: MUT, textAlign: "center", padding: "24px 0" } }, stockTab === "pendientes" ? "No quedan cartas pendientes" : "A\u00FAn no hay cartas vendidas") :
+                                (stockTab === "pendientes" ? inStock : sold).map((c) => (React.createElement("div", { key: c.id, onClick: () => { if (onEdit) { onEdit(c); setStockLotId(null); } }, style: { display: "flex", alignItems: "center", gap: 10, padding: "10px 10px", borderBottom: "1px solid " + BDR, cursor: onEdit ? "pointer" : "default" } },
                                     React.createElement("div", { style: { flex: 1, minWidth: 0 } },
                                         React.createElement("div", { style: { fontSize: 13, fontWeight: 600, color: onEdit ? BLUE : TXT, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, c.name || "Sin nombre"),
-                                        React.createElement("div", { style: { fontSize: 11, color: SUB, marginTop: 1 } }, (c.series || CATS[c.category] || "") + (c.status === "listed" ? " \u00B7 En venta" : ""))),
-                                    React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: TXT, flexShrink: 0 } }, eu(c.targetPrice || c.buyPrice || 0))))))))))));
-        })));
+                                        React.createElement("div", { style: { fontSize: 11, color: SUB, marginTop: 1 } }, stockTab === "pendientes" ? ((c.series || CATS[c.category] || "") + (c.status === "listed" ? " \u00B7 En venta" : "")) : ("Vendida " + (c.sellDate || "") + (c.soldTo ? " \u00B7 " + c.soldTo : "")))),
+                                    React.createElement("div", { style: { textAlign: "right", flexShrink: 0 } },
+                                        React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: stockTab === "vendidas" ? GREEN : TXT } }, eu(stockTab === "vendidas" ? (c.sellPrice || 0) : (c.targetPrice || c.buyPrice || 0))),
+                                        stockTab === "vendidas" && React.createElement("div", { style: { fontSize: 10, color: cl((c.sellPrice || 0) - (c.buyPrice || 0)) } }, ((c.sellPrice || 0) - (c.buyPrice || 0) >= 0 ? "+" : "") + eu((c.sellPrice || 0) - (c.buyPrice || 0))))))))))))
+        ))})));
 }
 const PSA_SERVICES = [{ k: "economy", l: "Economy", days: 45 }, { k: "regular", l: "Regular", days: 20 }, { k: "express", l: "Express", days: 10 }, { k: "walkthrough", l: "Walkthrough", days: 5 }];
 const PSA_STATUS = [["sent", "📬 Enviada"], ["grading", "🔍 En proceso"], ["done", "✅ Recibida"], ["sold", "💰 Vendida"]];
@@ -20840,7 +20844,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v100")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v101")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
