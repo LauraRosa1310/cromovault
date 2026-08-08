@@ -20189,14 +20189,14 @@ function PostModal({ card, onClose, cards, initTpl }) {
   // Marco de foto (mismo lenguaje visual en todos los diseños, sin recortes, sin esquinas)
   function PHF(w,h,img){ var im=(img!==undefined?img:cardImg);
     return E("div",{style:{position:"relative",width:w,height:h,borderRadius:Math.round(Math.min(w,h)*0.045),overflow:"hidden",background:"#0a0a0a",border:Math.max(2,Math.round(Math.min(w,h)*0.01))+"px solid rgba(255,255,255,.9)",boxSizing:"border-box",flexShrink:0}},
-      im?E("img",{src:im,style:{width:"100%",height:"100%",objectFit:"contain",display:"block"}}):E("div",{style:{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}},
+      im?E("img",{src:im,style:{width:"100%",height:"100%",objectFit:(im===cardImg?fitMode:"contain"),objectPosition:(im===cardImg?("center "+posY+"%"):"center"),display:"block"}}):E("div",{style:{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}},
         E("div",{style:{position:"relative",width:Math.round(w*0.16),height:Math.round(w*0.16)}}, E("div",{style:{position:"absolute",top:"50%",left:0,width:"100%",height:2,background:"rgba(255,255,255,.35)",transform:"translateY(-50%)"}}), E("div",{style:{position:"absolute",left:"50%",top:0,height:"100%",width:2,background:"rgba(255,255,255,.35)",transform:"translateX(-50%)"}})))
     ); }
   // Marco de foto con anillo degradado (para plantillas tipo "Carta del día")
   function PHG(w,h,img){ var im=(img!==undefined?img:cardImg); var ringW=Math.max(3,Math.round(Math.min(w,h)*0.018));
     return E("div",{style:{width:w,height:h,borderRadius:Math.round(Math.min(w,h)*0.06),padding:ringW,boxSizing:"border-box",background:GLINE,flexShrink:0}},
       E("div",{style:{width:"100%",height:"100%",borderRadius:Math.round(Math.min(w,h)*0.05),overflow:"hidden",background:"#0a0a0a",display:"flex",alignItems:"center",justifyContent:"center"}},
-        im?E("img",{src:im,style:{width:"100%",height:"100%",objectFit:"contain",display:"block"}}):E("span",{style:{font:"600 "+Math.round(w*0.05)+"px 'Space Grotesk'",color:"rgba(255,255,255,.4)"}},"Foto de la carta")
+        im?E("img",{src:im,style:{width:"100%",height:"100%",objectFit:(im===cardImg?fitMode:"contain"),objectPosition:(im===cardImg?("center "+posY+"%"):"center"),display:"block"}}):E("span",{style:{font:"600 "+Math.round(w*0.05)+"px 'Space Grotesk'",color:"rgba(255,255,255,.4)"}},"Foto de la carta")
       )); }
   function CHIP(text,fs){ return E("div",{style:{display:"inline-flex",flexDirection:"column",alignItems:"center",gap:Math.round(fs*0.28)}}, E("span",{style:{fontFamily:"'Saira Condensed',sans-serif",fontWeight:800,color:"#fff",textTransform:"uppercase",fontSize:fs,letterSpacing:"0.01em",lineHeight:1,textAlign:"center",whiteSpace:"nowrap"}},text), E("div",{style:{width:Math.round(fs*1.25),height:Math.max(3,Math.round(fs*0.09)),background:GLINE}})); }
   function SEPH(text,fs,sepw){ return E("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",gap:Math.round(fs*0.6)}}, E("div",{style:{width:sepw,height:2,background:GLINE}}), E("div",{style:{font:"700 "+fs+"px 'Space Grotesk'",color:"#fff",letterSpacing:"0.03em",whiteSpace:"nowrap"}},text), E("div",{style:{width:sepw,height:2,background:GLINE}})); }
@@ -20996,7 +20996,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: 26, height: 26, borderRadius: 7, objectFit: "cover" } }),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v121")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v122")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
