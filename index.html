@@ -32,10 +32,10 @@
     body.dark button{color:inherit;}
   </style>
   <style>
-    #cv-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg,#fff);border-top:1px solid var(--bdr,#e8eaed);z-index:100;padding-bottom:env(safe-area-inset-bottom);}
+    #cv-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg,#fff);border-top:2px solid transparent;border-image:linear-gradient(to right,#004D98,#A50044) 1;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
     #cv-bottom-nav-inner{display:flex;height:50px;}
     #cv-bottom-nav button{flex:1;border:none;background:none;font-size:8px;font-family:Inter,sans-serif;color:var(--sub,#6b7280);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px 1px;min-width:0;}
-    #cv-bottom-nav button.active{color:#3b82f6;}
+    #cv-bottom-nav button.active{color:#A50044;}
     #cv-bottom-nav button:nth-child(5) span.label{visibility:hidden;position:relative;}
     #cv-bottom-nav button:nth-child(5) span.label::after{content:"Fin.";visibility:visible;position:absolute;left:50%;transform:translateX(-50%);}
     /* all tabs visible */
@@ -84,7 +84,7 @@
     }
 
     /* FAB button for new card on mobile */
-    #cv-fab{display:none;position:fixed;bottom:calc(64px + env(safe-area-inset-bottom));right:16px;width:52px;height:52px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border:none;border-radius:50%;color:#fff;font-size:24px;cursor:pointer;z-index:99;box-shadow:0 4px 20px rgba(59,130,246,0.4);align-items:center;justify-content:center;}
+    #cv-fab{display:none;position:fixed;bottom:calc(64px + env(safe-area-inset-bottom));right:16px;width:52px;height:52px;background:linear-gradient(135deg,#004D98,#A50044);border:none;border-radius:50%;color:#fff;font-size:24px;cursor:pointer;z-index:99;box-shadow:0 4px 20px rgba(59,130,246,0.4);align-items:center;justify-content:center;}
     @media(max-width:768px){#cv-fab-container{display:flex!important;}}
   </style>
 </head>
@@ -17823,7 +17823,7 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
                   React.createElement(SL, null, "P&L mensual (neto)"),
                   React.createElement("div", { style: { display: "flex", gap: 4 } },
                     ["3m","6m","12m","todo"].map(function(r) {
-                      return React.createElement("button", { key: r, onClick: function(){ setChartRange(r); }, style: { padding: "3px 8px", fontSize: 10, fontWeight: chartRange===r?700:400, border: "1px solid " + (chartRange===r?"#3b82f6":"#e5e7eb"), borderRadius: 6, background: chartRange===r?"#eff6ff":"transparent", color: chartRange===r?"#3b82f6":"#6b7280", cursor: "pointer", fontFamily: "Inter,sans-serif" } }, r);
+                      return React.createElement("button", { key: r, onClick: function(){ setChartRange(r); }, style: { padding: "3px 8px", fontSize: 10, fontWeight: chartRange===r?700:400, border: "1px solid " + (chartRange===r?"#004D98":"#e5e7eb"), borderRadius: 6, background: chartRange===r?"#eff6ff":"transparent", color: chartRange===r?"#004D98":"#6b7280", cursor: "pointer", fontFamily: "Inter,sans-serif" } }, r);
                     })
                   )
                 ),
@@ -17873,7 +17873,7 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
               React.createElement(SL, null, "\uD83D\uDCC8 Hist\u00F3rico de cartera por mes"),
               React.createElement("div", { style: { display: "flex", gap: 4 } },
                 ["3m","6m","12m","todo"].map(function(r) {
-                  return React.createElement("button", { key: r, onClick: function(){ setPortfolioRange(r); }, style: { padding: "3px 8px", fontSize: 10, fontWeight: portfolioRange===r?700:400, border: "1px solid " + (portfolioRange===r?"#3b82f6":"#e5e7eb"), borderRadius: 6, background: portfolioRange===r?"#eff6ff":"transparent", color: portfolioRange===r?"#3b82f6":"#6b7280", cursor: "pointer", fontFamily: "Inter,sans-serif" } }, r);
+                  return React.createElement("button", { key: r, onClick: function(){ setPortfolioRange(r); }, style: { padding: "3px 8px", fontSize: 10, fontWeight: portfolioRange===r?700:400, border: "1px solid " + (portfolioRange===r?"#004D98":"#e5e7eb"), borderRadius: 6, background: portfolioRange===r?"#eff6ff":"transparent", color: portfolioRange===r?"#004D98":"#6b7280", cursor: "pointer", fontFamily: "Inter,sans-serif" } }, r);
                 })
               )
             ),
@@ -18468,9 +18468,9 @@ function AnalyticsTab({ cards }) {
         return DEFAULT_LOCATIONS;
     } });
     const [newLoc, setNewLoc] = useState("");
-    function saveLocs(l) { setLocs(l); localStorage.setItem("cv10_locs", JSON.stringify(l)); }
+    function saveLocs(l) { setLocs(l); localStorage.setItem("cv10_locs", JSON.stringify(l)); } const [showAllDead, setShowAllDead] = useState(false);
             return (React.createElement("div", null,
-        React.createElement("div", { style: { fontSize: 20, fontWeight: 700, marginBottom: 20 } }, "An\u00E1lisis"),(function(){ var now=Date.now(); var dead=(cards||[]).filter(function(c){ return c.mode==="inventory" && c.status!=="sold" && c.buyDate; }).map(function(c){ var d=Math.floor((now-new Date(c.buyDate+"T00:00:00"))/86400000); return {c:c,d:d}; }).filter(function(x){ return x.d>60; }).sort(function(a,b){ return b.d-a.d; }); if(!dead.length) return null; return React.createElement("div",{style:{background:"#fff8f0",border:"1px solid #f0d0a0",borderRadius:12,padding:16,marginBottom:20}},React.createElement("div",{style:{fontSize:14,fontWeight:800,marginBottom:4,color:"#9a6a00"}},"\uD83D\uDC80 Cartas muertas ("+dead.length+")"),React.createElement("div",{style:{fontSize:12,color:SUB,marginBottom:10}},"Llevan m\u00E1s de 60 d\u00EDas en stock sin venderse. Baja el precio o m\u00E9telas en un break."),React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:6}}, dead.slice(0,8).map(function(x,idx){ return React.createElement("div",{key:idx,style:{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:13,padding:"6px 8px",background:"#fff",borderRadius:7,border:"1px solid "+BDR}},React.createElement("span",{style:{fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:210}}, x.c.name||"Carta"),React.createElement("span",{style:{color:"#c0392b",fontWeight:700,flexShrink:0,marginLeft:8}}, x.d+" d\u00EDas")); })),dead.length>8?React.createElement("div",{style:{fontSize:11,color:MUT,marginTop:6}}, "y "+(dead.length-8)+" m\u00E1s"):null); })(),(function(){ var dts=[]; try{ dts=JSON.parse(localStorage.getItem("cv10_directos")||"[]"); }catch(e){} var inDir={}; (dts||[]).forEach(function(d){ (d.cardIds||[]).forEach(function(id){ inDir[id]=1; }); }); var ch={venta:{r:0,c:0},subasta:{r:0,c:0},brk:{r:0,c:0}}; (cards||[]).forEach(function(c){ if(c.mode==="inventory" && c.status==="sold"){ var rev=(c.sellPrice||0); var cost=(c.buyPrice||0)*(c.quantity||1); var k=inDir[c.id]?"subasta":"venta"; ch[k].r+=rev; ch[k].c+=cost; } }); try{ var gb=JSON.parse(localStorage.getItem("tcg_breaks_v2")||"{}"); (gb.breaks||[]).forEach(function(b){ var sold=0; (b.spots||[]).forEach(function(sp){ if((sp.comp||"").trim()){ sold+=(+sp.precio||0); } }); if(sold>0){ ch.brk.r+=sold; ch.brk.c+=(+b.coste||0)+(+b.comision||0); } }); }catch(e){} var rows=[["Venta directa",ch.venta],["Subastas",ch.subasta],["Breaks",ch.brk]]; if(!rows.some(function(r){return r[1].r>0;})) return null; return React.createElement("div",{style:{background:BG,border:"1px solid "+BDR,borderRadius:12,padding:16,marginBottom:20}},React.createElement("div",{style:{fontSize:14,fontWeight:800,marginBottom:10}},"\uD83D\uDCCA ROI por canal"),React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}}, rows.map(function(row,i){ var d=row[1]; var prof=d.r-d.c; var roi=d.c>0?(prof/d.c*100):0; return React.createElement("div",{key:i,style:{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:13,padding:"8px 10px",background:BGS,borderRadius:8}},React.createElement("div",null, React.createElement("div",{style:{fontWeight:700}},row[0]), React.createElement("div",{style:{fontSize:11,color:SUB}}, eu(d.r)+" en ventas")),React.createElement("div",{style:{textAlign:"right"}}, React.createElement("div",{style:{fontWeight:800,color:prof>=0?GREEN:"#c0392b"}}, (prof>=0?"+":"")+eu(prof)), React.createElement("div",{style:{fontSize:11,color:SUB}}, (d.c>0?roi.toFixed(0)+"% ROI":"\u2014")))); }))); })(),
+        React.createElement("div", { style: { fontSize: 20, fontWeight: 700, marginBottom: 20 } }, "An\u00E1lisis"),
                 React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 } },
             React.createElement(Card, { style: { padding: "18px" } },
                 React.createElement(SL, null, "\u23F1 Tiempo medio de venta"),
@@ -18672,6 +18672,7 @@ function AnalyticsTab({ cards }) {
                             minRoi,
                             "% saldr\u00E1 aviso en rojo"))));
             })()),
+        (function(){ var now=Date.now(); var dead=(cards||[]).filter(function(c){ return c.mode==="inventory" && c.status!=="sold" && c.buyDate; }).map(function(c){ var d=Math.floor((now-new Date(c.buyDate+"T00:00:00"))/86400000); return {c:c,d:d}; }).filter(function(x){ return x.d>60; }).sort(function(a,b){ return b.d-a.d; }); if(!dead.length) return null; var lim=showAllDead?dead.length:5; return React.createElement("div",{style:{background:"#fff8f0",border:"1px solid #f0d0a0",borderRadius:12,padding:14,marginBottom:16}},React.createElement("div",{style:{fontSize:13,fontWeight:800,marginBottom:2,color:"#9a6a00"}},"\uD83D\uDC80 Cartas muertas ("+dead.length+")"),React.createElement("div",{style:{fontSize:11,color:SUB,marginBottom:8}},"+60 d\u00EDas en stock sin vender. Baja el precio o m\u00E9telas en un break."),React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:5}}, dead.slice(0,lim).map(function(x,idx){ return React.createElement("div",{key:idx,style:{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:12,padding:"5px 8px",background:"#fff",borderRadius:6,border:"1px solid "+BDR}},React.createElement("span",{style:{fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:210}}, x.c.name||"Carta"),React.createElement("span",{style:{color:"#c0392b",fontWeight:700,flexShrink:0,marginLeft:8}}, x.d+" d\u00EDas")); })),dead.length>5?React.createElement("button",{onClick:function(){setShowAllDead(!showAllDead);},style:{marginTop:8,fontSize:11,fontWeight:700,color:"#004D98",background:"none",border:"none",cursor:"pointer",fontFamily:"Inter,sans-serif",padding:0}}, showAllDead?"Ver menos":("Ver m\u00E1s ("+(dead.length-5)+")")):null); })(),(function(){ var dts=[]; try{ dts=JSON.parse(localStorage.getItem("cv10_directos")||"[]"); }catch(e){} var inDir={}; (dts||[]).forEach(function(d){ (d.cardIds||[]).forEach(function(id){ inDir[id]=1; }); }); var ch={venta:{r:0,c:0},subasta:{r:0,c:0},brk:{r:0,c:0}}; (cards||[]).forEach(function(c){ if(c.mode==="inventory" && c.status==="sold"){ var rev=(c.sellPrice||0); var cost=(c.buyPrice||0)*(c.quantity||1); var k=inDir[c.id]?"subasta":"venta"; ch[k].r+=rev; ch[k].c+=cost; } }); try{ var gb=JSON.parse(localStorage.getItem("tcg_breaks_v2")||"{}"); (gb.breaks||[]).forEach(function(b){ var sold=0; (b.spots||[]).forEach(function(sp){ if((sp.comp||"").trim()){ sold+=(+sp.precio||0); } }); if(sold>0){ ch.brk.r+=sold; ch.brk.c+=(+b.coste||0)+(+b.comision||0); } }); }catch(e){} var rows=[["Venta directa",ch.venta],["Subastas",ch.subasta],["Breaks",ch.brk]]; if(!rows.some(function(r){return r[1].r>0;})) return null; return React.createElement("div",{style:{background:BG,border:"1px solid "+BDR,borderRadius:12,padding:16,marginBottom:20}},React.createElement("div",{style:{fontSize:14,fontWeight:800,marginBottom:10}},"\uD83D\uDCCA ROI por canal"),React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}}, rows.map(function(row,i){ var d=row[1]; var prof=d.r-d.c; var roi=d.c>0?(prof/d.c*100):0; return React.createElement("div",{key:i,style:{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:13,padding:"8px 10px",background:BGS,borderRadius:8}},React.createElement("div",null, React.createElement("div",{style:{fontWeight:700}},row[0]), React.createElement("div",{style:{fontSize:11,color:SUB}}, eu(d.r)+" en ventas")),React.createElement("div",{style:{textAlign:"right"}}, React.createElement("div",{style:{fontWeight:800,color:prof>=0?GREEN:"#c0392b"}}, (prof>=0?"+":"")+eu(prof)), React.createElement("div",{style:{fontSize:11,color:SUB}}, (d.c>0?roi.toFixed(0)+"% ROI":"\u2014")))); }))); })(),
         React.createElement(Card, { style: { padding: "18px" } },
             React.createElement(SL, { style: { marginBottom: 12 } }, "\uD83D\uDCE6 Gestionar ubicaciones f\u00EDsicas"),
             React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 } }, locs.map((l, i) => (React.createElement("div", { key: i, style: { display: "flex", alignItems: "center", gap: 6, background: BGS, border: "1px solid " + BDR, borderRadius: 8, padding: "6px 10px" } },
@@ -20685,7 +20686,7 @@ function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, dire
     var neto = recibido - gasto;
     var vendidas = dc.filter(function(c){ return (c.sellPrice||0)>0; }).length;
     var resCount = dc.filter(function(c){ return c.reserved && (c.sellPrice||0)===0; }).length;
-    var _bset={}, recentBuyers=[]; (cards||[]).forEach(function(cc){ [cc.soldTo,cc.resTo].forEach(function(b){ if(b && !_bset[b]){ _bset[b]=1; recentBuyers.push(b);} }); });
+    var _bset={}, recentBuyers=[]; (cards||[]).forEach(function(cc){ [cc.soldTo,cc.resTo].forEach(function(b){ if(b && !_bset[b]){ _bset[b]=1; recentBuyers.push(b);} }); }); try{ var _gc=JSON.parse(localStorage.getItem("tcg_breaks_v2")||"{}"); Object.keys(_gc.clientes||{}).forEach(function(b){ if(b && !_bset[b]){ _bset[b]=1; recentBuyers.push(b);} }); }catch(e){} try{ var _ccm=JSON.parse(localStorage.getItem("cv10_contact")||"{}"); Object.keys(_ccm).forEach(function(b){ if(b && !_bset[b]){ _bset[b]=1; recentBuyers.push(b);} }); }catch(e){}
     var _bg={}; dc.forEach(function(cc){ if((cc.sellPrice||0)>0 && cc.soldTo){ if(!_bg[cc.soldTo])_bg[cc.soldTo]={n:cc.soldTo,count:0,total:0}; _bg[cc.soldTo].count++; _bg[cc.soldTo].total+=(cc.sellPrice||0);} }); var buyerGroups=Object.keys(_bg).map(function(k){return _bg[k];}).sort(function(a,b){return b.total-a.total;});
     function undoCard(cid){ var d0=(directos||[]).find(function(x){return x.id===openId;}); var prc=(d0&&d0.priced)||{}; setCards(function(p){ return p.map(function(x){ return x.id===cid? Object.assign({},x,{sellPrice:(prc[cid]?(prc[cid].p||0):0),status:(prc[cid]?(prc[cid].s||"holding"):"holding"),sellDate:(prc[cid]?(prc[cid].dt||""):""),soldTo:"",reserved:false,resTo:"",resPrice:0}) : x; }); }); }
     function _rgb(hx){ hx=hx.replace("#",""); return [parseInt(hx.slice(0,2),16),parseInt(hx.slice(2,4),16),parseInt(hx.slice(4,6),16)]; }
@@ -20764,7 +20765,7 @@ function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, dire
                 h("div",{style:{flex:1,minWidth:0}}, h("div",{style:{color:"#fff",fontWeight:700,fontSize:15,lineHeight:1.2}},sc.name), h("div",{style:{color:"#666",fontSize:12,marginTop:4}},"coste "+eu(sc.buyPrice||0)), h("div",{style:{color:"#12d18e",fontWeight:900,fontSize:30,marginTop:6}},(sheetPrice||"0")+"€"), (sheetPrice&&(parseFloat(sheetPrice.replace(",","."))||0)>0)?h("div",{style:{color:((parseFloat(sheetPrice.replace(",","."))||0)-(sc.buyPrice||0))>=0?"#12d18e":"#ff5a5a",fontSize:11,marginTop:2}},"margen "+eu((parseFloat(sheetPrice.replace(",","."))||0)-(sc.buyPrice||0))):null)),
               h("div",{style:{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}, [5,10,15,20,25,30,40,50,75,100].map(function(v){ return h("button",{key:v,onClick:function(){setSheetPrice(String(v));},style:{padding:"8px 12px",borderRadius:20,border:"1px solid #2a2a33",background:"#1c1c22",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},v+"€"); })),
               h("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:12}}, ["1","2","3","4","5","6","7","8","9",".","0","⌫"].map(function(kk){ return h("button",{key:kk,onClick:function(){ if(kk==="⌫"){ setSheetPrice(function(p){return (p||"").slice(0,-1);}); } else { setSheetPrice(function(p){ return (p||"")+kk; }); } },style:{padding:"16px 0",fontSize:20,fontWeight:700,borderRadius:10,border:"none",background:"#1c1c22",color:"#fff",cursor:"pointer",fontFamily:"Inter,sans-serif"}},kk); })),
-              h("div",{style:{marginBottom:8}}, h("input",{value:sheetBuyer,onChange:function(e){setSheetBuyer(e.target.value);},placeholder:"Comprador (@usuario o nombre)",style:{width:"100%",boxSizing:"border-box",padding:"12px 14px",borderRadius:10,border:"1px solid #2a2a33",background:"#0a0a0a",color:"#fff",fontSize:15,fontFamily:"Inter,sans-serif"}})),
+              h("div",{style:{marginBottom:8}}, h("input",{value:sheetBuyer,onChange:function(e){setSheetBuyer(e.target.value);},onKeyDown:function(e){ if(e.key==="Enter"){ e.preventDefault(); doSell(); } },placeholder:"Comprador (@usuario o nombre)",style:{width:"100%",boxSizing:"border-box",padding:"12px 14px",borderRadius:10,border:"1px solid #2a2a33",background:"#0a0a0a",color:"#fff",fontSize:15,fontFamily:"Inter,sans-serif"}})),
               recentBuyers.length?h("div",{style:{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}, recentBuyers.filter(function(b){ return !sheetBuyer || b.toLowerCase().indexOf(sheetBuyer.toLowerCase())>=0; }).slice(0,8).map(function(b){ return h("button",{key:b,onClick:function(){setSheetBuyer(b);},style:{padding:"6px 12px",borderRadius:20,border:"1px solid #2a2a33",background:"#1c1c22",color:"#cbd2da",fontSize:12,cursor:"pointer",fontFamily:"Inter,sans-serif"}},b); })):null,
               h("div",{style:{display:"flex",gap:8}},
                 h("button",{onClick:doSell,style:{flex:2,padding:"15px",borderRadius:12,border:"none",background:"#12d18e",color:"#04231a",fontWeight:800,fontSize:16,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"💸 Vender"),
@@ -20996,7 +20997,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("span", { style: { fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" } }, "CromoVault"),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v131")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v134")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -21015,7 +21016,7 @@ function App() {
           React.createElement("button", { onClick: function(){
             var menu = document.getElementById("cv-fab-menu");
             menu.style.display = menu.style.display === "flex" ? "none" : "flex";
-          }, style: { width: 52, height: 52, background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", border: "none", borderRadius: "50%", color: "#fff", fontSize: 24, cursor: "pointer", boxShadow: "0 4px 20px rgba(59,130,246,0.4)", display: "flex", alignItems: "center", justifyContent: "center" } }, "+")
+          }, style: { width: 52, height: 52, background: "linear-gradient(135deg,#004D98,#A50044)", border: "none", borderRadius: "50%", color: "#fff", fontSize: 24, cursor: "pointer", boxShadow: "0 4px 20px rgba(59,130,246,0.4)", display: "flex", alignItems: "center", justifyContent: "center" } }, "+")
         ),
         showQR && React.createElement("div", { onClick: function() { setShowQR(false); }, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1002, display: "flex", alignItems: "center", justifyContent: "center" } },
   React.createElement("div", { onClick: function(e) { e.stopPropagation(); }, style: { background: BG, borderRadius: 24, padding: "32px 28px", maxWidth: 320, width: "90%", textAlign: "center", boxShadow: "0 24px 80px rgba(0,0,0,0.3)" } },
@@ -21031,7 +21032,7 @@ function App() {
         if(navigator.share) { navigator.share({ title: "Mi tienda en CromoVault", url: url }); }
         else if(navigator.clipboard) { navigator.clipboard.writeText(url).then(function(){ alert("\u2705 Enlace copiado!"); }); }
         else { prompt("Copia tu enlace:", url); }
-      }, style: { flex: 1, padding: "11px", background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#fff", fontFamily: "Inter,sans-serif", fontWeight: 600 } }, "\uD83D\uDD17 Compartir"),
+      }, style: { flex: 1, padding: "11px", background: "linear-gradient(135deg,#004D98,#A50044)", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#fff", fontFamily: "Inter,sans-serif", fontWeight: 600 } }, "\uD83D\uDD17 Compartir"),
       React.createElement("button", { onClick: function() { setShowQR(false); }, style: { flex: 1, padding: "11px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 13, color: TXT, fontFamily: "Inter,sans-serif" } }, "Cerrar")
     )
   )
@@ -21060,7 +21061,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
                   React.createElement("span", { style: { fontWeight: 700, color: BLUE } }, pct + "%")
                 ),
                 React.createElement("div", { style: { height: 7, borderRadius: 4, background: BGS, overflow: "hidden" } },
-                  React.createElement("div", { style: { height: "100%", width: pct + "%", background: pct===100?"linear-gradient(90deg,#10b981,#3b82f6)":"linear-gradient(90deg,#3b82f6,#8b5cf6)", borderRadius: 4, transition: "width 0.4s" } })
+                  React.createElement("div", { style: { height: "100%", width: pct + "%", background: pct===100?"linear-gradient(90deg,#10b981,#3b82f6)":"linear-gradient(90deg,#004D98,#A50044)", borderRadius: 4, transition: "width 0.4s" } })
                 )
               ),
               items.map(function(item, i){
@@ -21532,7 +21533,7 @@ showPublicProfile && React.createElement("div", { onMouseDown: function(e) { pro
           localStorage.setItem("cv10_qr",JSON.stringify(quickReplies));
           localStorage.setItem("cv10_wl",JSON.stringify(wishlist));
           savePublicProfile(JSON.parse(localStorage.getItem("cv10")||"[]"),publicSlug,publicContact,publicPayment,publicShipping,publicAvatar,publicBanner);
-      }, style: { width: "100%", padding: "13px", background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 14, color: "#fff", fontFamily: "Inter,sans-serif", fontWeight: 700 } }, "Guardar perfil")
+      }, style: { width: "100%", padding: "13px", background: "linear-gradient(135deg,#004D98,#A50044)", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 14, color: "#fff", fontFamily: "Inter,sans-serif", fontWeight: 700 } }, "Guardar perfil")
     )
   )
 ),
@@ -21662,7 +21663,7 @@ return ce("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.65)",z
           ?ce("button",{onClick:function(){setStep(step-1);},style:{padding:"11px 16px",background:"#f1f5f9",border:"none",borderRadius:12,cursor:"pointer",fontSize:14,fontWeight:600,fontFamily:"Inter,sans-serif",color:"#475569"}},"←")
           :null,
         last
-          ?ce("button",{onClick:function(){localStorage.setItem("cv10_tutorial_done","1");onClose();},style:{flex:1,padding:"13px",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",border:"none",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:"Inter,sans-serif",color:"#fff"}},"🚀 ¡Empezar!")
+          ?ce("button",{onClick:function(){localStorage.setItem("cv10_tutorial_done","1");onClose();},style:{flex:1,padding:"13px",background:"linear-gradient(135deg,#004D98,#A50044)",border:"none",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:"Inter,sans-serif",color:"#fff"}},"🚀 ¡Empezar!")
           :ce("button",{onClick:function(){setStep(step+1);},style:{flex:1,padding:"13px",background:"#3b82f6",border:"none",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:600,fontFamily:"Inter,sans-serif",color:"#fff"}},"Siguiente →"),
         !last
           ?ce("button",{onClick:function(){localStorage.setItem("cv10_tutorial_done","1");onClose();},style:{padding:"11px 14px",background:"none",border:"none",cursor:"pointer",fontSize:12,color:"#9ca3af",fontFamily:"Inter,sans-serif",whiteSpace:"nowrap"}},"Saltar")
@@ -21752,7 +21753,7 @@ var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed"}},
   ),
   data.banner?ce("div",{style:{width:"100%",height:140,backgroundImage:"url("+data.banner+")",backgroundSize:"cover",backgroundPosition:"center "+(data.bannerPos||50)+"%"}}):null,
   ce("div",{style:{padding:"12px 16px 0",display:"flex",alignItems:"center",gap:12}},
-    data.avatar?ce("img",{src:data.avatar,style:{width:56,height:56,borderRadius:"50%",objectFit:"cover",border:"3px solid #fff",flexShrink:0,marginTop:data.banner?-28:0,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}):ce("div",{style:{width:56,height:56,borderRadius:"50%",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,color:"#fff",fontWeight:700,flexShrink:0,border:"3px solid #fff",marginTop:data.banner?-28:0}},slug.substring(0,2).toUpperCase()),
+    data.avatar?ce("img",{src:data.avatar,style:{width:56,height:56,borderRadius:"50%",objectFit:"cover",border:"3px solid #fff",flexShrink:0,marginTop:data.banner?-28:0,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}):ce("div",{style:{width:56,height:56,borderRadius:"50%",background:"linear-gradient(135deg,#004D98,#A50044)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,color:"#fff",fontWeight:700,flexShrink:0,border:"3px solid #fff",marginTop:data.banner?-28:0}},slug.substring(0,2).toUpperCase()),
     ce("div",{style:{flex:1,minWidth:0}},
       ce("div",{style:{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}},
         ce("span",{style:{fontWeight:700,fontSize:17}},slug),
@@ -21761,7 +21762,7 @@ var hdr=ce("div",{style:{background:"#fff",borderBottom:"1px solid #e8eaed"}},
       avg?ce("div",{style:{color:"#f59e0b",fontSize:12}},"⭐ "+avg+" ("+ratings.length+" valoraciones)"):ce("div",{style:{color:"#9ca3af",fontSize:12}},"Sin valoraciones")
     ),
     ce("div",{style:{display:"flex",gap:6,flexShrink:0}},
-      window._currentUser?ce("button",{onClick:toggleFollow,style:{padding:"6px 12px",background:isFollowing?"#f1f5f9":"linear-gradient(135deg,#3b82f6,#8b5cf6)",border:isFollowing?"1px solid #e2e8f0":"none",borderRadius:20,cursor:"pointer",fontSize:12,color:isFollowing?"#374151":"#fff",fontFamily:"Inter,sans-serif",fontWeight:600,whiteSpace:"nowrap"}},isFollowing?"\u2713 Siguiendo":"+ Seguir"):null,
+      window._currentUser?ce("button",{onClick:toggleFollow,style:{padding:"6px 12px",background:isFollowing?"#f1f5f9":"linear-gradient(135deg,#004D98,#A50044)",border:isFollowing?"1px solid #e2e8f0":"none",borderRadius:20,cursor:"pointer",fontSize:12,color:isFollowing?"#374151":"#fff",fontFamily:"Inter,sans-serif",fontWeight:600,whiteSpace:"nowrap"}},isFollowing?"\u2713 Siguiendo":"+ Seguir"):null,
       data.contact?ce("a",{href:data.contact.indexOf("@")>=0?"mailto:"+data.contact:"https://wa.me/"+data.contact,target:"_blank",style:{padding:"6px 12px",background:"#3b82f6",color:"#fff",borderRadius:20,textDecoration:"none",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}},"Contactar"):null
     )
   ),
@@ -21910,7 +21911,7 @@ var wishlistTab=ce("div",{style:{padding:"20px 16px"}},
             window._currentUser&&(window._currentSlug||localStorage.getItem("cv10_slug"))!==slug?ce("button",{onClick:function(){
               sat("chat");
               setNewMsg("Hola! Tengo la carta que buscas: "+item);
-            },style:{padding:"6px 14px",background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",border:"none",borderRadius:20,color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif",whiteSpace:"nowrap",flexShrink:0}},"Tengo esta 🃏"):null
+            },style:{padding:"6px 14px",background:"linear-gradient(135deg,#004D98,#A50044)",border:"none",borderRadius:20,color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif",whiteSpace:"nowrap",flexShrink:0}},"Tengo esta 🃏"):null
           );
         })
       )
@@ -22050,7 +22051,7 @@ function Directory(){
               var lst=(p.cards||[]).filter(function(c){return c.status==="listed";}).length;
               return ce("a",{key:i,href:"https://laurarosa1310.github.io/cromovault/?p="+p.slug,style:{display:"block",textDecoration:"none",color:"inherit"}},
                 ce("div",{style:{background:"#fff",borderRadius:12,border:"1px solid #e8eaed",overflow:"hidden"}},
-                  p.banner?ce("div",{style:{height:60,backgroundImage:"url("+p.banner+")",backgroundSize:"cover"}}):ce("div",{style:{height:60,background:"linear-gradient(135deg,#3b82f6,#8b5cf6)"}}),
+                  p.banner?ce("div",{style:{height:60,backgroundImage:"url("+p.banner+")",backgroundSize:"cover"}}):ce("div",{style:{height:60,background:"linear-gradient(135deg,#004D98,#A50044)"}}),
                   ce("div",{style:{padding:"12px 16px"}},
                     ce("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:4}},
                       ce("div",{style:{fontWeight:700,fontSize:15}},p.slug),
@@ -22117,7 +22118,7 @@ function Directory(){
             var rat=p.ratings||[],avg=rat.length>0?(rat.reduce(function(a,r){return a+(r.stars||0);},0)/rat.length).toFixed(1):null,lst=(p.cards||[]).filter(function(c){return c.status==="listed";}).length;
             return ce("a",{key:i,href:"https://laurarosa1310.github.io/cromovault/?p="+p.slug,style:{display:"block",textDecoration:"none",color:"inherit"}},
               ce("div",{style:{background:"#fff",borderRadius:12,border:"1px solid #e8eaed",overflow:"hidden"}},
-                p.banner?ce("div",{style:{height:80,backgroundImage:"url("+p.banner+")",backgroundSize:"cover"}}):ce("div",{style:{height:80,background:"linear-gradient(135deg,#3b82f6,#8b5cf6)"}}),
+                p.banner?ce("div",{style:{height:80,backgroundImage:"url("+p.banner+")",backgroundSize:"cover"}}):ce("div",{style:{height:80,background:"linear-gradient(135deg,#004D98,#A50044)"}}),
                 ce("div",{style:{padding:16}},
                   ce("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:2}},
                     ce("div",{style:{fontWeight:700,fontSize:15}},p.slug),
