@@ -17359,7 +17359,7 @@ const IS = { width: "100%", padding: "9px 12px", borderRadius: 8, border: "1.5px
 const LS = { display: "block", color: SUB, fontSize: 11, fontWeight: 500, marginBottom: 5 };
 function Btn({ children, onClick, disabled, v, sm, full, style }) {
     v = v || "primary";
-    let bg = BLUE, fg = "#fff", bo = "none";
+    let bg = "linear-gradient(135deg,#004D98,#A50044)", fg = "#fff", bo = "none";
     if (disabled) {
         bg = BDR;
         fg = MUT;
@@ -17389,7 +17389,8 @@ function Empty({ icon, title, sub, cta, onCta }) { return (React.createElement("
     React.createElement("div", { style: { fontSize: 14, fontWeight: 600, marginBottom: 6 } }, title),
     sub && React.createElement("div", { style: { fontSize: 12, color: MUT, marginBottom: 16 } }, sub),
     cta && React.createElement(Btn, { onClick: onCta }, cta))); }
-function KT({ label, value, sub, accent, br }) { return (React.createElement("div", { style: { padding: "20px 24px", borderRight: br ? "1px solid " + BDR : "none", flex: 1, minWidth: 100 } },
+function KT({ label, value, sub, accent, br }) { return (React.createElement("div", { style: { padding: "20px 24px", borderRight: br ? "1px solid " + BDR : "none", flex: 1, minWidth: 100, position: "relative" } },
+    React.createElement("div", { style: { position: "absolute", top: 0, left: 0, width: 26, height: 3, borderRadius: 2, background: "linear-gradient(to right,#004D98,#A50044)" } }),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 500, color: SUB, marginBottom: 8 } }, label),
     React.createElement("div", { style: { fontSize: 22, fontWeight: 700, color: accent || TXT, letterSpacing: "-0.02em", lineHeight: 1 } }, value),
     sub && React.createElement("div", { style: { marginTop: 5, fontSize: 11, color: MUT } }, sub))); }
@@ -21000,7 +21001,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v143")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v144")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
