@@ -20657,6 +20657,26 @@ function CardshowPOS(props){
 }
 
 
+function PersonalesResumen(props){
+  var h=React.createElement; var go=props&&props.go;
+  var psa=[]; try{ psa=JSON.parse(localStorage.getItem("cv10p")||"[]"); }catch(e){}
+  var aps=[]; try{ aps=JSON.parse(localStorage.getItem("cv10_aperturas")||"[]"); }catch(e){}
+  var psaInv=0,psaRec=0,psaEst=0,psaSold=0; psa.forEach(function(p){ psaInv+=(+p.cardCost||0)+(+p.shippingCost||0)+(+p.gradingCost||0); psaRec+=(+p.realSellPrice||0); psaEst+=(+p.estSellPrice||0); if((+p.realSellPrice||0)>0)psaSold++; });
+  var apInv=0,apVal=0,apHits=0; aps.forEach(function(a){ apInv+=(+a.coste||0); (a.hits||[]).forEach(function(hh){ apVal+=(+hh.v||0); apHits++; }); });
+  var totInv=psaInv+apInv, totVal=psaRec+apVal, totProf=totVal-totInv;
+  function kpi(l,v,c){ return h("div",{style:{flex:1,minWidth:120,background:BGS,borderRadius:10,padding:"12px 14px"}}, h("div",{style:{fontSize:11,color:SUB}},l), h("div",{style:{fontSize:19,fontWeight:800,color:c||TXT,marginTop:2}}, v)); }
+  function block(title,emoji,inv,val,vlabel,n,onGo){ var prof=val-inv; return h(Card,{style:{padding:16,marginBottom:14}},
+    h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}, h("div",{style:{fontSize:15,fontWeight:800}}, emoji+" "+title), onGo?h("button",{onClick:onGo,style:{fontSize:12,fontWeight:700,color:"#004D98",background:"none",border:"none",cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Ver →"):null),
+    h("div",{style:{display:"flex",gap:10,flexWrap:"wrap"}}, kpi("Invertido",eu(inv)), kpi(vlabel,eu(val)), kpi("Beneficio",(prof>=0?"+":"")+eu(prof),prof>=0?GREEN:"#c0392b")),
+    n!=null?h("div",{style:{fontSize:11,color:MUT,marginTop:8}},n):null); }
+  return h("div",null,
+    h(Card,{style:{padding:16,marginBottom:14,background:"linear-gradient(135deg,#eef4ff,#fdeef4)"}},
+      h("div",{style:{fontSize:13,fontWeight:800,marginBottom:10}},"📊 Resumen personal"),
+      h("div",{style:{display:"flex",gap:10,flexWrap:"wrap"}}, kpi("Invertido (total)",eu(totInv)), kpi("Valor obtenido",eu(totVal)), kpi("Beneficio total",(totProf>=0?"+":"")+eu(totProf),totProf>=0?GREEN:"#c0392b"), kpi("ROI",(totInv>0?((totProf/totInv*100).toFixed(0)+"%"):"—"),totProf>=0?GREEN:"#c0392b"))),
+    block("PSA / BGS","🏆",psaInv,psaRec,"Recuperado","+ valor estimado sin vender: "+eu(psaEst)+" · "+psaSold+" vendidas de "+psa.length, go?function(){go("psa");}:null),
+    block("Cajas abiertas","📦",apInv,apVal,"Valor sacado",apHits+" cartas en "+aps.length+" aperturas", go?function(){go("aperturas");}:null));
+}
+
 function AperturasNative(){
   var h=React.createElement;
   var _a=React.useState(function(){ try{ return JSON.parse(localStorage.getItem("cv10_aperturas")||"[]"); }catch(e){ return []; } });
@@ -21163,7 +21183,7 @@ function App() {
             localStorage.setItem("cv10_last_backup", today);
         } catch(e) {}
     }, []);
-    const [tab, setTab] = useState("dashboard"), [psaSub, setPsaSub] = useState("psa"), [sf, setSF] = useState(false), [dm, setDm] = useState("inventory"), [ec, setEc] = useState(null), [sc, setSc] = useState(null);
+    const [tab, setTab] = useState("dashboard"), [psaSub, setPsaSub] = useState("resumen"), [sf, setSF] = useState(false), [dm, setDm] = useState("inventory"), [ec, setEc] = useState(null), [sc, setSc] = useState(null);
     const [prefillName, setPrefillName] = useState("");
     const [prefillLotId, setPrefillLotId] = useState("");
     useEffect(() => { localStorage.setItem("cv10", JSON.stringify(cards)); if (window._currentUser && cards.length > 0) window._saveToFirestore && window._saveToFirestore({ cards: cards }); var slug=localStorage.getItem("cv10_slug"); if(slug&&window._db&&window._currentUser&&cards.length>0){ var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";}); var sold=cards.filter(function(c){return c.status==="sold";}); var vc=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;}); window._db.ref("public/"+slug+"/cards").set(listed); window._db.ref("public/"+slug+"/validCodes").set(vc); } }, [cards]);
@@ -21176,7 +21196,7 @@ function App() {
     function createCards(arr){ var nc=arr.concat(cards); setCards(nc); try{localStorage.setItem("cv10",JSON.stringify(nc));}catch(e){} if(window._saveToFirestore)window._saveToFirestore({cards:nc}); }
     function bulkUpd(ids, changes) { setCards(function (p) { return p.map(function (c) { return ids.indexOf(c.id) >= 0 ? Object.assign({}, c, changes) : c; }); }); if (window._cvToast) window._cvToast(ids.length + " cartas actualizadas"); }
     function bulkDel(ids) { var removed = cards.filter(function (c) { return ids.indexOf(c.id) >= 0; }); setCards(function (p) { return p.filter(function (c) { return ids.indexOf(c.id) < 0; }); }); if (window._cvToast) window._cvToast(removed.length + " cartas eliminadas", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { setCards(function (p) { return removed.concat(p); }); } }); }
-    const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["lotes", "📦 Lotes"], ["fiscal", "Análisis"], ["breaks", "🎬 Directos"], ["redes", "📱 Redes"], ["psa", "Personales"]];
+    const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["lotes", "📦 Lotes"], ["fiscal", "Análisis"], ["breaks", "🎬 Directos"], ["redes", "📱 Redes"], ["psa", "🎴 Personales"]];
     return (React.createElement("div", { style: { height: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14, display: "flex", flexDirection: "column", overflow: "hidden" } },
         React.createElement("style", null, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Saira+Condensed:wght@600;700;800;900&display=swap');"),
         React.createElement("div", { id: "cv-top-bar", style: { background: "#ffffff", borderBottom: "1px solid " + BDR, position: "relative", zIndex: 1000, flexShrink: 0, boxShadow: "0 2px 12px rgba(0,0,0,0.10)" } },
@@ -21186,7 +21206,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v187")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v188")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -21738,14 +21758,14 @@ showPublicProfile && React.createElement("div", { onMouseDown: function(e) { pro
             tab === "breaks" && React.createElement(DirectosTab, { breaks: breaks, saveBreaks: saveBreaks, cards: cards, setCards: setCards, lots: lots, saveLots: saveLots, directos: directos, saveDirectos: saveDirectos, onEdit: oe }),
             
             tab === "redes" && React.createElement(RedesTab, { cards: cards, onOpenPost: function(c,tpl){ setPostCard(c); setPostInitTpl(tpl||null); setShowPostModal(true); } }),
-            tab === "psa" && React.createElement("div", null, React.createElement("div",{style:{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}, [["psa","🏆 PSA/BGS"],["aperturas","📦 Cajas abiertas"]].map(function(o){ return React.createElement(Btn,{key:o[0],sm:true,v:psaSub===o[0]?"primary":"outline",onClick:function(){setPsaSub(o[0]);}},o[1]); })), (psaSub==="aperturas" ? React.createElement(AperturasNative, null) : (isPremium() ? React.createElement(PSATab, null) : React.createElement("div",{style:{maxWidth:500,margin:"80px auto",textAlign:"center",padding:40}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"\uD83D\uDD12"),React.createElement("div",{style:{fontSize:20,fontWeight:700,marginBottom:8}},"Función Premium"),React.createElement("div",{style:{color:SUB,marginBottom:24}},"PSA/BGS es una función Premium"),React.createElement("button",{onClick:function(){setShowSettings(true);},style:{padding:"12px 24px",background:BLUE,border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B50 Hazte Premium")))))), 
+            tab === "psa" && React.createElement("div", null, React.createElement("div",{style:{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}, [["resumen","📊 Resumen"],["psa","🏆 PSA/BGS"],["aperturas","📦 Cajas abiertas"]].map(function(o){ return React.createElement(Btn,{key:o[0],sm:true,v:psaSub===o[0]?"primary":"outline",onClick:function(){setPsaSub(o[0]);}},o[1]); })), (psaSub==="resumen" ? React.createElement(PersonalesResumen, { go: setPsaSub }) : psaSub==="aperturas" ? React.createElement(AperturasNative, null) : (isPremium() ? React.createElement(PSATab, null) : React.createElement("div",{style:{maxWidth:500,margin:"80px auto",textAlign:"center",padding:40}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"\uD83D\uDD12"),React.createElement("div",{style:{fontSize:20,fontWeight:700,marginBottom:8}},"Función Premium"),React.createElement("div",{style:{color:SUB,marginBottom:24}},"PSA/BGS es una función Premium"),React.createElement("button",{onClick:function(){setShowSettings(true);},style:{padding:"12px 24px",background:BLUE,border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B50 Hazte Premium")))))), 
         sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); setPrefillName(""); setPrefillLotId(""); }, editCard: ec, defMode: dm, lots: lots, saveLots: saveLots, cards: cards, prefillName: prefillName, prefillLotId: prefillLotId }),
         showLot && React.createElement(LotModal, { cards: cards, onSell: ups, onClose: () => setShowLot(false) }),
         sc && React.createElement(SellModal, { card: sc, onSave: ups, onClose: () => setSc(null) }),
         dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onClose: () => setDupCard(null) }),
         React.createElement("div", { id: "cv-bottom-nav" },
             React.createElement("div", { id: "cv-bottom-nav-inner" },
-                [["dashboard","\uD83D\uDCCA","Inicio"],["inventory","\uD83D\uDCE6","Inv."],["collection","\u2B50","Colec."],["lotes","\uD83D\uDDC2\uFE0F","Lotes"],["fiscal","\uD83D\uDCCA","An\u00E1l."],["breaks","\uD83C\uDFAC","Direct."],["redes","\uD83D\uDCF1","Redes"],["psa","\uD83C\uDFC6","Personal"]].map(function(item) {
+                [["dashboard","\uD83D\uDCCA","Inicio"],["inventory","\uD83D\uDCE6","Inv."],["collection","\u2B50","Colec."],["lotes","\uD83D\uDDC2\uFE0F","Lotes"],["fiscal","\uD83D\uDCCA","An\u00E1l."],["breaks","\uD83C\uDFAC","Direct."],["redes","\uD83D\uDCF1","Redes"],["psa","\uD83C\uDFB4","Personal"]].map(function(item) {
                     return React.createElement("button", { key: item[0], className: tab === item[0] ? "active" : "", onClick: function() { setTab(item[0]); } },
                         React.createElement("span", { className: "icon" }, item[1]),
                         React.createElement("span", { className: "label" }, item[2]));
