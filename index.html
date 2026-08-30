@@ -17543,7 +17543,7 @@ function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards, p
                     f.mode === "inventory" && (React.createElement("div", { style: { marginBottom: 14 } },
                         React.createElement("label", { style: LS }, "Estado"),
                         React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 8 } }, [["holding", "En cartera", BLUE], ["listed", "En venta", AMBER], ["sold", "Vendida", GREEN]].map(([k, l, ac]) => (React.createElement("button", { key: k, onClick: () => setStatus(k), style: { flex: 1, padding: "8px 0", borderRadius: 8, cursor: "pointer", border: "1.5px solid " + (f.status === k ? ac : BDR), background: f.status === k ? ac + "18" : "transparent", color: f.status === k ? ac : SUB, fontFamily: "Inter,sans-serif", fontWeight: 500, fontSize: 11 } }, l)))),
-                        React.createElement("button", { onClick: () => sf("reserved", !f.reserved), style: { marginBottom: 8, padding: "6px 12px", borderRadius: 8, border: "1.5px solid " + (f.reserved ? "#0891b2" : BDR), background: f.reserved ? "rgba(8,145,178,0.10)" : "transparent", color: f.reserved ? "#0891b2" : SUB, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, f.reserved ? "🔖 Reservada (clic para quitar)" : "🔖 Marcar reservada"),
+                        React.createElement("button", { onClick: () => sf("reserved", !f.reserved), style: { marginBottom: 8, padding: "6px 12px", borderRadius: 8, border: "1.5px solid " + (f.reserved ? "#0891b2" : BDR), background: f.reserved ? "rgba(8,145,178,0.10)" : "transparent", color: f.reserved ? "#0891b2" : SUB, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, f.reserved ? "🔖 Reservada (clic para quitar)" : "🔖 Marcar reservada"), React.createElement("button", { onClick: () => sf("apartado", !f.apartado), style: { marginBottom: 8, marginLeft: 8, padding: "6px 12px", borderRadius: 8, border: "1.5px solid " + (f.apartado ? "#7c3aed" : BDR), background: f.apartado ? "rgba(124,58,237,0.10)" : "transparent", color: f.apartado ? "#7c3aed" : SUB, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, f.apartado ? "📌 Apartado (clic para quitar)" : "📌 Apartar"),
                         f.status === "sold" && (f.quantity || 1) > 1 && (React.createElement("div", { style: { background: "#f0fdf8", border: "1px solid #d1fae5", borderRadius: 8, padding: "10px 12px" } },
                             React.createElement("label", { style: Object.assign(Object.assign({}, LS), { marginBottom: 6 }) }, "\u00BFCu\u00E1ntas unidades vendes?"),
                             React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
@@ -17739,6 +17739,7 @@ function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl }) {
                 sg(tt),
                 eu(tt))) : (React.createElement("span", { style: { color: MUT, fontSize: 12 } }, "\u2014"))),
             React.createElement("td", { style: { padding: "8px 6px", verticalAlign: "middle", textAlign: "center" } }, isSold ? React.createElement(Bdg, { color: GREEN, bg: "#f0fdf8", dot: true }, "Vendida") : isListed ? React.createElement(Bdg, { color: AMBER, bg: "#fffbeb", dot: true }, "En venta") : card.mode === "collection" ? React.createElement(Bdg, { color: PURPLE, bg: "#f5f3ff", dot: true }, "Colecci\u00F3n") : React.createElement(Bdg, { color: BLUE, bg: "#eff4ff", dot: true }, "Cartera")),
+            card.apartado ? React.createElement(Bdg, { color: "#7c3aed", bg: "#f5f3ff", dot: true }, "\uD83D\uDCCC Apartado") : null,
             React.createElement("td", { style: { padding: "8px 6px", verticalAlign: "middle" }, onClick: e => e.stopPropagation() },
                 React.createElement("div", { style: { display: "flex", gap: 4, justifyContent: "flex-end", flexWrap: "wrap" } },
                                         React.createElement("a", { href: "https://www.ebay.es/sch/i.html?_nkw=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", style: { padding: "5px 7px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 11, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "eBay"),
@@ -17783,14 +17784,36 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
     const [chartRange, setChartRange] = React.useState("6m");
     const [portfolioRange, setPortfolioRange] = React.useState("12m");
     var uname=(window._currentUser&&(window._currentUser.displayName||window._currentUser.email.split("@")[0]))||"";
-    const inv = cards.filter(c => c.mode === "inventory"), sold = inv.filter(c => c.status === "sold"), hold = inv.filter(c => c.status !== "sold"), listed = inv.filter(c => c.status === "listed");
-    const invested = inv.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0);
+    const [year, setYear] = React.useState("todo");
+    const [incApart, setIncApart] = React.useState(false);
+    const inv = cards.filter(c => c.mode === "inventory");
+    var _yset={}; inv.forEach(function(c){ var by=(c.buyDate||"").slice(0,4); if(by)_yset[by]=1; }); var yearList=Object.keys(_yset).sort().reverse();
+    const _isTodo = (year==="todo");
+    const _boughtInY = c => _isTodo || (c.buyDate||"").slice(0,4)===year;
+    const _yearCards = inv.filter(_boughtInY);
+    const apartadoCards = _yearCards.filter(c=>c.apartado);
+    const apartadoVal = apartadoCards.reduce((a,c)=>a+(c.buyPrice||0)*(c.quantity||1),0);
+    const cohort = incApart ? _yearCards : _yearCards.filter(c=>!c.apartado);
+    const sold = cohort.filter(c => c.status === "sold"), hold = cohort.filter(c => c.status !== "sold"), listed = cohort.filter(c => c.status === "listed");
+    const invested = cohort.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0);
     const recovered = sold.reduce((a, c) => a + (c.sellPrice || 0) * (c.quantity || 1) * (1 - (c.platformFee || 0) / 100) - (c.shippingCost || 0), 0);
     const inPortfolio = hold.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0);
     const realized = sold.reduce((a, c) => a + np(c), 0);
     const inPortfolioVal = hold.reduce((a, c) => a + ((c.marketPrice || c.targetPrice || c.buyPrice || 0) * (c.quantity || 1)), 0);
     const balance = recovered + inPortfolioVal - invested;
     const roi = invested ? pc(invested + realized, invested) : 0;
+    function dlBalancePdf(){ var J=window.jspdf&&window.jspdf.jsPDF; if(!J){ if(window._cvToast) window._cvToast("Cargando PDF, prueba de nuevo",{icon:"\u23F3"}); return; }
+      var pdf=new J({unit:"pt",format:"a4"}); var W=pdf.internal.pageSize.getWidth(), Hh=pdf.internal.pageSize.getHeight(), M=40, y=54;
+      var per=_isTodo?"Hist\u00f3rico (todos los a\u00f1os)":("A\u00f1o "+year); var modo=incApart?"con apartados":"solo reventa";
+      pdf.setFont("helvetica","bold"); pdf.setFontSize(18); pdf.text("Balance de cartera",M,y); y+=20;
+      pdf.setFont("helvetica","normal"); pdf.setFontSize(11); pdf.setTextColor(120); pdf.text(per+"  \u00b7  "+modo,M,y); pdf.setTextColor(20); y+=24;
+      var kpis=[["Invertido",euk(invested)],["Recuperado",euk(recovered)],["En cartera",euk(inPortfolio)],["Beneficio realizado",euk(realized)],["Balance",euk(balance)],["ROI",roi.toFixed(1)+"%"]];
+      if(apartadoCards.length) kpis.push(["Apartados",apartadoCards.length+" cartas \u00b7 "+euk(apartadoVal)]);
+      pdf.setFontSize(11); kpis.forEach(function(k){ pdf.setTextColor(120); pdf.text(String(k[0]),M,y); pdf.setTextColor(20); pdf.text(String(k[1]),M+200,y); y+=17; }); y+=14;
+      pdf.setFont("helvetica","bold"); pdf.setFontSize(12); pdf.text("Cartas ("+cohort.length+")",M,y); y+=16;
+      pdf.setFontSize(9); pdf.setTextColor(120); pdf.text("Carta",M,y); pdf.text("Compra",M+250,y); pdf.text("Venta",M+320,y); pdf.text("Estado",M+390,y); y+=5; pdf.setDrawColor(210); pdf.line(M,y,W-M,y); y+=13;
+      cohort.slice().sort(function(a,b){return String(a.name||"").localeCompare(String(b.name||""));}).forEach(function(c){ if(y>Hh-46){ pdf.addPage(); y=54; } var nm=String(c.name||""); if(nm.length>40)nm=nm.slice(0,39)+"."; pdf.setTextColor(30); pdf.setFontSize(9); pdf.text(nm+(c.apartado?"  [apartado]":""),M,y); pdf.text(euk((c.buyPrice||0)*(c.quantity||1)),M+250,y); pdf.text((c.sellPrice||0)>0?euk((c.sellPrice||0)*(c.quantity||1)):"-",M+320,y); pdf.text(c.status==="sold"?"Vendida":(c.status==="listed"?"En venta":"En cartera"),M+390,y); y+=14; });
+      pdf.save("balance-"+(_isTodo?"historico":year)+"-"+(incApart?"con":"sin")+"-apartados.pdf"); if(window._cvToast) window._cvToast("Balance PDF descargado"); }
     const monthly = {};
     sold.forEach(c => { const k = (c.sellDate || "").slice(0, 7) || "–"; if (!monthly[k])
         monthly[k] = { month: k, pnl: 0 }; monthly[k].pnl += np(c); });
@@ -17803,9 +17826,16 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
     return (React.createElement("div", null,
         uname?React.createElement("div",{style:{padding:"10px 20px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",null,React.createElement("div",{style:{fontSize:17,fontWeight:700,color:TXT,fontFamily:"Inter,sans-serif"}},"Hola, "+(uname.split(" ")[0])+" \uD83D\uDC4B"),React.createElement("div",{style:{fontSize:13,color:SUB,marginTop:2}},"Bienvenido a tu portfolio")),null):null,
         React.createElement(Card, { style: { marginBottom: 20, padding: "20px 24px" } },
-            React.createElement(SL, { style: { marginBottom: 16 } }, "\uD83D\uDCB0 Balance de cartera"),
+            React.createElement(SL, { style: { marginBottom: 12 } }, "\uD83D\uDCB0 Balance de cartera"),
+            React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14, alignItems:"center" } },
+                React.createElement("span",{style:{fontSize:11,color:SUB,marginRight:2}},"A\u00f1o:"),
+                [["todo","Todo"]].concat(yearList.map(function(y){return [y,y];})).map(function(o){ return React.createElement("button",{ key:o[0], onClick:function(){ setYear(o[0]); }, style:{ padding:"6px 13px", borderRadius:20, border:"1px solid "+(year===o[0]?BLUE:BDR), background:(year===o[0]?BLUE:BGS), color:(year===o[0]?"#fff":TXT), fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, o[1]); })),
+            React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14, alignItems: "center" } },
+                React.createElement("button", { onClick: function(){ setIncApart(!incApart); }, style: { padding: "6px 13px", borderRadius: 20, border: "1px solid " + (incApart?"#7c3aed":BDR), background: (incApart?"rgba(124,58,237,0.12)":BGS), color: (incApart?"#7c3aed":TXT), fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, incApart ? "\uD83D\uDCCC Con apartados" : "\uD83D\uDCCC Solo reventa"),
+                React.createElement("button", { onClick: dlBalancePdf, style: { padding: "6px 13px", borderRadius: 20, border: "1px solid " + BDR, background: BGS, color: TXT, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, "\u2B07 PDF"),
+                apartadoCards.length ? React.createElement("span", { style: { fontSize: 12, color: SUB } }, "Apartados: " + apartadoCards.length + " \u00B7 " + euk(apartadoVal)) : null),
             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))", gap: 10, marginBottom: 10 } },
-                ...[{ l: "Dinero invertido", v: euk(invested), c: TXT, sub: "total gastado" }, { l: "Recuperado", v: euk(recovered), c: GREEN, sub: "ventas netas" }, { l: "En cartera", v: euk(inPortfolio), c: BLUE, sub: hold.length + " cartas" }, { l: "Balance total", v: (balance >= 0 ? "+" : "") + euk(balance), c: cl(balance), sub: balance >= 0 ? "ganando" : "perdiendo" }, { l: "P&L realizado", v: sg(realized) + euk(realized), c: cl(realized), sub: "beneficio real" }, { l: "ROI global", v: sg(roi) + roi.toFixed(1) + "%", c: cl(roi), sub: "sobre invertido" }, { l: "En venta", v: String(listed.length), c: listed.length > 0 ? AMBER : TXT, sub: "anuncios" }].map(({ l, v, c, sub }) => React.createElement("div", { key: l, style: { background: BGS, borderRadius: 10, padding: "10px 12px", border: "1px solid " + BDR } },
+                ...[{ l: "Dinero invertido", v: euk(invested), c: TXT, sub: (_isTodo?"total gastado":("comprado en "+year)) }, { l: "Recuperado", v: euk(recovered), c: GREEN, sub: "ventas netas" }, { l: "En cartera", v: euk(inPortfolio), c: BLUE, sub: hold.length + (_isTodo?" cartas":" sin vender") }, { l: "Balance total", v: (balance >= 0 ? "+" : "") + euk(balance), c: cl(balance), sub: balance >= 0 ? "ganando" : "perdiendo" }, { l: "P&L realizado", v: sg(realized) + euk(realized), c: cl(realized), sub: "beneficio real" }, { l: "ROI global", v: sg(roi) + roi.toFixed(1) + "%", c: cl(roi), sub: "sobre invertido" }, { l: "En venta", v: String(listed.length), c: listed.length > 0 ? AMBER : TXT, sub: "anuncios" }].map(({ l, v, c, sub }) => React.createElement("div", { key: l, style: { background: BGS, borderRadius: 10, padding: "10px 12px", border: "1px solid " + BDR } },
                     React.createElement("div", { style: { fontSize: 10, color: SUB, marginBottom: 3 } }, l),
                     React.createElement("div", { style: { fontSize: 15, fontWeight: 700, color: c, letterSpacing: "-0.02em" } }, v),
                     React.createElement("div", { style: { fontSize: 10, color: MUT, marginTop: 2 } }, sub)))),
@@ -19015,7 +19045,8 @@ function LotsTab({ lots, saveLots, cards, setCards, onEdit, onAddNew }) {
             function stockRank(c) { return c.lotId === lot.id ? 0 : (c.lotId ? 1 : 2); }
             var stockTabs = [["pendientes", "Pendientes (" + inStock.length + ")"], ["vendidas", "Vendidas (" + sold.length + ")"]];
             if (lotColCards.length > 0) stockTabs.push(["coleccion", "Colección (" + lotColCards.length + ")"]);
-            function stockListFor(tab) { return tab === "pendientes" ? inStock : tab === "vendidas" ? sold : lotColCards; }
+            var lotApart = lotCards.filter(function(c){ return c.apartado; }); if (lotApart.length > 0) stockTabs.push(["apartados", "\uD83D\uDCCC Apartados (" + lotApart.length + ")"]);
+            function stockListFor(tab) { return tab === "pendientes" ? inStock : tab === "vendidas" ? sold : tab === "apartados" ? lotApart : lotColCards; }
             const stockMatches = stockQ.trim() ? invAll.filter((c) => (c.name || "").toLowerCase().includes(stockQ.trim().toLowerCase())).sort((a, b) => stockRank(a) - stockRank(b)) : [];
             function renderStockRow(c) {
                 var isCol = c.mode === "collection";
@@ -21292,7 +21323,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v233")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v238")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
