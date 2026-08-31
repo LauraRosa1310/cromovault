@@ -17259,7 +17259,9 @@ function useEscClose(active, onClose) {
 const BLUE = "#004D98", GREEN = "#00c48c", RED = "#f03e3e", AMBER = "#f59e0b", PURPLE = "#A50044";
 const BG = "var(--bg,#fff)", BGS = "var(--bgs,#f7f8fa)", BDR = "var(--bdr,#e8eaed)", TXT = "var(--txt,#0a0a0a)", SUB = "var(--sub,#6b7280)", MUT = "var(--mut,#9ca3af)";
 const CATS = { futbol_m: "⚽ Fútbol Masc.", futbol_f: "👟 Fútbol Fem.", nba: "🏀 NBA", trading: "🃏 Trading", baseball: "⚾ Baseball", f1: "🏎️ F1", other: "🏅 Otro" };
-const RARS = ["Común", "Poco común", "Rara", "Ultra Rara", "Legendaria"];
+const RARS = ["Común", "Poco común", "Rara", "Ultra Rara", "Legendaria"]
+  var TYPE_TAGS = ["Base", "Insert", "Paralela/Refractor", "Numerada", "Rookie (RC)", "Autógrafo", "Parche/Memo", "Sticker", "1/1"]
+  var BRAND_DEF = ["Topps", "Panini", "Daka"];
 const RCLR = { "Común": "#9ca3af", "Poco común": "#10b981", "Rara": "#3b82f6", "Ultra Rara": "#8b5cf6", "Legendaria": "#f59e0b" };
 const CONDS = ["Raw", "PSA 1", "PSA 2", "PSA 3", "PSA 4", "PSA 5", "PSA 6", "PSA 7", "PSA 8", "PSA 9", "PSA 10", "BGS 9", "BGS 9.5", "BGS 10"];
 const PLATS = ["eBay", "Wallapop", "Cardmarket", "Vinted", "TCGPlayer", "Otro"];
@@ -17272,6 +17274,25 @@ function pc(s, b) { return b ? ((s - b) / b * 100) : 0; }
 function sg(n) { return n >= 0 ? "+" : ""; }
 function cl(n) { return n >= 0 ? GREEN : RED; }
 function np(c) { return (c.sellPrice || 0) * (c.quantity || 1) * (1 - (c.platformFee || 0) / 100) - (c.shippingCost || 0) - (c.buyPrice || 0) * (c.quantity || 1); }
+function dlBalancePDF(list, titulo, subtitulo, fname){ var J=window.jspdf&&window.jspdf.jsPDF; if(!J){ if(window._cvToast) window._cvToast("Cargando PDF, prueba de nuevo",{icon:"\u23F3"}); return; }
+  list=list||[]; var sold=list.filter(function(c){return c.status==="sold";}); var hold=list.filter(function(c){return c.status!=="sold";});
+  var invested=list.reduce(function(a,c){return a+(c.buyPrice||0)*(c.quantity||1);},0);
+  var recovered=sold.reduce(function(a,c){return a+(c.sellPrice||0)*(c.quantity||1)*(1-(c.platformFee||0)/100)-(c.shippingCost||0);},0);
+  var realized=sold.reduce(function(a,c){return a+np(c);},0);
+  var inPortfolio=hold.reduce(function(a,c){return a+(c.buyPrice||0)*(c.quantity||1);},0);
+  var inPortVal=hold.reduce(function(a,c){return a+((c.marketPrice||c.targetPrice||c.buyPrice||0)*(c.quantity||1));},0);
+  var balance=recovered+inPortVal-invested; var roi=invested?((realized/invested)*100):0;
+  var apN=list.filter(function(c){return c.apartado;}).length;
+  var pdf=new J({unit:"pt",format:"a4"}); var W=pdf.internal.pageSize.getWidth(),Hh=pdf.internal.pageSize.getHeight(),M=40,y=54;
+  pdf.setFont("helvetica","bold");pdf.setFontSize(18);pdf.text(titulo||"Balance de cartera",M,y);y+=20;
+  pdf.setFont("helvetica","normal");pdf.setFontSize(11);pdf.setTextColor(120);pdf.text(subtitulo||"",M,y);pdf.setTextColor(20);y+=24;
+  var kpis=[["Invertido",euk(invested)],["Recuperado",euk(recovered)],["En cartera",euk(inPortfolio)],["Beneficio realizado",euk(realized)],["Balance",euk(balance)],["ROI",roi.toFixed(1)+"%"],["Cartas",String(list.length)+" ("+sold.length+" vendidas)"]];
+  if(apN) kpis.push(["Apartados incluidos",String(apN)]);
+  pdf.setFontSize(11);kpis.forEach(function(k){pdf.setTextColor(120);pdf.text(String(k[0]),M,y);pdf.setTextColor(20);pdf.text(String(k[1]),M+210,y);y+=17;});y+=14;
+  pdf.setFont("helvetica","bold");pdf.setFontSize(12);pdf.text("Detalle de cartas",M,y);y+=16;
+  pdf.setFontSize(9);pdf.setTextColor(120);pdf.text("Carta",M,y);pdf.text("Compra",M+250,y);pdf.text("Venta",M+320,y);pdf.text("Estado",M+390,y);y+=5;pdf.setDrawColor(210);pdf.line(M,y,W-M,y);y+=13;
+  list.slice().sort(function(a,b){return String(a.name||"").localeCompare(String(b.name||""));}).forEach(function(c){ if(y>Hh-46){pdf.addPage();y=54;} var nm=String(c.name||"");if(nm.length>40)nm=nm.slice(0,39)+".";pdf.setTextColor(30);pdf.setFontSize(9);pdf.text(nm+(c.apartado?"  [apartado]":""),M,y);pdf.text(euk((c.buyPrice||0)*(c.quantity||1)),M+250,y);pdf.text((c.sellPrice||0)>0?euk((c.sellPrice||0)*(c.quantity||1)):"-",M+320,y);pdf.text(c.status==="sold"?"Vendida":(c.status==="listed"?"En venta":"En cartera"),M+390,y);y+=14;});
+  pdf.save((fname||"balance")+".pdf"); if(window._cvToast) window._cvToast("PDF descargado"); }
 function daysSince(dateStr) { if (!dateStr)
     return null; return Math.floor((Date.now() - new Date(dateStr)) / 86400000); }
 function apyCalc(c) {
@@ -17510,6 +17531,7 @@ function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards, p
     useEscClose(true, onClose);
     var _distL=(function(){var seen={},a=[];(cards||[]).forEach(function(c){var v=(c.league||"").trim();if(v&&!seen[v.toLowerCase()]){seen[v.toLowerCase()]=1;a.push(v);}});return a.sort();})();
     var _distT=(function(){var seen={},a=[];(cards||[]).forEach(function(c){var v=(c.team||"").trim();if(v&&!seen[v.toLowerCase()]){seen[v.toLowerCase()]=1;a.push(v);}});return a.sort();})();
+    var _distBrand=(function(){var seen={},a=[];BRAND_DEF.forEach(function(v){seen[v.toLowerCase()]=1;a.push(v);});(cards||[]).forEach(function(c){var v=(c.brand||"").trim();if(v&&!seen[v.toLowerCase()]){seen[v.toLowerCase()]=1;a.push(v);}});return a;})();
     const blank = { name: prefillName || "", category: (localStorage.getItem("cv10_lastcat")||"trading"), series: "", rarity: "Común", condition: "Raw", quantity: 1, buyPrice: "", buyDate: new Date().toISOString().slice(0, 10), notes: "", tags: [], marketPrice: "", images: [], status: "holding", sellPrice: "", sellDate: "", platformFee: "", shippingCost: "", platform: (localStorage.getItem("cv10_lastplat")||"eBay"), isFavorite: false, mode: defMode || "inventory", targetPrice: "", listingDate: "", location: (localStorage.getItem("cv10_lastloc")||""), imageUrl: "", lotId: prefillLotId || "" };
     const init = editCard ? Object.assign(Object.assign({}, editCard), { buyPrice: String(editCard.buyPrice || ""), sellPrice: String(editCard.sellPrice || ""), platformFee: String(editCard.platformFee || ""), shippingCost: String(editCard.shippingCost || ""), targetPrice: String(editCard.targetPrice || ""), marketPrice: String(editCard.marketPrice || ""), tags: editCard.tags || [] }) : blank;
     const [f, setF] = useState(init), [imgs, setImgs] = useState((editCard === null || editCard === void 0 ? void 0 : editCard.images) || []), [tab, setTab] = useState("info");
@@ -17586,6 +17608,16 @@ function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards, p
                             React.createElement("select", { value: f.condition, onChange: e => sf("condition", e.target.value), style: IS }, CONDS.map(c => React.createElement("option", { key: c, value: c }, c))))),
                     
                     React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } }, React.createElement("div", null, React.createElement("label", { style: LS }, "Liga"), React.createElement("input", { value: f.league || "", onChange: function(e){ sf("league", e.target.value); }, placeholder: "Premier League", list: "cv-leagues", style: IS }), React.createElement("datalist", { id: "cv-leagues" }, _distL.map(function(v){ return React.createElement("option", { key: v, value: v }); }))), React.createElement("div", null, React.createElement("label", { style: LS }, "Equipo"), React.createElement("input", { value: f.team || "", onChange: function(e){ sf("team", e.target.value); }, placeholder: "FC Barcelona", list: "cv-teams", style: IS }), React.createElement("datalist", { id: "cv-teams" }, _distT.map(function(v){ return React.createElement("option", { key: v, value: v }); })))),
+                    React.createElement("div", { style: { marginBottom: 12 } },
+                        React.createElement("label", { style: LS }, "Marca"),
+                        React.createElement("input", { value: f.brand || "", onChange: function(e){ sf("brand", e.target.value); }, placeholder: "Topps, Panini, Daka...", list: "cv-brands", style: IS }),
+                        React.createElement("datalist", { id: "cv-brands" }, _distBrand.map(function(v){ return React.createElement("option", { key: v, value: v }); }))),
+                    React.createElement("div", { style: { marginBottom: 12 } },
+                        React.createElement("label", { style: LS }, "Tipo de carta"),
+                        React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap" } },
+                            TYPE_TAGS.concat((f.tags||[]).filter(function(t){ return TYPE_TAGS.indexOf(t)<0; })).map(function(t){ var on=(f.tags||[]).indexOf(t)>=0; return React.createElement("button", { key: t, type:"button", onClick: function(){ sf("tags", on ? (f.tags||[]).filter(function(x){return x!==t;}) : (f.tags||[]).concat([t])); }, style: { padding:"6px 11px", borderRadius:16, border:"1px solid "+(on?"#004D98":BDR), background:(on?"rgba(0,77,152,0.10)":"transparent"), color:(on?"#004D98":SUB), fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, t); }),
+                            React.createElement("button", { type:"button", onClick: function(){ var v=(prompt("Nueva etiqueta de tipo:")||"").trim(); if(v && (f.tags||[]).indexOf(v)<0) sf("tags", (f.tags||[]).concat([v])); }, style: { padding:"6px 11px", borderRadius:16, border:"1px dashed "+BDR, background:"transparent", color:MUT, fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "+ otra")),
+                        ((f.tags||[]).indexOf("Numerada")>=0) ? React.createElement("div", { style: { marginTop: 8 } }, React.createElement("label", { style: LS }, "Tirada (/n\u00famero)"), React.createElement("input", { type:"number", inputMode:"numeric", value: (f.numberedTo||""), onChange: function(e){ sf("numberedTo", e.target.value); }, placeholder: "25, 99, 150...", style: IS })) : null),
                     
                     React.createElement("div", null,
                         React.createElement("label", { style: LS }, "Lote"),
@@ -17786,8 +17818,17 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
     var uname=(window._currentUser&&(window._currentUser.displayName||window._currentUser.email.split("@")[0]))||"";
     const [year, setYear] = React.useState("todo");
     const [incApart, setIncApart] = React.useState(false);
+    const [showExp, setShowExp] = React.useState(false);
+    const [expScope, setExpScope] = React.useState("total");
+    const [expApart, setExpApart] = React.useState("sin");
+    const [expMonth, setExpMonth] = React.useState("");
+    const [expQ, setExpQ] = React.useState("");
+    const [expYear, setExpYear] = React.useState("");
     const inv = cards.filter(c => c.mode === "inventory");
     var _yset={}; inv.forEach(function(c){ var by=(c.buyDate||"").slice(0,4); if(by)_yset[by]=1; }); var yearList=Object.keys(_yset).sort().reverse();
+    var _mset={},_qset={}; inv.forEach(function(c){ var bd=(c.buyDate||""); if(bd.length>=7){ _mset[bd.slice(0,7)]=1; var qq=Math.ceil(parseInt(bd.slice(5,7),10)/3); _qset[bd.slice(0,4)+"-T"+qq]=1; } }); var monthList=Object.keys(_mset).sort().reverse(); var quarterList=Object.keys(_qset).sort().reverse();
+    function _expList(){ var base=inv.filter(function(c){ var bd=(c.buyDate||""); if(expScope==="total") return true; if(!bd) return false; if(expScope==="anio") return bd.slice(0,4)===(expYear||yearList[0]); if(expScope==="mes") return bd.slice(0,7)===(expMonth||monthList[0]); if(expScope==="trimestre"){ var qq=Math.ceil(parseInt(bd.slice(5,7),10)/3); return (bd.slice(0,4)+"-T"+qq)===(expQ||quarterList[0]); } return true; }); if(expApart==="sin") base=base.filter(function(c){return !c.apartado;}); return base; }
+    function _doExport(){ var L=_expList(); var mesN=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]; var per="", fkey=""; if(expScope==="total"){ per="Hist\u00f3rico (todo)"; fkey="total"; } else if(expScope==="anio"){ var yv=expYear||yearList[0]||""; per="A\u00f1o "+yv; fkey="anio-"+yv; } else if(expScope==="mes"){ var mv=expMonth||monthList[0]||""; per=(mv?(mesN[parseInt(mv.slice(5,7),10)-1]+" "+mv.slice(0,4)):"Mes"); fkey="mes-"+mv; } else if(expScope==="trimestre"){ var qv=expQ||quarterList[0]||""; per=qv?(qv.slice(5)+" "+qv.slice(0,4)):"Trimestre"; fkey="trim-"+qv; } var modo=(expApart==="con"?"con apartados":"sin apartados"); dlBalancePDF(L, "Balance de cartera", per+"  \u00b7  "+modo, "balance-"+fkey+"-"+(expApart==="con"?"con":"sin")+"-apartados"); setShowExp(false); }
     const _isTodo = (year==="todo");
     const _boughtInY = c => _isTodo || (c.buyDate||"").slice(0,4)===year;
     const _yearCards = inv.filter(_boughtInY);
@@ -17802,18 +17843,6 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
     const inPortfolioVal = hold.reduce((a, c) => a + ((c.marketPrice || c.targetPrice || c.buyPrice || 0) * (c.quantity || 1)), 0);
     const balance = recovered + inPortfolioVal - invested;
     const roi = invested ? pc(invested + realized, invested) : 0;
-    function dlBalancePdf(){ var J=window.jspdf&&window.jspdf.jsPDF; if(!J){ if(window._cvToast) window._cvToast("Cargando PDF, prueba de nuevo",{icon:"\u23F3"}); return; }
-      var pdf=new J({unit:"pt",format:"a4"}); var W=pdf.internal.pageSize.getWidth(), Hh=pdf.internal.pageSize.getHeight(), M=40, y=54;
-      var per=_isTodo?"Hist\u00f3rico (todos los a\u00f1os)":("A\u00f1o "+year); var modo=incApart?"con apartados":"solo reventa";
-      pdf.setFont("helvetica","bold"); pdf.setFontSize(18); pdf.text("Balance de cartera",M,y); y+=20;
-      pdf.setFont("helvetica","normal"); pdf.setFontSize(11); pdf.setTextColor(120); pdf.text(per+"  \u00b7  "+modo,M,y); pdf.setTextColor(20); y+=24;
-      var kpis=[["Invertido",euk(invested)],["Recuperado",euk(recovered)],["En cartera",euk(inPortfolio)],["Beneficio realizado",euk(realized)],["Balance",euk(balance)],["ROI",roi.toFixed(1)+"%"]];
-      if(apartadoCards.length) kpis.push(["Apartados",apartadoCards.length+" cartas \u00b7 "+euk(apartadoVal)]);
-      pdf.setFontSize(11); kpis.forEach(function(k){ pdf.setTextColor(120); pdf.text(String(k[0]),M,y); pdf.setTextColor(20); pdf.text(String(k[1]),M+200,y); y+=17; }); y+=14;
-      pdf.setFont("helvetica","bold"); pdf.setFontSize(12); pdf.text("Cartas ("+cohort.length+")",M,y); y+=16;
-      pdf.setFontSize(9); pdf.setTextColor(120); pdf.text("Carta",M,y); pdf.text("Compra",M+250,y); pdf.text("Venta",M+320,y); pdf.text("Estado",M+390,y); y+=5; pdf.setDrawColor(210); pdf.line(M,y,W-M,y); y+=13;
-      cohort.slice().sort(function(a,b){return String(a.name||"").localeCompare(String(b.name||""));}).forEach(function(c){ if(y>Hh-46){ pdf.addPage(); y=54; } var nm=String(c.name||""); if(nm.length>40)nm=nm.slice(0,39)+"."; pdf.setTextColor(30); pdf.setFontSize(9); pdf.text(nm+(c.apartado?"  [apartado]":""),M,y); pdf.text(euk((c.buyPrice||0)*(c.quantity||1)),M+250,y); pdf.text((c.sellPrice||0)>0?euk((c.sellPrice||0)*(c.quantity||1)):"-",M+320,y); pdf.text(c.status==="sold"?"Vendida":(c.status==="listed"?"En venta":"En cartera"),M+390,y); y+=14; });
-      pdf.save("balance-"+(_isTodo?"historico":year)+"-"+(incApart?"con":"sin")+"-apartados.pdf"); if(window._cvToast) window._cvToast("Balance PDF descargado"); }
     const monthly = {};
     sold.forEach(c => { const k = (c.sellDate || "").slice(0, 7) || "–"; if (!monthly[k])
         monthly[k] = { month: k, pnl: 0 }; monthly[k].pnl += np(c); });
@@ -17827,13 +17856,24 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate }) {
         uname?React.createElement("div",{style:{padding:"10px 20px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",null,React.createElement("div",{style:{fontSize:17,fontWeight:700,color:TXT,fontFamily:"Inter,sans-serif"}},"Hola, "+(uname.split(" ")[0])+" \uD83D\uDC4B"),React.createElement("div",{style:{fontSize:13,color:SUB,marginTop:2}},"Bienvenido a tu portfolio")),null):null,
         React.createElement(Card, { style: { marginBottom: 20, padding: "20px 24px" } },
             React.createElement(SL, { style: { marginBottom: 12 } }, "\uD83D\uDCB0 Balance de cartera"),
-            React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14, alignItems:"center" } },
-                React.createElement("span",{style:{fontSize:11,color:SUB,marginRight:2}},"A\u00f1o:"),
-                [["todo","Todo"]].concat(yearList.map(function(y){return [y,y];})).map(function(o){ return React.createElement("button",{ key:o[0], onClick:function(){ setYear(o[0]); }, style:{ padding:"6px 13px", borderRadius:20, border:"1px solid "+(year===o[0]?BLUE:BDR), background:(year===o[0]?BLUE:BGS), color:(year===o[0]?"#fff":TXT), fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, o[1]); })),
-            React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14, alignItems: "center" } },
-                React.createElement("button", { onClick: function(){ setIncApart(!incApart); }, style: { padding: "6px 13px", borderRadius: 20, border: "1px solid " + (incApart?"#7c3aed":BDR), background: (incApart?"rgba(124,58,237,0.12)":BGS), color: (incApart?"#7c3aed":TXT), fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, incApart ? "\uD83D\uDCCC Con apartados" : "\uD83D\uDCCC Solo reventa"),
-                React.createElement("button", { onClick: dlBalancePdf, style: { padding: "6px 13px", borderRadius: 20, border: "1px solid " + BDR, background: BGS, color: TXT, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, "\u2B07 PDF"),
-                apartadoCards.length ? React.createElement("span", { style: { fontSize: 12, color: SUB } }, "Apartados: " + apartadoCards.length + " \u00B7 " + euk(apartadoVal)) : null),
+            React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 10 } },
+                React.createElement("span",{style:{fontSize:11,color:SUB}},"A\u00f1o:"),
+                [["todo","Todo"]].concat(yearList.map(function(y){return [y,y];})).map(function(o){ return React.createElement("button",{ key:o[0], onClick:function(){ setYear(o[0]); }, style:{ padding:"6px 13px", borderRadius:20, border:"1px solid "+(year===o[0]?BLUE:BDR), background:(year===o[0]?BLUE:BGS), color:(year===o[0]?"#fff":TXT), fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, o[1]); }),
+                React.createElement("div",{style:{flexGrow:1,minWidth:4}}),
+                React.createElement("button", { onClick: function(){ setIncApart(!incApart); }, title:"Sumar tambi\u00e9n las cartas apartadas a los n\u00fameros", style: { padding: "6px 13px", borderRadius: 20, border: "1px solid " + (incApart?"#7c3aed":BDR), background: (incApart?"rgba(124,58,237,0.12)":BGS), color: (incApart?"#7c3aed":SUB), fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, (incApart?"\u2713 ":"") + "\uD83D\uDCCC Incluir apartados"),
+                React.createElement("button", { onClick: function(){ setShowExp(true); }, style: { padding: "6px 13px", borderRadius: 20, border: "none", background: BLUE, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, "\u2B07 Exportar")),
+            apartadoCards.length ? React.createElement("div", { style: { fontSize: 12, color: SUB, marginBottom: 12 } }, "\uD83D\uDCCC Tienes " + apartadoCards.length + " carta(s) apartada(s) por " + euk(apartadoVal) + (incApart?" (incluidas en estos n\u00fameros)":" (fuera de estos n\u00fameros)")) : null,
+            showExp ? React.createElement("div", { onClick:function(){setShowExp(false);}, style:{ position:"fixed", left:0, top:0, right:0, bottom:0, background:"rgba(0,0,0,.5)", zIndex:400, display:"flex", alignItems:"center", justifyContent:"center", padding:16 } },
+                React.createElement("div", { onClick:function(e){e.stopPropagation();}, style:{ background:"#fff", borderRadius:16, padding:20, width:"92%", maxWidth:380, boxSizing:"border-box", boxShadow:"0 10px 40px rgba(0,0,0,.25)" } },
+                    React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}, React.createElement("div",{style:{fontSize:16,fontWeight:800,color:TXT}},"\u2B07 Exportar balance"), React.createElement("button",{onClick:function(){setShowExp(false);},style:{border:"none",background:"none",fontSize:18,color:MUT,cursor:"pointer"}},"\u2715")),
+                    React.createElement("div",{style:{fontSize:11,color:SUB,marginBottom:6,fontWeight:700,letterSpacing:"0.04em"}},"PERIODO"),
+                    React.createElement("div",{style:{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}, [["mes","Mes"],["trimestre","Trimestre"],["anio","A\u00f1o"],["total","Total"]].map(function(o){ return React.createElement("button",{key:o[0],onClick:function(){setExpScope(o[0]);},style:{padding:"7px 13px",borderRadius:20,border:"1px solid "+(expScope===o[0]?BLUE:BDR),background:(expScope===o[0]?BLUE:BGS),color:(expScope===o[0]?"#fff":TXT),fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},o[1]); })),
+                    expScope==="mes" ? React.createElement("select",{value:(expMonth||monthList[0]||""),onChange:function(e){setExpMonth(e.target.value);},style:{width:"100%",padding:"10px",borderRadius:8,border:"1px solid "+BDR,background:BGS,color:TXT,fontSize:14,fontFamily:"Inter,sans-serif",marginBottom:12}}, (monthList.length?monthList:[""]).map(function(m){ var mn=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]; var lab=m?(mn[parseInt(m.slice(5,7),10)-1]+" "+m.slice(0,4)):"(sin fechas)"; return React.createElement("option",{key:m,value:m},lab); })) : null,
+                    expScope==="trimestre" ? React.createElement("select",{value:(expQ||quarterList[0]||""),onChange:function(e){setExpQ(e.target.value);},style:{width:"100%",padding:"10px",borderRadius:8,border:"1px solid "+BDR,background:BGS,color:TXT,fontSize:14,fontFamily:"Inter,sans-serif",marginBottom:12}}, (quarterList.length?quarterList:[""]).map(function(q){ return React.createElement("option",{key:q,value:q}, q?(q.slice(5)+" "+q.slice(0,4)):"(sin fechas)"); })) : null,
+                    expScope==="anio" ? React.createElement("select",{value:(expYear||yearList[0]||""),onChange:function(e){setExpYear(e.target.value);},style:{width:"100%",padding:"10px",borderRadius:8,border:"1px solid "+BDR,background:BGS,color:TXT,fontSize:14,fontFamily:"Inter,sans-serif",marginBottom:12}}, (yearList.length?yearList:[""]).map(function(y){ return React.createElement("option",{key:y,value:y}, y||"(sin fechas)"); })) : null,
+                    React.createElement("div",{style:{fontSize:11,color:SUB,margin:"2px 0 6px",fontWeight:700,letterSpacing:"0.04em"}},"APARTADOS"),
+                    React.createElement("div",{style:{display:"flex",gap:6,marginBottom:18}}, [["sin","Sin apartados"],["con","Con apartados"]].map(function(o){ return React.createElement("button",{key:o[0],onClick:function(){setExpApart(o[0]);},style:{flex:1,padding:"9px",borderRadius:9,border:"1px solid "+(expApart===o[0]?"#7c3aed":BDR),background:(expApart===o[0]?"rgba(124,58,237,0.12)":BGS),color:(expApart===o[0]?"#7c3aed":TXT),fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}},o[1]); })),
+                    React.createElement("button",{onClick:_doExport,style:{width:"100%",padding:"13px",borderRadius:11,border:"none",background:BLUE,color:"#fff",fontWeight:800,fontSize:15,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 Descargar PDF"))) : null,
             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))", gap: 10, marginBottom: 10 } },
                 ...[{ l: "Dinero invertido", v: euk(invested), c: TXT, sub: (_isTodo?"total gastado":("comprado en "+year)) }, { l: "Recuperado", v: euk(recovered), c: GREEN, sub: "ventas netas" }, { l: "En cartera", v: euk(inPortfolio), c: BLUE, sub: hold.length + (_isTodo?" cartas":" sin vender") }, { l: "Balance total", v: (balance >= 0 ? "+" : "") + euk(balance), c: cl(balance), sub: balance >= 0 ? "ganando" : "perdiendo" }, { l: "P&L realizado", v: sg(realized) + euk(realized), c: cl(realized), sub: "beneficio real" }, { l: "ROI global", v: sg(roi) + roi.toFixed(1) + "%", c: cl(roi), sub: "sobre invertido" }, { l: "En venta", v: String(listed.length), c: listed.length > 0 ? AMBER : TXT, sub: "anuncios" }].map(({ l, v, c, sub }) => React.createElement("div", { key: l, style: { background: BGS, borderRadius: 10, padding: "10px 12px", border: "1px solid " + BDR } },
                     React.createElement("div", { style: { fontSize: 10, color: SUB, marginBottom: 3 } }, l),
@@ -19133,6 +19173,9 @@ function LotsTab({ lots, saveLots, cards, setCards, onEdit, onAddNew }) {
                                         React.createElement("div", { style: { fontSize: 11, color: SUB, marginTop: 2 } }, lotAllCount + " cartas en total" + (lotColCards.length > 0 ? " (" + lotColCards.length + " colección)" : ""))),
                                     React.createElement("button", { onClick: () => setStockLotId(null), style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB } }, "\u00D7")),
                                 React.createElement("input", { value: stockQ, onChange: (e) => setStockQ(e.target.value), placeholder: "\uD83D\uDD0D Buscar carta en tu inventario...", style: Object.assign({}, IS, { marginBottom: 10 }) }),
+                                React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginBottom: 10 } },
+                                    React.createElement("span",{style:{fontSize:11,color:SUB,fontWeight:700}},"\u2B07 Descargar lote:"),
+                                    [["Todo", lotCards], ["Sin apartados", lotCards.filter(function(c){return !c.apartado;})], ["Solo apartados", lotCards.filter(function(c){return c.apartado;})]].map(function(o){ return React.createElement("button",{ key:o[0], disabled:(o[1].length===0), onClick:function(){ dlBalancePDF(o[1], "Lote: "+(lot.name||"lote"), o[0]+" \u00b7 "+o[1].length+" cartas", "lote-"+String(lot.name||"lote").toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,24)+"-"+o[0].toLowerCase().replace(/[^a-z0-9]+/g,"-")); }, style:{ padding:"6px 11px", borderRadius:16, border:"1px solid "+BDR, background:(o[1].length===0?BGS:"#fff"), color:(o[1].length===0?MUT:TXT), fontSize:12, fontWeight:700, cursor:(o[1].length===0?"default":"pointer"), fontFamily:"Inter,sans-serif", opacity:(o[1].length===0?0.5:1) } }, o[0]+" ("+o[1].length+")"); })),
                                 !stockQ.trim() && React.createElement("div", { style: { display: "flex", gap: 4 } },
                                     stockTabs.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setStockTab(k), style: { padding: "8px 4px", flex: 1, border: "none", background: "none", borderBottom: "2px solid " + (stockTab === k ? BLUE : "transparent"), color: stockTab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: stockTab === k ? 700 : 500, fontSize: 13, cursor: "pointer" } }, l))))),
                             React.createElement("div", { style: { overflowY: "auto", flex: 1, padding: "6px 10px" } },
@@ -21183,6 +21226,78 @@ function _icsDownload(r) {
   if (window._cvToast) window._cvToast("Descargado · ábrelo para añadirlo a tu calendario", { icon: "📅", duration: 4000 });
 }
 window._icsDownload = _icsDownload;
+function EstudioTab(props){
+  var h=React.createElement;
+  var cards=(props.cards||[]).filter(function(c){return c.mode==="inventory";});
+  var lots=props.lots||[];
+  var s0=React.useState([]); var fTags=s0[0], setFTags=s0[1];
+  var s1=React.useState(""); var fTeam=s1[0], setFTeam=s1[1];
+  var s2=React.useState(""); var fLeague=s2[0], setFLeague=s2[1];
+  var s3=React.useState(""); var fBrand=s3[0], setFBrand=s3[1];
+  var s4=React.useState(""); var fSet=s4[0], setFSet=s4[1];
+  var s5=React.useState("todo"); var period=s5[0], setPeriod=s5[1];
+  var s6=React.useState(""); var periodVal=s6[0], setPeriodVal=s6[1];
+  var s7=React.useState("tipo"); var dim=s7[0], setDim=s7[1];
+
+  function distinct(f){ var seen={},a=[]; cards.forEach(function(c){ var v=((c[f]||"")+"").trim(); if(v&&!seen[v.toLowerCase()]){seen[v.toLowerCase()]=1;a.push(v);} }); return a.sort(); }
+  var teams=distinct("team"), leagues=distinct("league"), brands=distinct("brand"), sets=distinct("series");
+  var allTags=(function(){ var seen={},a=[]; TYPE_TAGS.forEach(function(t){seen[t]=1;a.push(t);}); cards.forEach(function(c){ (c.tags||[]).forEach(function(t){ if(!seen[t]){seen[t]=1;a.push(t);} }); }); return a; })();
+  var years=(function(){ var seen={},a=[]; cards.forEach(function(c){ var y=(c.buyDate||"").slice(0,4); if(y&&!seen[y]){seen[y]=1;a.push(y);} }); return a.sort().reverse(); })();
+  var quarters=(function(){ var seen={},a=[]; cards.forEach(function(c){ var bd=(c.buyDate||""); if(bd.length>=7){ var q=bd.slice(0,4)+"-T"+Math.ceil(parseInt(bd.slice(5,7),10)/3); if(!seen[q]){seen[q]=1;a.push(q);} } }); return a.sort().reverse(); })();
+
+  function inPeriod(c){ if(period==="todo") return true; var bd=(c.buyDate||""); if(period==="anio") return bd.slice(0,4)===(periodVal||years[0]||""); if(period==="trimestre"){ if(bd.length<7)return false; var q=bd.slice(0,4)+"-T"+Math.ceil(parseInt(bd.slice(5,7),10)/3); return q===(periodVal||quarters[0]||""); } if(period==="lote") return c.lotId===(periodVal||(lots[0]&&lots[0].id)||""); return true; }
+  function matchFacets(c, ignoreDim){ if(!inPeriod(c)) return false; if(ignoreDim!=="tipo" && fTags.length){ for(var i=0;i<fTags.length;i++){ if((c.tags||[]).indexOf(fTags[i])<0) return false; } } if(ignoreDim!=="equipo" && fTeam && (c.team||"")!==fTeam) return false; if(ignoreDim!=="liga" && fLeague && (c.league||"")!==fLeague) return false; if(ignoreDim!=="marca" && fBrand && (c.brand||"")!==fBrand) return false; if(fSet && (c.series||"")!==fSet) return false; return true; }
+  var filtered=cards.filter(function(c){return matchFacets(c,null);});
+
+  function metrics(list){ var sold=list.filter(function(c){return c.status==="sold";}); var invested=list.reduce(function(a,c){return a+(c.buyPrice||0)*(c.quantity||1);},0); var recovered=sold.reduce(function(a,c){return a+(c.sellPrice||0)*(c.quantity||1)*(1-(c.platformFee||0)/100)-(c.shippingCost||0);},0); var realized=sold.reduce(function(a,c){return a+np(c);},0); var costSold=sold.reduce(function(a,c){return a+(c.buyPrice||0)*(c.quantity||1);},0); var roi=costSold>0?(realized/costSold*100):0; var pct=list.length?(sold.length/list.length*100):0; var da=sold.filter(function(c){return c.buyDate&&c.sellDate;}).map(function(c){return (new Date(c.sellDate)-new Date(c.buyDate))/86400000;}).filter(function(d){return d>=0;}); var avg=da.length?(da.reduce(function(a,b){return a+b;},0)/da.length):null; return {n:list.length, sold:sold.length, invested:invested, recovered:recovered, realized:realized, roi:roi, pct:pct, avg:avg}; }
+  var M=metrics(filtered);
+
+  function breakdown(){ var base=cards.filter(function(c){return matchFacets(c, dim);}); var groups={}; base.forEach(function(c){ var keys=[]; if(dim==="tipo"){ keys=(c.tags&&c.tags.length)?c.tags:["(sin tipo)"]; } else if(dim==="equipo"){ keys=[(c.team||"(sin equipo)")]; } else if(dim==="liga"){ keys=[(c.league||"(sin liga)")]; } else { keys=[(c.brand||"(sin marca)")]; } keys.forEach(function(k){ (groups[k]=groups[k]||[]).push(c); }); }); return Object.keys(groups).map(function(k){ var m=metrics(groups[k]); m.key=k; return m; }).filter(function(r){return r.n>0;}).sort(function(a,b){ return b.roi-a.roi; }); }
+  var rows=breakdown();
+
+  var anyTagged=cards.some(function(c){return (c.tags&&c.tags.length)||c.brand;});
+
+  function chip(label,on,onClick,extra){ return h("button",{key:label,type:"button",onClick:onClick,style:Object.assign({padding:"6px 12px",borderRadius:16,border:"1px solid "+(on?BLUE:BDR),background:(on?"rgba(0,77,152,0.10)":BGS),color:(on?BLUE:SUB),fontSize:12.5,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"},extra||{})},label); }
+  function sel(val,setV,opts,ph){ return h("select",{value:val,onChange:function(e){setV(e.target.value);},style:{padding:"8px 10px",borderRadius:8,border:"1px solid "+BDR,background:BGS,color:TXT,fontSize:13,fontFamily:"Inter,sans-serif",flex:1,minWidth:120}}, [h("option",{key:"",value:""},ph)].concat(opts.map(function(o){return h("option",{key:o,value:o},o);}))); }
+
+  function tile(l,v,c,sub){ return h("div",{key:l,style:{background:BGS,borderRadius:10,padding:"10px 12px",border:"1px solid "+BDR}}, h("div",{style:{fontSize:10,color:SUB,marginBottom:3}},l), h("div",{style:{fontSize:16,fontWeight:800,color:c||TXT,letterSpacing:"-0.02em"}},v), sub?h("div",{style:{fontSize:9,color:SUB,marginTop:2}},sub):null); }
+
+  var verdict=null;
+  if(rows.length){ var withSales=rows.filter(function(r){return r.sold>=1;}); if(withSales.length){ var best=withSales.slice().sort(function(a,b){return b.roi-a.roi;})[0]; var worst=withSales.slice().sort(function(a,b){return a.roi-b.roi;})[0]; var fast=withSales.filter(function(r){return r.avg!=null;}).sort(function(a,b){return a.avg-b.avg;})[0]; verdict=h("div",{style:{background:BGS,border:"1px solid "+BDR,borderRadius:12,padding:"12px 14px",marginTop:14,fontSize:13,lineHeight:1.7}}, h("div",{style:{fontWeight:800,marginBottom:4}},"🎯 Veredicto"), h("div",null, h("b",{style:{color:GREEN}},"Sigue comprando: "), best.key+" — ROI "+best.roi.toFixed(0)+"%, "+best.pct.toFixed(0)+"% vendido"+(best.avg!=null?", "+Math.round(best.avg)+" días":"")), (worst&&worst.key!==best.key)?h("div",null, h("b",{style:{color:RED}},"Ojo con: "), worst.key+" — ROI "+worst.roi.toFixed(0)+"%"+(worst.pct<50?", solo "+worst.pct.toFixed(0)+"% vendido":"")):null, (fast&&fast.key!==best.key)?h("div",null, h("b",{style:{color:BLUE}},"Se vende más rápido: "), fast.key+" — "+Math.round(fast.avg)+" días de media"):null); } }
+
+  return h("div",null,
+    h("div",{style:{fontSize:18,fontWeight:800,marginBottom:2}},"🔬 Estudio: qué te funciona mejor"),
+    h("div",{style:{fontSize:12.5,color:SUB,marginBottom:14}},"Cruza tipos, equipo, liga y marca para ver dónde ganas más y qué se vende rápido."),
+    !anyTagged ? h("div",{style:{background:"#fff8ec",border:"1px solid #f0d69a",borderRadius:12,padding:"14px 16px",fontSize:13,color:"#8a6d1f"}}, "Aún no has etiquetado cartas. Ve a una carta → edita → pon su Marca y su Tipo (Auto, Parche, Numerada…). En cuanto etiquetes unas cuantas, aquí verás tus ROI por tipo, equipo y liga.") : null,
+    h("div",{style:{background:BG,border:"1px solid "+BDR,borderRadius:12,padding:14,marginBottom:14}},
+      h("div",{style:{fontSize:11,color:SUB,fontWeight:700,marginBottom:7}},"PERIODO"),
+      h("div",{style:{display:"flex",gap:6,flexWrap:"wrap",marginBottom:period==="todo"?0:8}}, [["todo","Todo"],["anio","Año"],["trimestre","Trimestre"],["lote","Lote"]].map(function(o){ return chip(o[1], period===o[0], function(){ setPeriod(o[0]); setPeriodVal(""); }); })),
+      period==="anio"?sel(periodVal||years[0]||"",setPeriodVal,years,"Año"):null,
+      period==="trimestre"?sel(periodVal||quarters[0]||"",setPeriodVal,quarters,"Trimestre"):null,
+      period==="lote"?h("select",{value:(periodVal||(lots[0]&&lots[0].id)||""),onChange:function(e){setPeriodVal(e.target.value);},style:{padding:"8px 10px",borderRadius:8,border:"1px solid "+BDR,background:BGS,color:TXT,fontSize:13,fontFamily:"Inter,sans-serif",width:"100%"}}, lots.map(function(l){return h("option",{key:l.id,value:l.id},l.name||"Lote");})):null,
+      h("div",{style:{fontSize:11,color:SUB,fontWeight:700,margin:"12px 0 7px"}},"TIPO (toca para filtrar)"),
+      h("div",{style:{display:"flex",gap:6,flexWrap:"wrap"}}, allTags.map(function(t){ var on=fTags.indexOf(t)>=0; return chip(t,on,function(){ setFTags(on?fTags.filter(function(x){return x!==t;}):fTags.concat([t])); }); })),
+      h("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginTop:12}},
+        sel(fTeam,setFTeam,teams,"Equipo: todos"),
+        sel(fLeague,setFLeague,leagues,"Liga: todas"),
+        sel(fBrand,setFBrand,brands,"Marca: todas"),
+        sel(fSet,setFSet,sets,"Set: todos")),
+      (fTags.length||fTeam||fLeague||fBrand||fSet)?h("button",{type:"button",onClick:function(){setFTags([]);setFTeam("");setFLeague("");setFBrand("");setFSet("");},style:{marginTop:10,padding:"6px 12px",borderRadius:8,border:"1px solid "+BDR,background:BGS,color:SUB,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"✕ Limpiar filtros"):null),
+    h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(96px,1fr))",gap:10,marginBottom:16}},
+      tile("Cartas",String(M.n),TXT,M.sold+" vendidas"),
+      tile("Invertido",euk(M.invested),TXT),
+      tile("Vendido",euk(M.recovered),GREEN),
+      tile("Beneficio",(M.realized>=0?"+":"")+euk(M.realized),M.realized>=0?GREEN:RED),
+      tile("ROI",M.roi.toFixed(0)+"%",M.roi>=0?GREEN:RED,"sobre lo vendido"),
+      tile("% vendido",M.pct.toFixed(0)+"%",BLUE),
+      tile("Días medios",M.avg!=null?Math.round(M.avg)+" d":"—",AMBER,"en venderse")),
+    h("div",{style:{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}, [["tipo","Por tipo"],["equipo","Por equipo"],["liga","Por liga"],["marca","Por marca"]].map(function(o){ return chip(o[1], dim===o[0], function(){ setDim(o[0]); }, {borderRadius:20}); })),
+    h("div",{style:{border:"1px solid "+BDR,borderRadius:12,overflow:"hidden"}},
+      h("div",{style:{display:"flex",padding:"9px 12px",background:BGS,fontSize:10.5,color:SUB,fontWeight:700,borderBottom:"1px solid "+BDR}}, h("div",{style:{flex:2,minWidth:0}},"CATEGORÍA"), h("div",{style:{width:38,textAlign:"right"}},"Nº"), h("div",{style:{width:52,textAlign:"right"}},"ROI"), h("div",{style:{width:52,textAlign:"right"}},"%VEND"), h("div",{style:{width:46,textAlign:"right"}},"DÍAS"), h("div",{style:{width:64,textAlign:"right"}},"BENEF.")),
+      rows.length?rows.map(function(r,i){ return h("div",{key:r.key,style:{display:"flex",alignItems:"center",padding:"9px 12px",borderBottom:i<rows.length-1?"1px solid "+BDR:"none",fontSize:12.5}}, h("div",{style:{flex:2,minWidth:0,fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:TXT}}, r.key), h("div",{style:{width:38,textAlign:"right",color:SUB}}, String(r.n)), h("div",{style:{width:52,textAlign:"right",fontWeight:800,color:r.sold?(r.roi>=0?GREEN:RED):MUT}}, r.sold?(r.roi.toFixed(0)+"%"):"—"), h("div",{style:{width:52,textAlign:"right",color:SUB}}, r.pct.toFixed(0)+"%"), h("div",{style:{width:46,textAlign:"right",color:SUB}}, r.avg!=null?Math.round(r.avg):"—"), h("div",{style:{width:64,textAlign:"right",fontWeight:700,color:r.realized>=0?GREEN:RED}}, r.sold?((r.realized>=0?"+":"")+euk(r.realized)):"—")); }):h("div",{style:{padding:"18px 12px",textAlign:"center",color:SUB,fontSize:13}},"Sin datos para este filtro.")),
+    verdict);
+}
+
 function App() {
     React.useEffect(function() {
       function onDataLoaded() {
@@ -21301,6 +21416,7 @@ function App() {
         } catch(e) {}
     }, []);
     const [tab, setTab] = useState("dashboard"), [psaSub, setPsaSub] = useState("resumen"), [sf, setSF] = useState(false), [dm, setDm] = useState("inventory"), [ec, setEc] = useState(null), [sc, setSc] = useState(null);
+    const [fiscalSub, setFiscalSub] = useState("fiscal");
     const [prefillName, setPrefillName] = useState("");
     const [prefillLotId, setPrefillLotId] = useState("");
     useEffect(() => { localStorage.setItem("cv10", JSON.stringify(cards)); if(window._cvCardsSaveT) clearTimeout(window._cvCardsSaveT); window._cvCardsSaveT=setTimeout(function(){ if (window._currentUser && cards.length > 0) window._saveToFirestore && window._saveToFirestore({ cards: cards }); var slug=localStorage.getItem("cv10_slug"); if(slug&&window._db&&window._currentUser&&cards.length>0){ var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";}); var sold=cards.filter(function(c){return c.status==="sold";}); var vc=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;}); window._db.ref("public/"+slug+"/cards").set(listed); window._db.ref("public/"+slug+"/validCodes").set(vc); } }, 1200); }, [cards]);
@@ -21323,7 +21439,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v238")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v241")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -21867,7 +21983,7 @@ showPublicProfile && React.createElement("div", { onMouseDown: function(e) { pro
             tab === "dashboard" && React.createElement(DashTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup }),
             tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup, onBulk: bulkUpd, onBulkDel: bulkDel, lots: lots, onCreateCards: createCards }),
             tab === "collection" && React.createElement(ColTab, { cards: cards, onEdit: oe, onDelete: del, onDuplicate: dup, onBulk: bulkUpd, onBulkDel: bulkDel, lots: lots }),
-            tab === "fiscal" && React.createElement(AnalyticsTab, { cards: cards, onOpenCard: oe }),
+            tab === "fiscal" && React.createElement("div", null, React.createElement("div",{style:{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}, [["fiscal","\uD83D\uDCCA Fiscal / ROI"],["estudio","\uD83D\uDD2C Estudio"]].map(function(o){ return React.createElement(Btn,{key:o[0],sm:true,v:(fiscalSub===o[0]?"primary":"outline"),onClick:function(){setFiscalSub(o[0]);}},o[1]); })), (fiscalSub==="estudio" ? React.createElement(EstudioTab, { cards: cards, lots: lots }) : React.createElement(AnalyticsTab, { cards: cards, onOpenCard: oe }))),
             tab === "lotes" && React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards, onEdit: oe, onAddNew: oa }),
             tab === "breaks" && React.createElement(DirectosTab, { breaks: breaks, saveBreaks: saveBreaks, cards: cards, setCards: setCards, lots: lots, saveLots: saveLots, directos: directos, saveDirectos: saveDirectos, onEdit: oe }),
             
