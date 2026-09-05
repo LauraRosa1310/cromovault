@@ -18006,7 +18006,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
     const [invView, setInvView] = useState(() => localStorage.getItem("cv10_inv_view") || "list");
     const [sr, setSr] = useState(""), [st, setSt] = useState("date"), [filterY, setFilterY] = useState("all"), [filterM, setFilterM] = useState("all");
     const [selMode, setSelMode] = useState(false), [sel, setSel] = useState({});
-    const [bf, setBf] = useState({ status: "", location: "", category: "", series: "", buyPrice: "" });
+    const [bf, setBf] = useState({ status: "", location: "", category: "", series: "", buyPrice: "", apartado: "" });
     const [statusFl, setStatusFl] = useState(new Set()), [catFl, setCatFl] = useState(new Set()), [locFl, setLocFl] = useState(new Set()), [lotFl, setLotFl] = useState(new Set()), [sortBy, setSortBy] = useState(""), [sortDir, setSortDir] = useState(1);
     const INV_MONTHS = [['all', 'Mes'], ['01', 'Ene'], ['02', 'Feb'], ['03', 'Mar'], ['04', 'Abr'], ['05', 'May'], ['06', 'Jun'], ['07', 'Jul'], ['08', 'Ago'], ['09', 'Sep'], ['10', 'Oct'], ['11', 'Nov'], ['12', 'Dic']];
     function toggleSet(setter, val) { setter(prev => { const n = new Set(prev); n.has(val) ? n.delete(val) : n.add(val); return n; }); }
@@ -18097,9 +18097,9 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
                   React.createElement("div", null, React.createElement("label", { style: LS }, "Ubicación / caja"), React.createElement("select", { value: bf.location, onChange: function(e){ var v=e.target.value; if(v==="__new"){ var nl=prompt("Nombre de la nueva caja:"); if(nl){ var locs=JSON.parse(localStorage.getItem("cv10_locs")||"null")||DEFAULT_LOCATIONS.slice(); if(locs.indexOf(nl)<0){ locs.push(nl); localStorage.setItem("cv10_locs",JSON.stringify(locs)); } setBf(function(p){return Object.assign({},p,{location:nl});}); } return; } setBf(function(p){return Object.assign({},p,{location:v});}); }, style: IS }, React.createElement("option",{value:""},"Sin cambiar"), (JSON.parse(localStorage.getItem("cv10_locs")||"null")||DEFAULT_LOCATIONS).map(function(loc){ return React.createElement("option",{key:loc,value:loc},loc); }), React.createElement("option",{value:"__new"},"+ Nueva caja…"))),
                   React.createElement("div", null, React.createElement("label", { style: LS }, "Categoría"), React.createElement("select", { value: bf.category, onChange: function(e){ setBf(function(p){return Object.assign({},p,{category:e.target.value});}); }, style: IS }, React.createElement("option",{value:""},"Sin cambiar"), Object.keys(CATS).map(function(k){ return React.createElement("option",{key:k,value:k},CATS[k]); }))),
                   React.createElement("div", null, React.createElement("label", { style: LS }, "Serie / Set"), React.createElement("input", { value: bf.series, onChange: function(e){ setBf(function(p){return Object.assign({},p,{series:e.target.value});}); }, placeholder:"(sin cambiar)", style: IS })),
-                  React.createElement("div", null, React.createElement("label", { style: LS }, "Precio compra (€)"), React.createElement("input", { value: bf.buyPrice, onChange: function(e){ setBf(function(p){return Object.assign({},p,{buyPrice:e.target.value.replace(",",".").replace(/[^0-9.]/g,"")});}); }, placeholder:"(sin cambiar)", style: IS }))),
+                  React.createElement("div", null, React.createElement("label", { style: LS }, "Precio compra (€)"), React.createElement("input", { value: bf.buyPrice, onChange: function(e){ setBf(function(p){return Object.assign({},p,{buyPrice:e.target.value.replace(",",".").replace(/[^0-9.]/g,"")});}); }, placeholder:"(sin cambiar)", style: IS })), React.createElement("div", null, React.createElement("label", { style: LS }, "Apartado"), React.createElement("select", { value: bf.apartado, onChange: function(e){ setBf(function(p){return Object.assign({},p,{apartado:e.target.value});}); }, style: IS }, React.createElement("option",{value:""},"Sin cambiar"), React.createElement("option",{value:"si"},"📌 Sí, apartar"), React.createElement("option",{value:"no"},"Quitar apartado")))),
                 React.createElement("div", { style: { display:"flex", gap:8, flexWrap:"wrap" } },
-                  React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length){ alert("Selecciona cartas primero"); return; } var ch={}; if(bf.status)ch.status=bf.status; if(bf.location)ch.location=bf.location; if(bf.category)ch.category=bf.category; if(bf.series.trim())ch.series=bf.series.trim(); if(bf.buyPrice.trim()!=="")ch.buyPrice=parseFloat(bf.buyPrice)||0; if(!Object.keys(ch).length){ alert("No has cambiado ningún campo"); return; } if(onBulk) onBulk(ids,ch); setBf({status:"",location:"",category:"",series:"",buyPrice:""}); }, style: { flex:2, minWidth:150, padding:"11px", border:"none", borderRadius:8, background:BLUE, color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "✓ Aplicar a "+Object.keys(sel).length),
+                  React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length){ alert("Selecciona cartas primero"); return; } var ch={}; if(bf.status)ch.status=bf.status; if(bf.location)ch.location=bf.location; if(bf.category)ch.category=bf.category; if(bf.series.trim())ch.series=bf.series.trim(); if(bf.buyPrice.trim()!=="")ch.buyPrice=parseFloat(bf.buyPrice)||0; if(bf.apartado==="si")ch.apartado=true; else if(bf.apartado==="no")ch.apartado=false; if(!Object.keys(ch).length){ alert("No has cambiado ningún campo"); return; } if(onBulk) onBulk(ids,ch); setBf({status:"",location:"",category:"",series:"",buyPrice:"",apartado:""}); }, style: { flex:2, minWidth:150, padding:"11px", border:"none", borderRadius:8, background:BLUE, color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "✓ Aplicar a "+Object.keys(sel).length),
                   React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(ids.length&&onBulk){ onBulk(ids,{reserved:true}); } }, style: { padding:"11px 13px", border:"1px solid #0891b2", borderRadius:8, background:"rgba(8,145,178,0.08)", color:"#0891b2", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🔖 Reservar"),
                   React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; if(confirm("¿Eliminar "+ids.length+" cartas? No se puede deshacer.")&&onBulkDel){ onBulkDel(ids); setSel({}); } }, style: { padding:"11px 13px", border:"1px solid #fecaca", borderRadius:8, background:"#fff5f5", color:RED, fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🗑️ Eliminar"))),
               fi.length===0 ? React.createElement("div", { style: { textAlign:"center", padding:"30px", color:MUT, fontSize:13 } }, "Sin cartas para ese filtro") :
@@ -18124,7 +18124,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
               React.createElement("select", { value:"", onChange: function(e){ var v=e.target.value; if(!v) return; var ids=Object.keys(sel); if(ids.length&&onBulk) onBulk(ids, { status: v }); }, style: Object.assign({}, IS, { width: "auto", padding: "5px 8px", fontSize: 11 }) }, React.createElement("option",{value:""},"Estado…"), React.createElement("option",{value:"holding"},"Cartera"), React.createElement("option",{value:"listed"},"En venta"), React.createElement("option",{value:"sold"},"Vendida")),
               React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; var loc=prompt("Ubicación / caja para las seleccionadas:"); if(loc===null) return; if(onBulk) onBulk(ids, { location: loc }); }, style: { padding:"5px 9px", border:"1px solid "+BDR, borderRadius:8, background:BG, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "📍 Ubicación"),
               React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; var p=prompt("Precio de compra para las seleccionadas (€):"); if(p===null) return; if(onBulk) onBulk(ids, { buyPrice: parseFloat((p||"").replace(",","."))||0 }); }, style: { padding:"5px 9px", border:"1px solid "+BDR, borderRadius:8, background:BG, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "💶 Precio"),
-              React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(ids.length&&onBulk) onBulk(ids, { reserved: true }); }, style: { padding:"5px 9px", border:"1px solid #0891b2", borderRadius:8, background:"rgba(8,145,178,0.08)", color:"#0891b2", fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🔖 Reservar"),
+              React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(ids.length&&onBulk) onBulk(ids, { reserved: true }); }, style: { padding:"5px 9px", border:"1px solid #0891b2", borderRadius:8, background:"rgba(8,145,178,0.08)", color:"#0891b2", fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🔖 Reservar"), React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(ids.length&&onBulk) onBulk(ids, { apartado: true }); }, style: { padding:"5px 9px", border:"1px solid #7c3aed", borderRadius:8, background:"rgba(124,58,237,0.08)", color:"#7c3aed", fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "📌 Apartar"),
               React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; if(confirm("¿Eliminar "+ids.length+" cartas? No se puede deshacer.")&&onBulkDel){ onBulkDel(ids); setSel({}); } }, style: { padding:"5px 9px", border:"1px solid #fecaca", borderRadius:8, background:"#fff5f5", color:RED, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🗑️ Eliminar"),
               React.createElement("button", { onClick: function(){ setSel({}); }, style: { padding:"5px 9px", border:"none", background:"none", color:SUB, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "Quitar")
             ) : null),
@@ -19412,7 +19412,7 @@ function PSATab() {
                                 React.createElement(Btn, { sm: true, v: "outline", style: { color: RED, borderColor: "#fecaca" }, onClick: () => setItems(p => p.filter(x => x.id !== i.id)) }, "\u2715")))));
                 })))))));
 }
-function DupModal({ card, onSave, onClose }) {
+function DupModal({ card, onSave, onSaveMany, onClose }) {
     const existing = Array.from({ length: card.quantity || 1 }, (_, i) => ({ id: i, price: String(card.buyPrice || 0), isExisting: true }));
     const [units, setUnits] = useState(existing);
     function addUnit() { setUnits(p => [...p, { id: Date.now(), price: "", isExisting: false }]); }
@@ -19453,17 +19453,28 @@ function DupModal({ card, onSave, onClose }) {
                 React.createElement("div", { style: { display: "flex", gap: 8 } },
                     React.createElement(Btn, { v: "outline", full: true, onClick: onClose }, "Cancelar"),
                     React.createElement(Btn, { full: true, disabled: totalUnits === 0, onClick: () => {
-                            units.forEach(function(u, i) {
+                            var _today = new Date().toISOString().slice(0,10);
+                            var _built = units.map(function(u, i) {
                                 var price = parseFloat(String(u.price).replace(",", ".")) || 0;
-                                var isFirst = i === 0;
-                                var newCard = Object.assign({}, card, {
-                                    id: isFirst ? card.id : (Date.now() + i).toString(36) + Math.random().toString(36).slice(2,6),
+                                if (i === 0) { return Object.assign({}, card, { quantity: 1, buyPrice: price }); }
+                                return Object.assign({}, card, {
+                                    id: (Date.now() + i).toString(36) + Math.random().toString(36).slice(2,6),
                                     quantity: 1,
                                     buyPrice: price,
-                                    buyDate: card.buyDate
+                                    buyDate: _today,
+                                    status: "holding",
+                                    sellPrice: "",
+                                    sellDate: "",
+                                    soldTo: "",
+                                    reviewCode: "",
+                                    reserved: false,
+                                    resTo: "",
+                                    resPrice: 0,
+                                    csId: "",
+                                    apartado: false
                                 });
-                                onSave(newCard);
                             });
+                            if (onSaveMany) { onSaveMany(_built, _built.length + " unidad(es) guardada(s)"); } else { _built.forEach(function(nc){ onSave(nc); }); }
                             onClose();
                         } }, "Guardar"))))));
 }
@@ -21491,13 +21502,13 @@ function App() {
     useEffect(() => { localStorage.setItem("cv10", JSON.stringify(cards)); if(window._cvCardsSaveT) clearTimeout(window._cvCardsSaveT); window._cvCardsSaveT=setTimeout(function(){ if (window._currentUser && cards.length > 0) window._saveToFirestore && window._saveToFirestore({ cards: cards }); var slug=localStorage.getItem("cv10_slug"); if(slug&&window._db&&window._currentUser&&cards.length>0){ var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";}); var sold=cards.filter(function(c){return c.status==="sold";}); var vc=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;}); window._db.ref("public/"+slug+"/cards").set(listed); window._db.ref("public/"+slug+"/validCodes").set(vc); } }, 1200); }, [cards]);
     useEffect(() => { localStorage.setItem("cv10i", JSON.stringify(invoices)); if(window._cvInvSaveT) clearTimeout(window._cvInvSaveT); window._cvInvSaveT=setTimeout(function(){ if (window._currentUser) window._saveToFirestore && window._saveToFirestore({ invoices: invoices }); },1200); }, [invoices]);
     function ups(c) { setCards(p => p.find(x => x.id === c.id) ? p.map(x => x.id === c.id ? c : x) : [c, ...p]); if (window._cvToast) window._cvToast("Guardado"); }
-    function upsMany(list){ if(!list||!list.length) return; var byId={}; list.forEach(function(c){ byId[c.id]=c; }); var seen={}; var nc=cards.map(function(x){ if(byId[x.id]){ seen[x.id]=1; return byId[x.id]; } return x; }); list.forEach(function(c){ if(!seen[c.id]){ nc.unshift(c); } }); setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if(window._cvToast) window._cvToast(list.length+" cartas vendidas \u2705"); }
+    function upsMany(list, msg){ if(!list||!list.length) return; var byId={}; list.forEach(function(c){ byId[c.id]=c; }); var seen={}; var nc=cards.map(function(x){ if(byId[x.id]){ seen[x.id]=1; return byId[x.id]; } return x; }); list.forEach(function(c){ if(!seen[c.id]){ nc.unshift(c); } }); setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if(window._cvToast) window._cvToast(msg || (list.length+" cartas vendidas \u2705")); }
     function del(id) { var idx = cards.findIndex(function (c) { return c.id === id; }); var removed = idx >= 0 ? cards[idx] : null; setCards(function (p) { return p.filter(function (c) { return c.id !== id; }); }); if (removed && window._cvToast) window._cvToast("Carta eliminada", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { setCards(function (p) { var np = p.slice(); np.splice(Math.min(idx, np.length), 0, removed); return np; }); } }); }
     function oa(m, name, lotId) { setDm(m); setEc(null); setPrefillName(name || ""); setPrefillLotId(lotId || ""); setSF(true); }
     function oe(c) { setEc(c); setDm(c.mode); setSF(true); }
     function dup(c) { setDupCard(c); }
     function createCards(arr){ var nc=arr.concat(cards); setCards(nc); try{localStorage.setItem("cv10",JSON.stringify(nc));}catch(e){} if(window._saveToFirestore)window._saveToFirestore({cards:nc}); }
-    function bulkUpd(ids, changes) { setCards(function (p) { return p.map(function (c) { return ids.indexOf(c.id) >= 0 ? Object.assign({}, c, changes) : c; }); }); if (window._cvToast) window._cvToast(ids.length + " cartas actualizadas"); }
+    function bulkUpd(ids, changes) { var nc=cards.map(function (c) { return ids.indexOf(c.id) >= 0 ? Object.assign({}, c, changes) : c; }); setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if (window._cvToast) window._cvToast(ids.length + " cartas actualizadas"); }
     function bulkDel(ids) { var removed = cards.filter(function (c) { return ids.indexOf(c.id) >= 0; }); setCards(function (p) { return p.filter(function (c) { return ids.indexOf(c.id) < 0; }); }); if (window._cvToast) window._cvToast(removed.length + " cartas eliminadas", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { setCards(function (p) { return removed.concat(p); }); } }); }
     const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["lotes", "📦 Lotes"], ["fiscal", "Análisis"], ["breaks", "🎬 Directos"], ["redes", "📱 Redes"], ["psa", "🎴 Personales"]];
     return (React.createElement("div", { style: { height: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14, display: "flex", flexDirection: "column", overflow: "hidden" } },
@@ -21509,7 +21520,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v252")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v254")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -22095,7 +22106,7 @@ showPublicProfile && React.createElement("div", { onMouseDown: function(e) { pro
         })(),
         showLot && React.createElement(LotModal, { cards: cards, onSell: ups, onSellMany: upsMany, onClose: () => setShowLot(false) }),
         sc && React.createElement(SellModal, { card: sc, onSave: ups, onClose: () => setSc(null) }),
-        dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onClose: () => setDupCard(null) }),
+        dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onSaveMany: upsMany, onClose: () => setDupCard(null) }),
         React.createElement("div", { id: "cv-bottom-nav" },
             React.createElement("div", { id: "cv-bottom-nav-inner" },
                 [["dashboard","\uD83D\uDCCA","Inicio"],["inventory","\uD83D\uDCE6","Inv."],["collection","\u2B50","Colec."],["lotes","\uD83D\uDDC2\uFE0F","Lotes"],["fiscal","\uD83D\uDCCA","An\u00E1l."],["breaks","\uD83C\uDFAC","Direct."],["redes","\uD83D\uDCF1","Redes"],["psa","\uD83C\uDFB4","Personal"]].map(function(item) {
