@@ -21405,6 +21405,7 @@ function App() {
     function saveDirectos(d) { setDirectos(d); localStorage.setItem("cv10_directos", JSON.stringify(d)); if(window._saveToFirestore) window._saveToFirestore({ directosData: d }); }
 
     const [showSettings, setShowSettings] = useState(false);
+    const [showCheck, setShowCheck] = useState(false);
     const [showPrefs, setShowPrefs] = useState(false);
     const prefsBackdropDown = useRef(false);
     const importBackdropDown = useRef(false);
@@ -21508,7 +21509,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v251")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v252")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -21872,6 +21873,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "HERRAMIENTAS"),
     React.createElement("button", { onClick: function() { setShowSettings(false); dlPriceList(JSON.parse(localStorage.getItem("cv10")||"[]")); }, style: { width: "100%", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 13, color: TXT, textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 16 } }, "\uD83D\uDCCB Exportar lista de precios"),React.createElement("button", { onClick: function() { setShowSettings(false); try{ var all={ _app:"CromoVault", _fecha:new Date().toISOString() }; Object.keys(localStorage).forEach(function(k){ if(k.indexOf("cv10")===0 || k==="tcg_breaks_v2"){ all[k]=localStorage.getItem(k); } }); _dlDoc(new Blob([JSON.stringify(all)],{type:"application/json"}),"cromovault-backup-completo-"+new Date().toISOString().slice(0,10)+".json"); if(window._cvToast) window._cvToast("Copia de seguridad descargada \u2714"); }catch(e){ if(window._cvToast)window._cvToast("Error al hacer copia"); } }, style: { width: "100%", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 13, color: TXT, textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 16 } }, "\uD83D\uDCBE Copia de seguridad completa"),
     
+    React.createElement("button", { onClick: function() { setShowSettings(false); setShowCheck(true); }, style: { width: "100%", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 13, color: TXT, textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 16 } }, "\uD83D\uDD0D Revisar ventas del balance"),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "CUENTA"),
     React.createElement("button", { onClick: function() { setShowSettings(false); window._signOut && window._signOut(); }, style: { width: "100%", padding: "10px 14px", background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 10, cursor: "pointer", fontSize: 13, color: "#ef4444", textAlign: "left", fontFamily: "Inter,sans-serif" } }, "\uD83D\uDEAA Cerrar sesi\u00F3n"),
     React.createElement("button", { onClick: function() {
@@ -22059,6 +22061,38 @@ showPublicProfile && React.createElement("div", { onMouseDown: function(e) { pro
             tab === "redes" && React.createElement(RedesTab, { cards: cards, onOpenPost: function(c,tpl){ setPostCard(c); setPostInitTpl(tpl||null); setShowPostModal(true); } }),
             tab === "psa" && React.createElement("div", null, React.createElement("div",{style:{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}, [["resumen","📊 Resumen"],["psa","🏆 PSA/BGS"],["aperturas","📦 Cajas abiertas"],["breaks","🎬 Participaciones break"]].map(function(o){ return React.createElement(Btn,{key:o[0],sm:true,v:psaSub===o[0]?"primary":"outline",onClick:function(){setPsaSub(o[0]);}},o[1]); })), (psaSub==="resumen" ? React.createElement(PersonalesResumen, { go: setPsaSub }) : psaSub==="aperturas" ? React.createElement(AperturasNative, null) : psaSub==="breaks" ? React.createElement(ParticipacionesBreakNative, null) : (isPremium() ? React.createElement(PSATab, null) : React.createElement("div",{style:{maxWidth:500,margin:"80px auto",textAlign:"center",padding:40}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"\uD83D\uDD12"),React.createElement("div",{style:{fontSize:20,fontWeight:700,marginBottom:8}},"Función Premium"),React.createElement("div",{style:{color:SUB,marginBottom:24}},"PSA/BGS es una función Premium"),React.createElement("button",{onClick:function(){setShowSettings(true);},style:{padding:"12px 24px",background:BLUE,border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B50 Hazte Premium")))))), 
         sf && React.createElement(CardForm, { onSave: ups, onClose: () => { setSF(false); setEc(null); setPrefillName(""); setPrefillLotId(""); }, editCard: ec, defMode: dm, lots: lots, saveLots: saveLots, cards: cards, prefillName: prefillName, prefillLotId: prefillLotId }),
+        showCheck && (function(){
+          var _inv=cards.filter(function(c){return c.mode==="inventory";});
+          var _sold=_inv.filter(function(c){return c.status==="sold";});
+          var _inc=_sold.filter(function(c){ return (!((c.sellPrice||0)>0)) || !c.sellDate || (c.buyDate&&c.sellDate&&c.sellDate<c.buyDate); });
+          var _g={}; _sold.forEach(function(c){ var k=((c.name||"").trim().toLowerCase())+"|"+(c.sellDate||"")+"|"+(Math.round((c.sellPrice||0)*100)/100); (_g[k]=_g[k]||[]).push(c); });
+          var _dups=[]; Object.keys(_g).forEach(function(k){ if(_g[k].length>1) _dups.push(_g[k]); });
+          var _recf=function(c){ return (c.sellPrice||0)*(c.quantity||1)*(1-(c.platformFee||0)/100)-(c.shippingCost||0); };
+          var _totalRec=_sold.reduce(function(a,c){return a+_recf(c);},0);
+          var _dupExtra=_dups.reduce(function(a,grp){ return a+grp.slice(1).reduce(function(x,c){return x+_recf(c);},0); },0);
+          var _row=function(c,tag){ return React.createElement("div",{key:c.id,style:{display:"flex",alignItems:"center",gap:8,padding:"9px 10px",border:"1px solid "+BDR,borderRadius:8,marginBottom:6}},
+              React.createElement("div",{style:{flex:1,minWidth:0,cursor:"pointer"},onClick:function(){ setShowCheck(false); oe(c); }},
+                React.createElement("div",{style:{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},c.name||"(sin nombre)"),
+                React.createElement("div",{style:{fontSize:11,color:SUB}}, (c.sellDate||"sin fecha")+" · "+eu((c.sellPrice||0)*(c.quantity||1))+(tag?(" · "+tag):""))),
+              React.createElement("button",{onClick:function(){ if(window.confirm("¿Eliminar \""+(c.name||"")+"\"? Se quita del balance.")){ del(c.id); } },style:{border:"1px solid #fecaca",background:"#fff5f5",color:"#ef4444",borderRadius:8,padding:"6px 10px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif",flexShrink:0}},"Eliminar")); };
+          var _clean=(_dups.length===0 && _inc.length===0);
+          return React.createElement("div",{onClick:function(){setShowCheck(false);},style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:1200,display:"flex",alignItems:"center",justifyContent:"center",padding:16}},
+            React.createElement("div",{onClick:function(e){e.stopPropagation();},style:{background:BG,borderRadius:16,width:"100%",maxWidth:520,maxHeight:"88vh",overflowY:"auto",border:"1px solid "+BDR,boxShadow:"0 20px 60px rgba(0,0,0,0.2)"}},
+              React.createElement("div",{style:{padding:"16px 20px",borderBottom:"1px solid "+BDR,display:"flex",justifyContent:"space-between",alignItems:"center"}},
+                React.createElement("div",{style:{fontSize:15,fontWeight:800}},"🔍 Revisión de ventas"),
+                React.createElement("button",{onClick:function(){setShowCheck(false);},style:{border:"none",background:"none",fontSize:18,color:MUT,cursor:"pointer"}},"✕")),
+              React.createElement("div",{style:{padding:"16px 20px"}},
+                React.createElement("div",{style:{fontSize:12.5,color:SUB,marginBottom:14}}, _sold.length+" ventas en el balance · recuperado "+eu(_totalRec)),
+                _clean ? React.createElement("div",{style:{background:"#f0fdf8",border:"1px solid #d1fae5",borderRadius:12,padding:"16px",fontSize:13.5,color:"#047857",fontWeight:600}},"✅ Todo correcto. No encontré ventas duplicadas ni a medias en el balance.") : null,
+                _dups.length ? React.createElement("div",{style:{marginBottom:16}},
+                  React.createElement("div",{style:{fontSize:13,fontWeight:800,color:AMBER,marginBottom:4}},"⚠️ Posibles duplicados ("+_dups.length+")"),
+                  React.createElement("div",{style:{fontSize:11.5,color:SUB,marginBottom:10}},"Mismo nombre, fecha y precio de venta. Suman "+eu(_dupExtra)+" de más al balance. Deja una y borra las repetidas."),
+                  _dups.map(function(grp,gi){ return React.createElement("div",{key:"d"+gi,style:{marginBottom:10,paddingLeft:8,borderLeft:"3px solid "+AMBER}}, grp.map(function(c){ return _row(c,"repetida"); })); })) : null,
+                _inc.length ? React.createElement("div",{style:{marginBottom:8}},
+                  React.createElement("div",{style:{fontSize:13,fontWeight:800,color:RED,marginBottom:4}},"⚠️ Ventas a medias ("+_inc.length+")"),
+                  React.createElement("div",{style:{fontSize:11.5,color:SUB,marginBottom:10}},"Marcadas vendidas pero sin precio o sin fecha (o con la venta antes de la compra). Ciérralas bien o bórralas."),
+                  _inc.map(function(c){ var _r=(((c.sellPrice||0)>0)?"":"sin precio "); _r+=(!c.sellDate?"sin fecha ":""); if(c.buyDate&&c.sellDate&&c.sellDate<c.buyDate)_r+="fecha rara"; return _row(c,(_r.trim()||"revisar")); })) : null)));
+        })(),
         showLot && React.createElement(LotModal, { cards: cards, onSell: ups, onSellMany: upsMany, onClose: () => setShowLot(false) }),
         sc && React.createElement(SellModal, { card: sc, onSave: ups, onClose: () => setSc(null) }),
         dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onClose: () => setDupCard(null) }),
