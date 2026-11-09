@@ -20773,37 +20773,44 @@ function CardShowPrep(props){
   function persist(nc){ if(setCards) setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({cards:nc}); }
   function setField(id,patch){ persist(cards.map(function(c){ return c.id===id?Object.assign({},c,patch):c; })); }
   var inv=cards.filter(function(c){ return c.mode==="inventory"; });
-  var going=inv.filter(function(c){ return c.csPrep && c.status!=="sold"; });
-  var soldAtShow=inv.filter(function(c){ return c.csPrep && c.status==="sold"; });
+  var going=inv.filter(function(c){ return c.csPrep; });
+  going=going.slice().sort(function(a,b){ var sa=a.status==="sold"?1:0, sb=b.status==="sold"?1:0; return sa-sb; });
   var ql=q.trim().toLowerCase();
   var results=ql?inv.filter(function(c){ return !c.csPrep && c.status!=="sold" && ((((c.name||"").toLowerCase()).indexOf(ql)>=0)||(((c.player||"").toLowerCase()).indexOf(ql)>=0)); }).slice(0,25):[];
   function cost(c){ return (c.buyPrice||0)*(c.quantity||1); }
+  function sell(c){ return (c.sellPrice||0)*(c.quantity||1); }
   function ladderV(c){ var v=parseFloat(String(c.ladder==null?"":c.ladder).replace(",",".")); return isNaN(v)?0:v; }
   var totCost=going.reduce(function(a,c){return a+cost(c);},0);
   var totLad=going.reduce(function(a,c){return a+ladderV(c);},0);
+  var totSold=going.filter(function(c){return c.status==="sold";}).reduce(function(a,c){return a+sell(c);},0);
+  var nSold=going.filter(function(c){return c.status==="sold";}).length;
   var IS2={width:"100%",boxSizing:"border-box",padding:"9px 12px",borderRadius:8,border:"1px solid "+BDR,background:BGS,color:TXT,fontSize:14,fontFamily:"Inter,sans-serif"};
   function tl(l,v,cc){ return h("div",{key:l,style:{background:BGS,borderRadius:10,padding:"10px 12px",border:"1px solid "+BDR}}, h("div",{style:{fontSize:10,color:SUB,marginBottom:3}},l), h("div",{style:{fontSize:16,fontWeight:800,color:cc||TXT}},v)); }
+  function thumb(c){ return h("div",{style:{width:42,height:58,borderRadius:7,flexShrink:0,border:"1px solid "+BDR,backgroundColor:"#eef1f5",backgroundSize:"cover",backgroundPosition:"center",backgroundRepeat:"no-repeat",backgroundImage:(c.imageUrl?("url("+c.imageUrl+")"):"none"),display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}, c.imageUrl?null:"🃏"); }
   return h("div",null,
     h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,marginBottom:2}},
-      h("div",{style:{fontSize:18,fontWeight:800}},"🧰 Preparar car show"),
-      (going.length||soldAtShow.length)? h("button",{onClick:function(){ if(window.confirm("¿Vaciar la lista del car show? No borra cartas, solo las quita de aquí.")){ persist(cards.map(function(c){ return c.csPrep?Object.assign({},c,{csPrep:false}):c; })); } },style:{padding:"5px 10px",borderRadius:8,border:"1px solid "+BDR,background:BGS,color:SUB,fontSize:11.5,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Vaciar lista"):null),
-    h("div",{style:{fontSize:12.5,color:SUB,marginBottom:14}},"Añade los cromos que te llevas. Ves tu coste al instante y puedes apuntar el valor de Cardladder."),
-    h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(90px,1fr))",gap:10,marginBottom:14}},
+      h("div",{style:{fontSize:18,fontWeight:800}},"🧰 Preparar card show"),
+      going.length? h("button",{onClick:function(){ if(window.confirm("¿Vaciar la lista del card show? No borra cartas, solo las quita de aquí.")){ persist(cards.map(function(c){ return c.csPrep?Object.assign({},c,{csPrep:false}):c; })); } },style:{padding:"5px 10px",borderRadius:8,border:"1px solid "+BDR,background:BGS,color:SUB,fontSize:11.5,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Vaciar lista"):null),
+    h("div",{style:{fontSize:12.5,color:SUB,marginBottom:14}},"Lo que te llevas. Ves la foto, lo que te costó, apuntas el valor de Cardladder y por cuánto la vendiste."),
+    h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(84px,1fr))",gap:10,marginBottom:14}},
       tl("Cartas",String(going.length)),
       tl("Coste total",eu(totCost),TXT),
-      tl("Valor Cardladder",eu(totLad),BLUE),
-      tl("Margen pot.",(totLad-totCost>=0?"+":"")+eu(totLad-totCost),(totLad-totCost>=0?GREEN:RED))),
+      tl("Cardladder",eu(totLad),BLUE),
+      tl("Vendido",eu(totSold),GREEN)),
     h("div",{style:{marginBottom:12}},
       h("input",{value:q,onChange:function(e){setQ(e.target.value);},placeholder:"🔍 Busca una carta y añádela…",style:IS2}),
-      results.length?h("div",{style:{border:"1px solid "+BDR,borderRadius:10,marginTop:6,overflow:"hidden"}}, results.map(function(c,i){ return h("div",{key:c.id,onClick:function(){ setField(c.id,{csPrep:true}); setQ(""); },style:{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,padding:"9px 12px",borderBottom:i<results.length-1?"1px solid "+BDR:"none",cursor:"pointer"}}, h("div",{style:{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},c.name||"(sin nombre)"), h("div",{style:{display:"flex",alignItems:"center",gap:8,flexShrink:0}}, h("span",{style:{fontSize:11,color:SUB}},"coste "+eu(cost(c))), h("span",{style:{fontSize:18,fontWeight:800,color:BLUE}},"＋"))); })):(ql?h("div",{style:{fontSize:12.5,color:SUB,padding:"8px 2px"}},"Sin resultados en tu inventario."):null)),
-    going.length? h("div",{style:{border:"1px solid "+BDR,borderRadius:12,overflow:"hidden"}},
-      h("div",{style:{display:"flex",padding:"9px 12px",background:BGS,fontSize:10.5,color:SUB,fontWeight:700,borderBottom:"1px solid "+BDR}}, h("div",{style:{flex:1}},"CARTA"), h("div",{style:{width:70,textAlign:"right"}},"COSTE"), h("div",{style:{width:96,textAlign:"right"}},"CARDLADDER"), h("div",{style:{width:34}})),
-      going.map(function(c,i){ return h("div",{key:c.id,style:{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderBottom:i<going.length-1?"1px solid "+BDR:"none"}},
-        h("div",{style:{flex:1,minWidth:0,cursor:onOpenCard?"pointer":"default"},onClick:function(){ if(onOpenCard)onOpenCard(c); }}, h("div",{style:{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},c.name||"(sin nombre)"), (c.location?h("div",{style:{fontSize:10.5,color:SUB}},c.location):null)),
-        h("div",{style:{width:70,textAlign:"right",fontSize:12.5,color:SUB}}, eu(cost(c))),
-        h("input",{type:"number",step:"0.01",defaultValue:(c.ladder==null?"":c.ladder),onBlur:function(e){ setField(c.id,{ladder:e.target.value}); },placeholder:"€",style:{width:96,boxSizing:"border-box",padding:"6px 8px",borderRadius:7,border:"1px solid "+BDR,background:BGS,color:TXT,fontSize:12.5,textAlign:"right",fontFamily:"Inter,sans-serif"}}),
-        h("button",{onClick:function(){ setField(c.id,{csPrep:false}); },title:"Quitar",style:{width:30,flexShrink:0,border:"none",background:"none",color:RED,fontSize:16,cursor:"pointer"}},"✕")); })) : h("div",{style:{textAlign:"center",padding:"26px",color:MUT,fontSize:13,border:"1px dashed "+BDR,borderRadius:12}},"Aún no has añadido cromos. Búscalos arriba y toca ＋."),
-    soldAtShow.length? h("div",{style:{fontSize:12,color:SUB,marginTop:12}}, "✅ "+soldAtShow.length+" ya vendidas de este car show (salen de la lista al venderlas).") : null
+      results.length?h("div",{style:{border:"1px solid "+BDR,borderRadius:10,marginTop:6,overflow:"hidden"}}, results.map(function(c,i){ return h("div",{key:c.id,onClick:function(){ setField(c.id,{csPrep:true}); setQ(""); },style:{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderBottom:i<results.length-1?"1px solid "+BDR:"none",cursor:"pointer"}}, thumb(c), h("div",{style:{flex:1,minWidth:0}}, h("div",{style:{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},c.name||"(sin nombre)"), h("div",{style:{fontSize:11,color:SUB}},"coste "+eu(cost(c)))), h("span",{style:{fontSize:20,fontWeight:800,color:BLUE,flexShrink:0}},"＋")); })):(ql?h("div",{style:{fontSize:12.5,color:SUB,padding:"8px 2px"}},"Sin resultados en tu inventario."):null)),
+    going.length? h("div",{style:{display:"flex",flexDirection:"column",gap:8}}, going.map(function(c){ var sold=c.status==="sold"; return h("div",{key:c.id,style:{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",border:"1px solid "+BDR,borderRadius:12,background:BG}},
+        h("div",{style:{cursor:onOpenCard?"pointer":"default",flexShrink:0},onClick:function(){ if(onOpenCard)onOpenCard(c); }}, thumb(c)),
+        h("div",{style:{flex:1,minWidth:0}},
+          h("div",{style:{fontSize:13,fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},c.name||"(sin nombre)"),
+          h("div",{style:{fontSize:11,color:SUB,marginTop:2}},"Coste "+eu(cost(c))+(c.location?(" · "+c.location):"")),
+          h("div",{style:{display:"flex",alignItems:"center",gap:6,marginTop:6,flexWrap:"wrap"}},
+            h("span",{style:{fontSize:10.5,color:SUB}},"Cardladder"),
+            h("input",{type:"number",step:"0.01",defaultValue:(c.ladder==null?"":c.ladder),onBlur:function(e){ setField(c.id,{ladder:e.target.value}); },placeholder:"€",style:{width:78,boxSizing:"border-box",padding:"5px 7px",borderRadius:7,border:"1px solid "+BDR,background:BGS,color:TXT,fontSize:12,textAlign:"right",fontFamily:"Inter,sans-serif"}}),
+            sold? h("span",{style:{fontSize:12,fontWeight:800,color:GREEN,marginLeft:4}},"Vendida "+eu(sell(c))) : h("span",{style:{fontSize:11,color:(c.status==="listed"?AMBER:MUT),marginLeft:4}}, c.status==="listed"?"en venta":"en cartera"))),
+        h("button",{onClick:function(){ setField(c.id,{csPrep:false}); },title:"Quitar de la lista",style:{width:28,flexShrink:0,alignSelf:"flex-start",border:"none",background:"none",color:RED,fontSize:16,cursor:"pointer"}},"✕")); })) : h("div",{style:{textAlign:"center",padding:"26px",color:MUT,fontSize:13,border:"1px dashed "+BDR,borderRadius:12}},"Aún no has añadido cromos. Búscalos arriba y toca ＋."),
+    nSold? h("div",{style:{fontSize:12,color:SUB,marginTop:12}}, "✅ "+nSold+" vendidas de este card show · "+eu(totSold)+" (beneficio "+eu(totSold-going.filter(function(c){return c.status==="sold";}).reduce(function(a,c){return a+cost(c);},0))+")") : null
   );
 }
 function PersonalesResumen(props){
@@ -21561,7 +21568,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v261")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v262")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -22106,7 +22113,7 @@ showPublicProfile && React.createElement("div", { onMouseDown: function(e) { pro
             tab === "dashboard" && React.createElement(DashTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup, lots: lots }),
             tab === "inventory" && React.createElement(InvTab, { cards: cards, onEdit: oe, onDelete: del, onSell: setSc, onDuplicate: dup, onBulk: bulkUpd, onBulkDel: bulkDel, lots: lots, onCreateCards: createCards }),
             tab === "collection" && React.createElement(ColTab, { cards: cards, onEdit: oe, onDelete: del, onDuplicate: dup, onBulk: bulkUpd, onBulkDel: bulkDel, lots: lots }),
-            tab === "fiscal" && React.createElement("div", null, React.createElement("div",{style:{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}, [["fiscal","\uD83D\uDCCA Fiscal / ROI"],["estudio","\uD83D\uDD2C Estudio"],["lotes","\uD83D\uDCE6 Lotes"]].map(function(o){ return React.createElement(Btn,{key:o[0],sm:true,v:(fiscalSub===o[0]?"primary":"outline"),onClick:function(){setFiscalSub(o[0]);}},o[1]); })), (fiscalSub==="estudio" ? React.createElement(EstudioTab, { cards: cards, lots: lots, setCards: setCards, onOpenCard: oe }) : fiscalSub==="lotes" ? React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards, onEdit: oe, onAddNew: oa }) : React.createElement(AnalyticsTab, { cards: cards, onOpenCard: oe }))),
+            tab === "fiscal" && React.createElement("div", null, React.createElement("div",{style:{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}, [["fiscal","\uD83D\uDCCA Fiscal / ROI"],["lotes","\uD83D\uDCE6 Lotes"],["estudio","\uD83D\uDD2C Estudio"]].map(function(o){ return React.createElement(Btn,{key:o[0],sm:true,v:(fiscalSub===o[0]?"primary":"outline"),onClick:function(){setFiscalSub(o[0]);}},o[1]); })), (fiscalSub==="estudio" ? React.createElement(EstudioTab, { cards: cards, lots: lots, setCards: setCards, onOpenCard: oe }) : fiscalSub==="lotes" ? React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards, onEdit: oe, onAddNew: oa }) : React.createElement(AnalyticsTab, { cards: cards, onOpenCard: oe }))),
             tab === "cardshows" && React.createElement("div", null, React.createElement("div",{style:{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}, [["vender","\uD83D\uDED2 Vender"],["prep","\uD83E\uDDF0 Preparar"]].map(function(o){ return React.createElement(Btn,{key:o[0],sm:true,v:(csView===o[0]?"primary":"outline"),onClick:function(){setCsView(o[0]);}},o[1]); })), (csView==="prep" ? React.createElement(CardShowPrep, { cards: cards, setCards: setCards, onOpenCard: oe }) : React.createElement(CardshowPOS, { cards: cards, setCards: setCards, onOpenCard: oe }))),
             tab === "breaks" && React.createElement(DirectosTab, { breaks: breaks, saveBreaks: saveBreaks, cards: cards, setCards: setCards, lots: lots, saveLots: saveLots, directos: directos, saveDirectos: saveDirectos, onEdit: oe }),
             
