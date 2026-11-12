@@ -17259,6 +17259,8 @@ function useEscClose(active, onClose) {
 const BLUE = "#004D98", GREEN = "#00c48c", RED = "#f03e3e", AMBER = "#f59e0b", PURPLE = "#A50044";
 const BG = "var(--bg,#fff)", BGS = "var(--bgs,#f7f8fa)", BDR = "var(--bdr,#e8eaed)", TXT = "var(--txt,#0a0a0a)", SUB = "var(--sub,#6b7280)", MUT = "var(--mut,#9ca3af)";
 const CATS = { futbol_m: "⚽ Fútbol Masc.", futbol_f: "👟 Fútbol Fem.", nba: "🏀 NBA", trading: "🃏 Trading", baseball: "⚾ Baseball", f1: "🏎️ F1", other: "🏅 Otro" };
+var DESTINOS = { inversion:{l:"Inversión",i:"💎",c:"#7c3aed"}, directa:{l:"Venta directa",i:"🏷️",c:"#0a7a55"}, subasta:{l:"Subasta",i:"🔨",c:"#004D98"} };
+function cardDest(c){ return (c&&c.destino&&DESTINOS[c.destino]) ? c.destino : "directa"; }
 const RARS = ["Común", "Poco común", "Rara", "Ultra Rara", "Legendaria"]
   var TYPE_TAGS = ["Base", "Insert", "Paralela/Refractor", "Numerada", "Rookie (RC)", "Autógrafo", "Parche/Memo", "Sticker", "1/1"]
   var BRAND_DEF = ["Topps", "Panini", "Daka"];
@@ -17736,7 +17738,7 @@ function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards, p
                         } }, editCard ? "Guardar cambios" : "Añadir carta"), (!editCard ? React.createElement(Btn, { full: true, v: "outline", onClick: addAnother, style: { marginTop: 8 } }, "＋ Guardar y añadir otra") : null)))));
 
 }
-function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl }) {
+function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl, onDestino }) {
     var _a, _b;
     const [open, setOpen] = useState(false), [lst, setLst] = useState(false);
     const isSold = card.status === "sold", isListed = card.status === "listed";
@@ -17788,6 +17790,7 @@ function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl }) {
                 eu(tt))) : (React.createElement("span", { style: { color: MUT, fontSize: 12 } }, "\u2014"))),
             React.createElement("td", { style: { padding: "8px 6px", verticalAlign: "middle", textAlign: "center" } }, isSold ? React.createElement(Bdg, { color: GREEN, bg: "#f0fdf8", dot: true }, "Vendida") : isListed ? React.createElement(Bdg, { color: AMBER, bg: "#fffbeb", dot: true }, "En venta") : card.mode === "collection" ? React.createElement(Bdg, { color: PURPLE, bg: "#f5f3ff", dot: true }, "Colecci\u00F3n") : React.createElement(Bdg, { color: BLUE, bg: "#eff4ff", dot: true }, "Cartera")),
             card.apartado ? React.createElement(Bdg, { color: "#7c3aed", bg: "#f5f3ff", dot: true }, "\uD83D\uDCCC Apartado") : null,
+            onDestino ? React.createElement("span", { onClick: function(e){ e.stopPropagation(); onDestino(card); }, title:"Cambiar destino", style:{ display:"inline-flex", alignItems:"center", gap:3, fontSize:10.5, fontWeight:700, padding:"3px 8px", borderRadius:9, cursor:"pointer", background:DESTINOS[cardDest(card)].c+"18", color:DESTINOS[cardDest(card)].c, marginLeft:2 } }, DESTINOS[cardDest(card)].i+" "+DESTINOS[cardDest(card)].l) : null,
             React.createElement("td", { style: { padding: "8px 6px", verticalAlign: "middle" }, onClick: e => e.stopPropagation() },
                 React.createElement("div", { style: { display: "flex", gap: 4, justifyContent: "flex-end", flexWrap: "wrap" } },
                                         React.createElement("a", { href: "https://www.ebay.es/sch/i.html?_nkw=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", style: { padding: "5px 7px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 11, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "eBay"),
@@ -18007,6 +18010,8 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
     const [sr, setSr] = useState(""), [st, setSt] = useState("date"), [filterY, setFilterY] = useState("all"), [filterM, setFilterM] = useState("all");
     const [selMode, setSelMode] = useState(false), [sel, setSel] = useState({});
     const [bf, setBf] = useState({ status: "", location: "", category: "", series: "", buyPrice: "" });
+    const [destFl, setDestFl] = useState("");
+    const [destPick, setDestPick] = useState(null);
     const [statusFl, setStatusFl] = useState(new Set()), [catFl, setCatFl] = useState(new Set()), [locFl, setLocFl] = useState(new Set()), [lotFl, setLotFl] = useState(new Set()), [sortBy, setSortBy] = useState(""), [sortDir, setSortDir] = useState(1);
     const INV_MONTHS = [['all', 'Mes'], ['01', 'Ene'], ['02', 'Feb'], ['03', 'Mar'], ['04', 'Abr'], ['05', 'May'], ['06', 'Jun'], ['07', 'Jul'], ['08', 'Ago'], ['09', 'Sep'], ['10', 'Oct'], ['11', 'Nov'], ['12', 'Dic']];
     function toggleSet(setter, val) { setter(prev => { const n = new Set(prev); n.has(val) ? n.delete(val) : n.add(val); return n; }); }
@@ -18034,6 +18039,8 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
             return false;
         if (lotFl.size > 0 && !lotFl.has(c.lotId || ''))
             return false;
+        if (destFl && cardDest(c) !== destFl)
+            return false;
         if (sr && !c.name.toLowerCase().includes(sr.toLowerCase()))
             return false;
         return true;
@@ -18055,7 +18062,23 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
     
         const fiSorted=sortBy?[...fi].sort(function(a,b){var roi=function(c){var bp=c.buyPrice||0;var tp=c.targetPrice||0;return bp>0?(tp-bp)/bp*100:0;};var v=sortBy==="roi"?[roi(a),roi(b)]:sortBy==="price"?[a.buyPrice||0,b.buyPrice||0]:[(a.name||"").toLowerCase(),(b.name||"").toLowerCase()];return typeof v[0]==="string"?(v[0]<v[1]?-1:1)*sortDir:(v[0]-v[1])*sortDir;}):fi;
         return (React.createElement("div", null,
-        
+        destPick && React.createElement("div", { onClick:function(){ setDestPick(null); }, style:{ position:"fixed", left:0, top:0, right:0, bottom:0, background:"rgba(0,0,0,.5)", zIndex:1200, display:"flex", alignItems:"flex-end", justifyContent:"center" } },
+          React.createElement("div", { onClick:function(e){e.stopPropagation();}, style:{ background:"#fff", borderRadius:"18px 18px 0 0", padding:20, width:"100%", maxWidth:480, boxSizing:"border-box", boxShadow:"0 -8px 30px rgba(0,0,0,.2)" } },
+            React.createElement("div", { style:{ fontSize:15, fontWeight:800, marginBottom:4 } }, "¿A dónde va esta carta?"),
+            React.createElement("div", { style:{ fontSize:12.5, color:SUB, marginBottom:14, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" } }, destPick.name),
+            [["inversion","Para mantener o gradear (PSA)"],["directa","Vinted · Wallapop · eBay · car shows"],["subasta","Para subastar en un directo (Geek)"]].map(function(o){
+              var d=DESTINOS[o[0]], on=cardDest(destPick)===o[0];
+              return React.createElement("button", { key:o[0], onClick:function(){ if(onBulk) onBulk([destPick.id], { destino:o[0] }); if(window._cvToast) window._cvToast("Destino: "+d.l); setDestPick(null); }, style:{ display:"flex", alignItems:"center", gap:11, width:"100%", textAlign:"left", padding:"13px 14px", marginBottom:8, borderRadius:12, border:"2px solid "+(on?d.c:BDR), background:on?d.c+"14":"#fff", cursor:"pointer", fontFamily:"Inter,sans-serif" } },
+                React.createElement("span", { style:{ fontSize:20 } }, d.i),
+                React.createElement("span", { style:{ minWidth:0 } }, React.createElement("span", { style:{ fontWeight:800, fontSize:14, color:TXT, display:"block" } }, d.l), React.createElement("span", { style:{ fontSize:11.5, color:SUB } }, o[1])));
+            }),
+            React.createElement("button", { onClick:function(){ setDestPick(null); }, style:{ width:"100%", padding:11, marginTop:4, borderRadius:10, border:"none", background:"#eef0f3", color:"#4b5563", fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "Cancelar"))),
+        React.createElement("div", { style: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 6, marginBottom: 14, WebkitOverflowScrolling:"touch" } },
+          [["","Todo"],["inversion","💎 Inversión"],["directa","🏷️ Venta directa"],["subasta","🔨 Subasta"]].map(function(o){
+            var cnt = o[0] ? inv.filter(function(c){ return cardDest(c)===o[0]; }).length : inv.length;
+            var on = destFl===o[0];
+            return React.createElement("button", { key:o[0]||"todo", onClick:function(){ setDestFl(o[0]); }, style:{ padding:"8px 13px", borderRadius:22, border:"1.5px solid "+(on?BLUE:BDR), background:on?BLUE:"#fff", color:on?"#fff":TXT, fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif", whiteSpace:"nowrap", flexShrink:0 } }, o[1]+" ("+cnt+")");
+          })),
         React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(100px,1fr))", gap: 10, marginBottom: 16 } }, [{ l: "Total", v: inv.length }, { l: "Invertido", v: eu(inv.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0)) }, { l: "En venta", v: inv.filter(c => c.status === "listed").length, a: AMBER }, { l: "Vendidas", v: inv.filter(c => c.status === "sold").length, a: GREEN }].map(({ l, v, a }) => (React.createElement(Card, { key: l, style: { padding: "13px 15px" } },
             React.createElement("div", { style: { fontSize: 11, color: SUB, marginBottom: 3 } }, l),
             React.createElement("div", { style: { fontSize: 20, fontWeight: 700, color: a || TXT } }, v))))),
@@ -18155,7 +18178,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
             ) :
             (React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
                 React.createElement("thead",null,React.createElement("tr",null,["Carta","Rareza","Coste","ROI","Estado",""].map(function(h,i){var al=i>=2?"right":i===4?"center":"left";var cl=["Coste","ROI","Carta"].includes(h);var ky=h==="Coste"?"price":h==="ROI"?"roi":h==="Carta"?"name":"";return React.createElement("th",{key:h,onClick:cl?function(){if(sortBy===ky){setSortDir(sortDir*-1);}else{setSortBy(ky);setSortDir(-1);}}:null,style:{padding:"8px 6px",textAlign:al,fontSize:11,fontWeight:600,color:sortBy===ky?BLUE:SUB,cursor:cl?"pointer":"default",userSelect:"none",borderBottom:"2px solid "+BDR}},h+(sortBy===ky?(sortDir===1?" ↑":" ↓"):""));}))),
-                React.createElement("tbody", null, fiSorted.map(c => React.createElement(CardRow, { key: c.id, card: c, onEdit: onEdit, onDelete: onDelete, onSell: onSell, onDuplicate: onDuplicate }))),
+                React.createElement("tbody", null, fiSorted.map(c => React.createElement(CardRow, { key: c.id, card: c, onEdit: onEdit, onDelete: onDelete, onSell: onSell, onDuplicate: onDuplicate, onDestino: function(cd){ setDestPick(cd); } }))),
                 fi.length > 1 && React.createElement("tfoot", null,
                     React.createElement("tr", { style: { borderTop: "1.5px solid " + BDR, background: BGS } },
                         React.createElement("td", { colSpan: 2, style: { padding: "9px 14px", fontSize: 12, fontWeight: 600, color: SUB } },
@@ -20960,10 +20983,6 @@ function ParticipacionesBreakNative(){
 }
 
 function LiveTimer(props){ var h=React.createElement; var st=React.useState(0); var setT=st[1]; React.useEffect(function(){ var iv=setInterval(function(){ setT(function(t){return t+1;}); },1000); return function(){ clearInterval(iv); }; },[]); var se=props.start?Math.floor((Date.now()-props.start)/1000):0; var mm=Math.floor(se/60), ss=se%60; return h("div",{style:{color:"#fff",fontSize:13,fontWeight:700,background:"rgba(255,255,255,.15)",padding:"4px 9px",borderRadius:8}},"\u23F1 "+(mm<10?"0":"")+mm+":"+(ss<10?"0":"")+ss); }
-function _cvNum(s){ s=(""+(s==null?"":s)).trim(); if(!s) return ""; if(s.indexOf(".")>=0 && s.indexOf(",")>=0){ s=s.replace(/\./g,"").replace(",","."); } else if(s.indexOf(",")>=0){ s=s.replace(",","."); } s=s.replace(/[^0-9.]/g,""); var v=parseFloat(s); return isNaN(v)?"":String(v); }
-function _cvLoadPdfJs(cb){ if(window.pdfjsLib){ cb(window.pdfjsLib); return; } var s=document.createElement("script"); s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"; s.onload=function(){ try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; }catch(e){} cb(window.pdfjsLib); }; s.onerror=function(){ cb(null); }; document.head.appendChild(s); }
-function _cvPdfText(file, cb){ _cvLoadPdfJs(function(lib){ if(!lib){ cb(null); return; } var fr=new FileReader(); fr.onload=function(){ try{ lib.getDocument({data:new Uint8Array(fr.result)}).promise.then(function(pdf){ var n=pdf.numPages, got=0, parts=new Array(n); for(var i=1;i<=n;i++){ (function(pg){ pdf.getPage(pg).then(function(page){ page.getTextContent().then(function(tc){ parts[pg-1]=tc.items.map(function(it){return it.str;}).join(" "); got++; if(got===n) cb(parts.join("\n")); }); }); })(i); } }).catch(function(){ cb(null); }); }catch(e){ cb(null); } }; fr.onerror=function(){ cb(null); }; fr.readAsArrayBuffer(file); }); }
-function _cvParseGeek(txt){ var t=(txt||"").replace(/\u00a0/g," "); var out={unidades:"",bruto:"",neto:"",comision:"",date:""}; var MO={january:"01",february:"02",march:"03",april:"04",may:"05",june:"06",july:"07",august:"08",september:"09",october:"10",november:"11",december:"12",enero:"01",febrero:"02",marzo:"03",abril:"04",mayo:"05",junio:"06",julio:"07",agosto:"08",septiembre:"09",octubre:"10",noviembre:"11",diciembre:"12"}; var md=t.match(/Fecha\s*(?:de\s*)?factura:?\s*([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/i); if(md){ var mm=MO[md[1].toLowerCase()]||""; if(mm) out.date=md[3]+"-"+mm+"-"+("0"+md[2]).slice(-2); } if(!out.date){ var md2=t.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/); if(md2){ out.date=md2[3]+"-"+("0"+md2[2]).slice(-2)+"-"+("0"+md2[1]).slice(-2); } } var ms=t.match(/Total\s+(\d{1,6})\s+([\d.,]+)\s*\u20ac\s+([\d.,]+)\s*\u20ac\s+([\d.,]+)\s*\u20ac/i); if(ms){ out.unidades=ms[1]; out.bruto=_cvNum(ms[2]); out.neto=_cvNum(ms[3]); out.comision=_cvNum(ms[4]); } if(!out.neto){ var mp=t.match(/Cantidad de pago:?\s*([\d.,]+)\s*\u20ac/i); if(mp) out.neto=_cvNum(mp[1]); } return out; }
 function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, directos, saveDirectos, geek, saveGeek, onEdit }) {
   var h = React.createElement;
   var ds = useState("home"), sub = ds[0], setSub = ds[1];
@@ -21009,15 +21028,6 @@ function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, dire
   var stps = useState("input"), impStep = stps[0], setImpStep = stps[1];
   var mts = useState([]), impMatches = mts[0], setImpMatches = mts[1];
   var isr = useState({}), impSrch = isr[0], setImpSrch = isr[1];
-  var gkm = useState(false), geekModal=gkm[0], setGeekModal=gkm[1];
-  var gkf = useState({date:"",name:"",unidades:"",bruto:"",neto:"",comision:""}), geekForm=gkf[0], setGeekForm=gkf[1];
-  var gkb = useState(""), geekBusy=gkb[0], setGeekBusy=gkb[1];
-  var gke = useState(""), geekErr=gke[0], setGeekErr=gke[1];
-  function openGeek(){ setGeekForm({date:new Date().toISOString().slice(0,10),name:"",unidades:"",bruto:"",neto:"",comision:""}); setGeekErr(""); setGeekBusy(""); setGeekModal(true); }
-  function geekFill(r){ setGeekForm(function(p){ return {date:r.date||p.date,name:p.name,unidades:r.unidades||p.unidades,bruto:r.bruto||p.bruto,neto:r.neto||p.neto,comision:r.comision||p.comision}; }); setGeekErr((!r.bruto&&!r.neto)?"Le\u00ed el PDF pero no encontr\u00e9 el total. Rev\u00edsalo o escribe los datos a mano.":""); }
-  function geekFromFile(file){ if(!file) return; setGeekErr(""); setGeekBusy("Leyendo PDF\u2026"); _cvPdfText(file,function(txt){ setGeekBusy(""); if(!txt){ setGeekErr("No pude leer el PDF. Escribe los datos a mano abajo."); return; } geekFill(_cvParseGeek(txt)); }); }
-  function saveGeekRec(){ var f=geekForm; var neto=parseFloat(f.neto)||0; var bruto=parseFloat(f.bruto)||0; var com=parseFloat(f.comision)||0; if(!neto && !bruto){ setGeekErr("Pon al menos el volumen neto o el bruto."); return; } var rec={id:uid(),date:f.date||new Date().toISOString().slice(0,10),name:(f.name||"").trim()||("Directo Geek "+(f.date||"")),unidades:parseInt(f.unidades)||0,bruto:bruto,neto:neto,comision:com}; if(saveGeek) saveGeek([rec].concat(geek||[])); setGeekModal(false); if(window._cvToast) window._cvToast("Directo de Geek guardado"); }
-  function delGeek(id){ var rec=(geek||[]).find(function(x){return x.id===id;}); if(saveGeek) saveGeek((geek||[]).filter(function(x){return x.id!==id;})); if(rec && window._cvToast) window._cvToast("Directo eliminado",{icon:"\uD83D\uDDD1",action:"Deshacer",duration:5000,onAction:function(){ var cur=[]; try{ cur=JSON.parse(localStorage.getItem("cv10_geek")||"[]"); }catch(e){} if(saveGeek) saveGeek([rec].concat(cur)); }}); }
   function _nrm(t){ return (t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim(); }
   function fldLbl(t){ return h("label",{style:{fontSize:10,fontWeight:700,color:SUB,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:4}},t); }
   function fld(label,val,on){ return h("div",null, fldLbl(label), h("input",{type:"text",inputMode:"decimal",value:val||"",onChange:function(e){ on(e.target.value.replace(",",".").replace(/[^0-9.]/g,"")); },placeholder:"0",style:IS})); }
@@ -21071,52 +21081,6 @@ function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, dire
     if(window._cvToast) window._cvToast(n+" cartas con precio de venta");
   }
   var _pills = h("div",{style:{display:"flex",gap:6,flexWrap:"wrap"}}, [["home","🏠 Inicio"],["directo","🎬 Subastas"],["breaks","🎁 Breaks de caja"],["clientes","👥 Compradores"]].map(function(o){ return h(Btn,{key:o[0],sm:true,v:sub===o[0]?"primary":"outline",onClick:function(){setSub(o[0]);}},o[1]); })); var _chooser = chooser? h("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:400,display:"flex",alignItems:"center",justifyContent:"center",padding:16},onClick:function(){setChooser(false);}}, h("div",{style:{background:"#fff",borderRadius:16,padding:24,maxWidth:430,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.35)"},onClick:function(ev){ev.stopPropagation();}}, h("div",{style:{fontSize:18,fontWeight:800,color:TXT,marginBottom:4}},"Nuevo directo"), h("div",{style:{fontSize:13,color:"#8a8f98",marginBottom:18}},"¿Qué quieres crear?"), h("div",{style:{display:"flex",gap:12,flexWrap:"wrap"}}, h("button",{onClick:function(){ setChooser(false); setSub("directo"); setCreating(true); },style:{flex:"1 1 150px",minWidth:140,padding:"20px 14px",borderRadius:12,border:"2px solid "+BDR,background:BGS,cursor:"pointer",fontSize:15,fontWeight:700,color:TXT,fontFamily:"inherit"}},"🎬 Subasta de cromos"), h("button",{onClick:function(){ setChooser(false); setSub("breaks"); var _n=0; var _iv=setInterval(function(){ _n++; if(window.gbxSetView){ try{window.gbxSetView("nuevo");}catch(e){} clearInterval(_iv); } else if(_n>20){ clearInterval(_iv); } }, 200); },style:{flex:"1 1 150px",minWidth:140,padding:"20px 14px",borderRadius:12,border:"2px solid "+BDR,background:BGS,cursor:"pointer",fontSize:15,fontWeight:700,color:TXT,fontFamily:"inherit"}},"🎁 Break de caja")), h("button",{onClick:function(){setChooser(false);},style:{marginTop:16,width:"100%",padding:"10px",borderRadius:9,border:"none",background:"#eef0f3",color:"#4b5563",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"inherit"}},"Cancelar"))) : null; var subnav = h("div",{style:{marginBottom:14}}, h(Btn,{sm:true,v:"outline",onClick:function(){setSub("home");}},"← Inicio"));
-  if(sub==="geek"){
-    var gl=(geek||[]); var tB=0,tN=0,tC=0; gl.forEach(function(r){ tB+=(+r.bruto||0); tN+=(+r.neto||0); tC+=(+r.comision||0); });
-    return h("div",{style:{maxWidth:820,margin:"0 auto"}},
-      subnav,
-      h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:14}},
-        h("div",null,
-          h("div",{style:{fontSize:11,textTransform:"uppercase",letterSpacing:"0.06em",color:SUB,fontWeight:700}},"Geek"),
-          h("div",{style:{fontFamily:"'Saira Condensed',sans-serif",fontWeight:800,fontSize:26,textTransform:"uppercase",color:TXT}},"Directos de Geek")),
-        h(Btn,{v:"primary",onClick:openGeek},"\uD83D\uDCC4 Importar factura")),
-      h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10,marginBottom:16}},
-        kpi("Directos",String(gl.length)),
-        kpi("Facturado (bruto)",eu(tB)),
-        kpi("Comisi\u00f3n Geek","-"+eu(tC),"#c0392b"),
-        kpi("Neto cobrado",eu(tN),"#0a7a55")),
-      gl.length===0? h("div",{style:{textAlign:"center",color:SUB,fontSize:13,padding:"34px 16px",border:"1px dashed "+BDR,borderRadius:12}},"A\u00fan no has importado ning\u00fan directo de Geek. Pulsa \u201cImportar factura\u201d y sube el PDF que te env\u00eda Geek \u2014 relleno los totales por ti.") :
-      h("div",{style:{display:"flex",flexDirection:"column",gap:8}}, gl.map(function(r){ return h(Card,{key:r.id,style:{padding:"12px 14px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12}},
-        h("div",{style:{minWidth:0}},
-          h("div",{style:{fontWeight:700,fontSize:14,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},r.name||"Directo Geek"),
-          h("div",{style:{fontSize:11.5,color:SUB,marginTop:2}},(r.date||"")+" \u00b7 "+(r.unidades||0)+" uds \u00b7 bruto "+eu(r.bruto||0)+" \u00b7 comisi\u00f3n "+eu(r.comision||0))),
-        h("div",{style:{display:"flex",alignItems:"center",gap:12,flexShrink:0}},
-          h("div",{style:{textAlign:"right"}}, h("div",{style:{fontSize:10,color:SUB,textTransform:"uppercase",letterSpacing:"0.04em"}},"Neto"), h("div",{style:{fontWeight:800,color:"#0a7a55",fontSize:15}},eu(r.neto||0))),
-          h("button",{onClick:function(){delGeek(r.id);},title:"Eliminar",style:{border:"none",background:"transparent",cursor:"pointer",fontSize:15,color:"#c0392b"}},"\uD83D\uDDD1"))); })),
-      geekModal? h("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:16},onClick:function(){setGeekModal(false);}},
-        h("div",{style:{background:"#fff",borderRadius:16,padding:22,maxWidth:470,width:"100%",maxHeight:"90vh",overflowY:"auto",boxShadow:"0 20px 60px rgba(0,0,0,0.35)"},onClick:function(ev){ev.stopPropagation();}},
-          h("div",{style:{fontSize:18,fontWeight:800,color:TXT,marginBottom:2}},"Importar directo de Geek"),
-          h("div",{style:{fontSize:12.5,color:SUB,marginBottom:14}},"Sube el PDF que te manda Geek y relleno los totales. Rev\u00edsalos antes de guardar."),
-          h("label",{style:{display:"block",border:"2px dashed "+BDR,borderRadius:12,padding:"16px",textAlign:"center",cursor:"pointer",marginBottom:12,background:BGS}},
-            h("input",{type:"file",accept:"application/pdf,.pdf",style:{display:"none"},onChange:function(e){ var f=e.target.files&&e.target.files[0]; geekFromFile(f); }}),
-            h("div",{style:{fontSize:26}},"\uD83D\uDCC4"),
-            h("div",{style:{fontSize:13,fontWeight:700,color:TXT,marginTop:4}},geekBusy||"Elegir PDF de Geek"),
-            h("div",{style:{fontSize:11,color:SUB,marginTop:2}},"o rellena los campos a mano")),
-          geekErr? h("div",{style:{background:"#fdecea",color:"#b02a37",fontSize:12,borderRadius:8,padding:"8px 10px",marginBottom:12}},geekErr) : null,
-          h("div",{style:{marginBottom:10}}, fldLbl("Nombre / descripci\u00f3n"), h("input",{type:"text",value:geekForm.name,onChange:function(e){ var v=e.target.value; setGeekForm(function(p){return Object.assign({},p,{name:v});}); },placeholder:"Directo 16 junio",style:IS})),
-          h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}},
-            h("div",null, fldLbl("Fecha"), h("input",{type:"date",value:geekForm.date,onChange:function(e){ var v=e.target.value; setGeekForm(function(p){return Object.assign({},p,{date:v});}); },style:IS})),
-            h("div",null, fldLbl("Unidades"), h("input",{type:"text",inputMode:"numeric",value:geekForm.unidades,onChange:function(e){ var v=e.target.value.replace(/[^0-9]/g,""); setGeekForm(function(p){return Object.assign({},p,{unidades:v});}); },placeholder:"0",style:IS}))),
-          h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}},
-            h("div",null, fldLbl("Bruto \u20ac"), h("input",{type:"text",inputMode:"decimal",value:geekForm.bruto,onChange:function(e){ var v=e.target.value.replace(",",".").replace(/[^0-9.]/g,""); setGeekForm(function(p){return Object.assign({},p,{bruto:v});}); },placeholder:"0",style:IS})),
-            h("div",null, fldLbl("Neto \u20ac"), h("input",{type:"text",inputMode:"decimal",value:geekForm.neto,onChange:function(e){ var v=e.target.value.replace(",",".").replace(/[^0-9.]/g,""); setGeekForm(function(p){return Object.assign({},p,{neto:v});}); },placeholder:"0",style:IS})),
-            h("div",null, fldLbl("Comisi\u00f3n \u20ac"), h("input",{type:"text",inputMode:"decimal",value:geekForm.comision,onChange:function(e){ var v=e.target.value.replace(",",".").replace(/[^0-9.]/g,""); setGeekForm(function(p){return Object.assign({},p,{comision:v});}); },placeholder:"0",style:IS}))),
-          h("div",{style:{display:"flex",gap:10}},
-            h(Btn,{v:"outline",onClick:function(){setGeekModal(false);},style:{flex:1}},"Cancelar"),
-            h(Btn,{v:"primary",onClick:saveGeekRec,style:{flex:2}},"Guardar directo"))
-        )) : null
-    );
-  }
   if(sub==="home") return h("div",null, (function(){
   function goBreaks(view){ window._gbxPending=view; setSub("breaks"); }
   function big(icon,title,desc,onC,accent){ return h("div",{onClick:onC,style:{flex:"1 1 200px",minWidth:200,border:"1px solid "+BDR,borderRadius:14,padding:18,cursor:"pointer",background:BG,position:"relative"}}, h("div",{style:{fontSize:30}},icon), h("div",{style:{fontFamily:"'Saira Condensed',sans-serif",fontWeight:700,fontSize:20,textTransform:"uppercase",marginTop:8,color:TXT}},title), h("div",{style:{color:"#8a8f98",fontSize:12,marginTop:4}},desc), h("div",{style:{position:"absolute",right:16,top:16,color:accent,fontWeight:700}},"→")); }
@@ -21136,8 +21100,7 @@ function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, dire
       tile("📊","Resumen","del mes",function(){ goBreaks("global"); }),
       tile("📦","Stock de cajas","ver stock",function(){ goBreaks("stock"); }),
       tile("💸","Impagos","",function(){ goBreaks("impagos"); }),
-      tile("👥","Compradores","",function(){ setSub("clientes"); }),
-      tile("🟣","Geek","importar directo",function(){ setSub("geek"); })
+      tile("👥","Compradores","",function(){ setSub("clientes"); })
     )
   );
 })());
@@ -21632,7 +21595,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v268")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v270")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -21991,7 +21954,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
       React.createElement("button", { onClick: function() { setShowSettings(false); }, style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB, lineHeight: 1 } }, "\u00D7")
     ),
     React.createElement("div", { style: { background: BGS, border: "1px solid " + BDR, borderRadius: 10, padding: "11px 13px", marginBottom: 18 } },
-      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v268"),
+      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v270"),
       (function(){ var t, ok=false; if(!window._currentUser){ t="\u26A0\uFE0F Sin sesi\u00F3n \u2014 los cambios NO se suben a la nube"; } else if(window._cvSyncErr){ t="\u26A0\uFE0F La \u00FAltima subida no se confirm\u00F3 \u2014 revisa tu conexi\u00F3n"; } else if(window._cvLastSync){ var s=Math.round((Date.now()-window._cvLastSync)/1000); t="\u2714 Nube sincronizada (hace "+(s<90?s+"s":Math.round(s/60)+" min")+")"; ok=true; } else { t="Nube conectada"; ok=true; } return React.createElement("div", { style: { fontSize: 11.5, color: ok?"#0a7a55":"#c0392b", marginTop: 4, fontWeight: 600 } }, t); })()
     ),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "AYUDA"),
