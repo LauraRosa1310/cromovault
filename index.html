@@ -21485,6 +21485,7 @@ function EstudioTab(props){
 function App() {
     React.useEffect(function() {
       function onDataLoaded() {
+        window._cvDirty=false;
         setPublicSlug(localStorage.getItem("cv10_slug")||"");
         setPublicContact(localStorage.getItem("cv10_contact")||"");
         setPublicPayment(localStorage.getItem("cv10_payment")||"");
@@ -21517,13 +21518,13 @@ function App() {
     catch (_a) {
         return [];
     } });
-    function saveLots(l) { setLots(l); localStorage.setItem("cv10_lots", JSON.stringify(l)); if(window._saveToFirestore) window._saveToFirestore({ lotsData: l }); }
+    function saveLots(l) { window._cvDirty=true; setLots(l); localStorage.setItem("cv10_lots", JSON.stringify(l)); if(window._saveToFirestore) window._saveToFirestore({ lotsData: l }); }
     const [breaks, setBreaks] = useState(function(){ try{ localStorage.removeItem("cv10_breaks"); }catch(e){} return []; });
     function saveBreaks(b) { setBreaks(b); localStorage.setItem("cv10_breaks", JSON.stringify(b)); if(window._saveToFirestore) window._saveToFirestore({ breaksData: b }); }
     const [directos, setDirectos] = useState(function(){ try { return JSON.parse(localStorage.getItem("cv10_directos") || "[]"); } catch (e) { return []; } });
-    function saveDirectos(d) { setDirectos(d); localStorage.setItem("cv10_directos", JSON.stringify(d)); if(window._saveToFirestore) window._saveToFirestore({ directosData: d }); }
+    function saveDirectos(d) { window._cvDirty=true; setDirectos(d); localStorage.setItem("cv10_directos", JSON.stringify(d)); if(window._saveToFirestore) window._saveToFirestore({ directosData: d }); }
     const [geek, setGeek] = useState(function(){ try { return JSON.parse(localStorage.getItem("cv10_geek") || "[]"); } catch (e) { return []; } });
-    function saveGeek(g) { setGeek(g); localStorage.setItem("cv10_geek", JSON.stringify(g)); if(window._saveToFirestore) window._saveToFirestore({ geekData: g }); }
+    function saveGeek(g) { window._cvDirty=true; setGeek(g); localStorage.setItem("cv10_geek", JSON.stringify(g)); if(window._saveToFirestore) window._saveToFirestore({ geekData: g }); }
 
     const [showSettings, setShowSettings] = useState(false);
     const [showCheck, setShowCheck] = useState(false);
@@ -21610,17 +21611,17 @@ function App() {
     const [csView, setCsView] = useState("vender");
     const [prefillName, setPrefillName] = useState("");
     const [prefillLotId, setPrefillLotId] = useState("");
-    useEffect(() => { window._cvLatestCards = cards; localStorage.setItem("cv10", JSON.stringify(cards)); if(window._cvCardsSaveT) clearTimeout(window._cvCardsSaveT); window._cvCardsSaveT=setTimeout(function(){ if (window._currentUser && cards.length > 0) window._saveToFirestore && window._saveToFirestore({ cards: cards }); var slug=localStorage.getItem("cv10_slug"); if(slug&&window._db&&window._currentUser&&cards.length>0){ var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";}); var sold=cards.filter(function(c){return c.status==="sold";}); var vc=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;}); window._db.ref("public/"+slug+"/cards").set(listed); window._db.ref("public/"+slug+"/validCodes").set(vc); } }, 1200); }, [cards]);
+    useEffect(() => { window._cvLatestCards = cards; localStorage.setItem("cv10", JSON.stringify(cards)); if(window._cvCardsSaveT) clearTimeout(window._cvCardsSaveT); window._cvCardsSaveT=setTimeout(function(){ if(!window._cvDirty) return; if (window._currentUser && cards.length > 0) window._saveToFirestore && window._saveToFirestore({ cards: cards }); var slug=localStorage.getItem("cv10_slug"); if(slug&&window._db&&window._currentUser&&cards.length>0){ var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";}); var sold=cards.filter(function(c){return c.status==="sold";}); var vc=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;}); window._db.ref("public/"+slug+"/cards").set(listed); window._db.ref("public/"+slug+"/validCodes").set(vc); } }, 1200); }, [cards]);
     useEffect(() => { localStorage.setItem("cv10i", JSON.stringify(invoices)); if(window._cvInvSaveT) clearTimeout(window._cvInvSaveT); window._cvInvSaveT=setTimeout(function(){ if (window._currentUser) window._saveToFirestore && window._saveToFirestore({ invoices: invoices }); },1200); }, [invoices]);
-    function ups(c) { var cur = window._cvLatestCards || cards; var nc = cur.find(function(x){return x.id === c.id;}) ? cur.map(function(x){return x.id === c.id ? c : x;}) : [c].concat(cur); window._cvLatestCards = nc; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} var _pr = window._saveToFirestore && window._saveToFirestore({ cards: nc }); if (window._cvToast) window._cvToast("Guardado"); if(_pr && _pr.then){ _pr.then(function(ok){ if(!ok && window._cvToast) window._cvToast("No se confirm\u00F3 la subida a la nube. Se guard\u00F3 en este dispositivo \u2014 revisa tu conexi\u00F3n o vuelve a entrar en la cuenta.",{icon:"\u26A0\uFE0F",duration:8000}); }); } }
-    function upsMany(list, msg){ if(!list||!list.length) return; var cur = window._cvLatestCards || cards; var byId={}; list.forEach(function(c){ byId[c.id]=c; }); var seen={}; var nc=cur.map(function(x){ if(byId[x.id]){ seen[x.id]=1; return byId[x.id]; } return x; }); list.forEach(function(c){ if(!seen[c.id]){ nc.unshift(c); } }); window._cvLatestCards=nc; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if(window._cvToast) window._cvToast(msg || (list.length+" cartas vendidas \u2705")); }
-    function del(id) { var cur = window._cvLatestCards || cards; var idx = cur.findIndex(function (c) { return c.id === id; }); var removed = idx >= 0 ? cur[idx] : null; var nc = cur.filter(function (c) { return c.id !== id; }); window._cvLatestCards = nc; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if (removed && window._cvToast) window._cvToast("Carta eliminada", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { var p = window._cvLatestCards || cur; var np = p.slice(); np.splice(Math.min(idx, np.length), 0, removed); window._cvLatestCards = np; setCards(np); try{ localStorage.setItem("cv10", JSON.stringify(np)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: np }); } }); }
+    function ups(c) { var cur = window._cvLatestCards || cards; var nc = cur.find(function(x){return x.id === c.id;}) ? cur.map(function(x){return x.id === c.id ? c : x;}) : [c].concat(cur); window._cvLatestCards = nc; window._cvDirty=true; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} var _pr = window._saveToFirestore && window._saveToFirestore({ cards: nc }); if (window._cvToast) window._cvToast("Guardado"); if(_pr && _pr.then){ _pr.then(function(r){ if(r===true || r==="pending") return; var m = (r==="nosession") ? "No hay sesi\u00F3n iniciada en este dispositivo \u2014 inicia sesi\u00F3n para que se guarde en la nube." : (r==="offline") ? "Sin conexi\u00F3n: guardado en este dispositivo pero a\u00FAn no en la nube. Se subir\u00E1 al volver internet \u2014 no cierres la app todav\u00EDa." : "No se pudo subir a la nube. Se guard\u00F3 en este dispositivo \u2014 revisa tu conexi\u00F3n."; if(window._cvToast) window._cvToast(m,{icon:"\u26A0\uFE0F",duration:8000}); }); } }
+    function upsMany(list, msg){ if(!list||!list.length) return; var cur = window._cvLatestCards || cards; var byId={}; list.forEach(function(c){ byId[c.id]=c; }); var seen={}; var nc=cur.map(function(x){ if(byId[x.id]){ seen[x.id]=1; return byId[x.id]; } return x; }); list.forEach(function(c){ if(!seen[c.id]){ nc.unshift(c); } }); window._cvLatestCards=nc; window._cvDirty=true; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if(window._cvToast) window._cvToast(msg || (list.length+" cartas vendidas \u2705")); }
+    function del(id) { var cur = window._cvLatestCards || cards; var idx = cur.findIndex(function (c) { return c.id === id; }); var removed = idx >= 0 ? cur[idx] : null; var nc = cur.filter(function (c) { return c.id !== id; }); window._cvLatestCards = nc; window._cvDirty=true; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if (removed && window._cvToast) window._cvToast("Carta eliminada", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { var p = window._cvLatestCards || cur; var np = p.slice(); np.splice(Math.min(idx, np.length), 0, removed); window._cvLatestCards = np; window._cvDirty=true; setCards(np); try{ localStorage.setItem("cv10", JSON.stringify(np)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: np }); } }); }
     function oa(m, name, lotId) { setDm(m); setEc(null); setPrefillName(name || ""); setPrefillLotId(lotId || ""); setSF(true); }
     function oe(c) { setEc(c); setDm(c.mode); setSF(true); }
     function dup(c) { setDupCard(c); }
-    function createCards(arr){ var cur=window._cvLatestCards||cards; var nc=arr.concat(cur); window._cvLatestCards=nc; setCards(nc); try{localStorage.setItem("cv10",JSON.stringify(nc));}catch(e){} if(window._saveToFirestore)window._saveToFirestore({cards:nc}); }
-    function bulkUpd(ids, changes) { var cur = window._cvLatestCards || cards; var nc = cur.map(function (c) { return ids.indexOf(c.id) >= 0 ? Object.assign({}, c, changes) : c; }); window._cvLatestCards = nc; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if (window._cvToast) window._cvToast(ids.length + " cartas actualizadas"); }
-    function bulkDel(ids) { var cur = window._cvLatestCards || cards; var removed = cur.filter(function (c) { return ids.indexOf(c.id) >= 0; }); var nc = cur.filter(function (c) { return ids.indexOf(c.id) < 0; }); window._cvLatestCards = nc; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if (window._cvToast) window._cvToast(removed.length + " cartas eliminadas", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { var p = window._cvLatestCards || cur; var np = removed.concat(p); window._cvLatestCards = np; setCards(np); try{ localStorage.setItem("cv10", JSON.stringify(np)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: np }); } }); }
+    function createCards(arr){ var cur=window._cvLatestCards||cards; var nc=arr.concat(cur); window._cvLatestCards=nc; window._cvDirty=true; setCards(nc); try{localStorage.setItem("cv10",JSON.stringify(nc));}catch(e){} if(window._saveToFirestore)window._saveToFirestore({cards:nc}); }
+    function bulkUpd(ids, changes) { var cur = window._cvLatestCards || cards; var nc = cur.map(function (c) { return ids.indexOf(c.id) >= 0 ? Object.assign({}, c, changes) : c; }); window._cvLatestCards = nc; window._cvDirty=true; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if (window._cvToast) window._cvToast(ids.length + " cartas actualizadas"); }
+    function bulkDel(ids) { var cur = window._cvLatestCards || cards; var removed = cur.filter(function (c) { return ids.indexOf(c.id) >= 0; }); var nc = cur.filter(function (c) { return ids.indexOf(c.id) < 0; }); window._cvLatestCards = nc; window._cvDirty=true; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if (window._cvToast) window._cvToast(removed.length + " cartas eliminadas", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { var p = window._cvLatestCards || cur; var np = removed.concat(p); window._cvLatestCards = np; window._cvDirty=true; setCards(np); try{ localStorage.setItem("cv10", JSON.stringify(np)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: np }); } }); }
     const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Análisis"], ["cardshows", "🛒 Card shows"], ["breaks", "🎬 Directos"], ["redes", "📱 Redes"], ["psa", "🎴 Personales"]];
     return (React.createElement("div", { style: { height: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14, display: "flex", flexDirection: "column", overflow: "hidden" } },
         React.createElement("style", null, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Saira+Condensed:wght@600;700;800;900&display=swap');"),
@@ -21631,7 +21632,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v265")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v268")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -21990,7 +21991,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
       React.createElement("button", { onClick: function() { setShowSettings(false); }, style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB, lineHeight: 1 } }, "\u00D7")
     ),
     React.createElement("div", { style: { background: BGS, border: "1px solid " + BDR, borderRadius: 10, padding: "11px 13px", marginBottom: 18 } },
-      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v265"),
+      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v268"),
       (function(){ var t, ok=false; if(!window._currentUser){ t="\u26A0\uFE0F Sin sesi\u00F3n \u2014 los cambios NO se suben a la nube"; } else if(window._cvSyncErr){ t="\u26A0\uFE0F La \u00FAltima subida no se confirm\u00F3 \u2014 revisa tu conexi\u00F3n"; } else if(window._cvLastSync){ var s=Math.round((Date.now()-window._cvLastSync)/1000); t="\u2714 Nube sincronizada (hace "+(s<90?s+"s":Math.round(s/60)+" min")+")"; ok=true; } else { t="Nube conectada"; ok=true; } return React.createElement("div", { style: { fontSize: 11.5, color: ok?"#0a7a55":"#c0392b", marginTop: 4, fontWeight: 600 } }, t); })()
     ),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "AYUDA"),
@@ -22191,14 +22192,11 @@ showPublicProfile && React.createElement("div", { onMouseDown: function(e) { pro
           var _inv=cards.filter(function(c){return c.mode==="inventory";});
           var _sold=_inv.filter(function(c){return c.status==="sold";});
           var _inc=_sold.filter(function(c){ return (!((c.sellPrice||0)>0)) || !c.sellDate || (c.buyDate&&c.sellDate&&c.sellDate<c.buyDate); });
-          var _g={}; _sold.forEach(function(c){ var k=((c.name||"").trim().toLowerCase())+"|"+(c.sellDate||"")+"|"+(Math.round((c.sellPrice||0)*100)/100); (_g[k]=_g[k]||[]).push(c); });
-          var _dups=[]; Object.keys(_g).forEach(function(k){ if(_g[k].length>1) _dups.push(_g[k]); });
           var _recf=function(c){ return (c.sellPrice||0)*(c.quantity||1)*(1-(c.platformFee||0)/100)-(c.shippingCost||0); };
           var _totalRec=_sold.reduce(function(a,c){return a+_recf(c);},0);
+          var _g={}; _sold.forEach(function(c){ var k=((c.name||"").trim().toLowerCase())+"|"+(Math.round((c.buyPrice||0)*100)/100)+"|"+(c.buyDate||""); (_g[k]=_g[k]||[]).push(c); });
+          var _dups=[]; Object.keys(_g).forEach(function(k){ if(_g[k].length>1) _dups.push(_g[k]); });
           var _dupExtra=_dups.reduce(function(a,grp){ return a+grp.slice(1).reduce(function(x,c){return x+_recf(c);},0); },0);
-          var _g2={}; _sold.forEach(function(c){ var k=((c.name||"").trim().toLowerCase())+"|"+(Math.round((c.sellPrice||0)*100)/100); (_g2[k]=_g2[k]||[]).push(c); });
-          var _dups2=[]; Object.keys(_g2).forEach(function(k){ var grp=_g2[k]; if(grp.length>1){ var ds={}; grp.forEach(function(c){ds[(c.sellDate||"")]=1;}); if(Object.keys(ds).length>1) _dups2.push(grp); } });
-          var _dupExtra2=_dups2.reduce(function(a,grp){ return a+grp.slice(1).reduce(function(x,c){return x+_recf(c);},0); },0);
           var _row=function(c,tag){ return React.createElement("div",{key:c.id,style:{display:"flex",alignItems:"center",gap:8,padding:"9px 10px",border:"1px solid "+BDR,borderRadius:8,marginBottom:6}},
               React.createElement("div",{style:{flex:1,minWidth:0,cursor:"pointer"},onClick:function(){ setShowCheck(false); oe(c); }},
                 React.createElement("div",{style:{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},c.name||"(sin nombre)"),
@@ -22212,15 +22210,11 @@ showPublicProfile && React.createElement("div", { onMouseDown: function(e) { pro
                 React.createElement("button",{onClick:function(){setShowCheck(false);},style:{border:"none",background:"none",fontSize:18,color:MUT,cursor:"pointer"}},"✕")),
               React.createElement("div",{style:{padding:"16px 20px"}},
                 React.createElement("div",{style:{fontSize:12.5,color:SUB,marginBottom:14}}, _sold.length+" ventas en el balance · recuperado "+eu(_totalRec)),
-                (_clean && !_dups2.length) ? React.createElement("div",{style:{background:"#f0fdf8",border:"1px solid #d1fae5",borderRadius:12,padding:"16px",fontSize:13.5,color:"#047857",fontWeight:600}},"✅ Todo correcto. No encontré ventas duplicadas ni a medias en el balance.") : ((_clean && _dups2.length) ? React.createElement("div",{style:{background:"#fffbea",border:"1px solid #f5e3a3",borderRadius:12,padding:"14px 16px",fontSize:13,color:"#8a6d1f",marginBottom:8}},"No hay duplicados exactos ni ventas a medias. Revisa abajo las de mismo importe en fechas distintas por si alguna es doble.") : null),
+                _clean ? React.createElement("div",{style:{background:"#f0fdf8",border:"1px solid #d1fae5",borderRadius:12,padding:"16px",fontSize:13.5,color:"#047857",fontWeight:600}},"✅ Todo correcto. No encontré el mismo producto vendido dos veces ni ventas a medias en el balance.") : null,
                 _dups.length ? React.createElement("div",{style:{marginBottom:16}},
-                  React.createElement("div",{style:{fontSize:13,fontWeight:800,color:AMBER,marginBottom:4}},"⚠️ Posibles duplicados ("+_dups.length+")"),
-                  React.createElement("div",{style:{fontSize:11.5,color:SUB,marginBottom:10}},"Mismo nombre, fecha y precio de venta. Suman "+eu(_dupExtra)+" de más al balance. Deja una y borra las repetidas."),
-                  _dups.map(function(grp,gi){ return React.createElement("div",{key:"d"+gi,style:{marginBottom:10,paddingLeft:8,borderLeft:"3px solid "+AMBER}}, grp.map(function(c){ return _row(c,"repetida"); })); })) : null,
-                _dups2.length ? React.createElement("div",{style:{marginBottom:16}},
-                  React.createElement("div",{style:{fontSize:13,fontWeight:800,color:AMBER,marginBottom:4}},"⚠️ Mismo importe, fecha distinta ("+_dups2.length+")"),
-                  React.createElement("div",{style:{fontSize:11.5,color:SUB,marginBottom:10}},"Misma carta y mismo precio, vendida en fechas diferentes. Puede ser una venta que repusiste desde otro dispositivo (doble), o correcto si tenías varias iguales. Revisa; si alguna sobra, bórrala (hasta "+eu(_dupExtra2)+" podrían ser de más)."),
-                  _dups2.map(function(grp,gi){ return React.createElement("div",{key:"e"+gi,style:{marginBottom:10,paddingLeft:8,borderLeft:"3px solid "+AMBER}}, grp.map(function(c){ return _row(c,"mismo importe"); })); })) : null,
+                  React.createElement("div",{style:{fontSize:13,fontWeight:800,color:AMBER,marginBottom:4}},"⚠️ El mismo producto vendido más de una vez ("+_dups.length+")"),
+                  React.createElement("div",{style:{fontSize:11.5,color:SUB,marginBottom:10}},"El mismo producto (mismo nombre, mismo coste y misma fecha de compra) aparece vendido más de una vez. Si solo tenías una unidad, una de ellas sobra y suma de más (hasta "+eu(_dupExtra)+"). Mira las fechas, deja la venta buena y borra la repetida."),
+                  _dups.map(function(grp,gi){ return React.createElement("div",{key:"d"+gi,style:{marginBottom:10,paddingLeft:8,borderLeft:"3px solid "+AMBER}}, grp.map(function(c){ return _row(c,"vendida 2 veces"); })); })) : null,
                 _inc.length ? React.createElement("div",{style:{marginBottom:8}},
                   React.createElement("div",{style:{fontSize:13,fontWeight:800,color:RED,marginBottom:4}},"⚠️ Ventas a medias ("+_inc.length+")"),
                   React.createElement("div",{style:{fontSize:11.5,color:SUB,marginBottom:10}},"Marcadas vendidas pero sin precio o sin fecha (o con la venta antes de la compra). Ciérralas bien o bórralas."),
@@ -22298,6 +22292,7 @@ window.uploadToCloudinary=function(blob,cb){var fd=new FormData();fd.append("fil
 (function(){
   function _cvFlushSave(){
     if(!window._currentUser || typeof window._saveToFirestore!=="function") return;
+    if(!window._cvDirty) return;
     try{
       var p={};
       var cv=localStorage.getItem("cv10"); if(cv){ var a=JSON.parse(cv); if(a&&a.length){ p.cards=a; } }
@@ -22889,13 +22884,13 @@ function initFirebase() {
     window._appMounted = false;
 
     window._saveToFirestore = function(data) {
-      if (!window._currentUser) { window._cvSyncErr = "sin sesion"; return Promise.resolve(false); }
+      if (!window._currentUser) { window._cvSyncErr = "sin sesion"; return Promise.resolve("nosession"); }
       var _p = db.collection('users').doc(window._currentUser.uid)
         .collection('data').doc('main')
         .set(data, {merge: true})
         .then(function(){ window._cvLastSync = Date.now(); window._cvSyncErr = null; return true; })
-        .catch(function(e) { console.error('Save error:', e); window._cvSyncErr = (e&&e.message)||"error"; return false; });
-      var _to = new Promise(function(res){ setTimeout(function(){ res(false); }, 6000); });
+        .catch(function(e) { console.error('Save error:', e); window._cvSyncErr = (e&&e.message)||"error"; return "error"; });
+      var _to = new Promise(function(res){ setTimeout(function(){ res((typeof navigator!=="undefined" && navigator.onLine===false) ? "offline" : "pending"); }, 9000); });
       return Promise.race([_p, _to]);
     };
 
