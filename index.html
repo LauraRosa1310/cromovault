@@ -20960,7 +20960,11 @@ function ParticipacionesBreakNative(){
 }
 
 function LiveTimer(props){ var h=React.createElement; var st=React.useState(0); var setT=st[1]; React.useEffect(function(){ var iv=setInterval(function(){ setT(function(t){return t+1;}); },1000); return function(){ clearInterval(iv); }; },[]); var se=props.start?Math.floor((Date.now()-props.start)/1000):0; var mm=Math.floor(se/60), ss=se%60; return h("div",{style:{color:"#fff",fontSize:13,fontWeight:700,background:"rgba(255,255,255,.15)",padding:"4px 9px",borderRadius:8}},"\u23F1 "+(mm<10?"0":"")+mm+":"+(ss<10?"0":"")+ss); }
-function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, directos, saveDirectos, onEdit }) {
+function _cvNum(s){ s=(""+(s==null?"":s)).trim(); if(!s) return ""; if(s.indexOf(".")>=0 && s.indexOf(",")>=0){ s=s.replace(/\./g,"").replace(",","."); } else if(s.indexOf(",")>=0){ s=s.replace(",","."); } s=s.replace(/[^0-9.]/g,""); var v=parseFloat(s); return isNaN(v)?"":String(v); }
+function _cvLoadPdfJs(cb){ if(window.pdfjsLib){ cb(window.pdfjsLib); return; } var s=document.createElement("script"); s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"; s.onload=function(){ try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; }catch(e){} cb(window.pdfjsLib); }; s.onerror=function(){ cb(null); }; document.head.appendChild(s); }
+function _cvPdfText(file, cb){ _cvLoadPdfJs(function(lib){ if(!lib){ cb(null); return; } var fr=new FileReader(); fr.onload=function(){ try{ lib.getDocument({data:new Uint8Array(fr.result)}).promise.then(function(pdf){ var n=pdf.numPages, got=0, parts=new Array(n); for(var i=1;i<=n;i++){ (function(pg){ pdf.getPage(pg).then(function(page){ page.getTextContent().then(function(tc){ parts[pg-1]=tc.items.map(function(it){return it.str;}).join(" "); got++; if(got===n) cb(parts.join("\n")); }); }); })(i); } }).catch(function(){ cb(null); }); }catch(e){ cb(null); } }; fr.onerror=function(){ cb(null); }; fr.readAsArrayBuffer(file); }); }
+function _cvParseGeek(txt){ var t=(txt||"").replace(/\u00a0/g," "); var out={unidades:"",bruto:"",neto:"",comision:"",date:""}; var MO={january:"01",february:"02",march:"03",april:"04",may:"05",june:"06",july:"07",august:"08",september:"09",october:"10",november:"11",december:"12",enero:"01",febrero:"02",marzo:"03",abril:"04",mayo:"05",junio:"06",julio:"07",agosto:"08",septiembre:"09",octubre:"10",noviembre:"11",diciembre:"12"}; var md=t.match(/Fecha\s*(?:de\s*)?factura:?\s*([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/i); if(md){ var mm=MO[md[1].toLowerCase()]||""; if(mm) out.date=md[3]+"-"+mm+"-"+("0"+md[2]).slice(-2); } if(!out.date){ var md2=t.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/); if(md2){ out.date=md2[3]+"-"+("0"+md2[2]).slice(-2)+"-"+("0"+md2[1]).slice(-2); } } var ms=t.match(/Total\s+(\d{1,6})\s+([\d.,]+)\s*\u20ac\s+([\d.,]+)\s*\u20ac\s+([\d.,]+)\s*\u20ac/i); if(ms){ out.unidades=ms[1]; out.bruto=_cvNum(ms[2]); out.neto=_cvNum(ms[3]); out.comision=_cvNum(ms[4]); } if(!out.neto){ var mp=t.match(/Cantidad de pago:?\s*([\d.,]+)\s*\u20ac/i); if(mp) out.neto=_cvNum(mp[1]); } return out; }
+function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, directos, saveDirectos, geek, saveGeek, onEdit }) {
   var h = React.createElement;
   var ds = useState("home"), sub = ds[0], setSub = ds[1];
   var os = useState(null), openId = os[0], setOpenId = os[1];
@@ -21005,6 +21009,15 @@ function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, dire
   var stps = useState("input"), impStep = stps[0], setImpStep = stps[1];
   var mts = useState([]), impMatches = mts[0], setImpMatches = mts[1];
   var isr = useState({}), impSrch = isr[0], setImpSrch = isr[1];
+  var gkm = useState(false), geekModal=gkm[0], setGeekModal=gkm[1];
+  var gkf = useState({date:"",name:"",unidades:"",bruto:"",neto:"",comision:""}), geekForm=gkf[0], setGeekForm=gkf[1];
+  var gkb = useState(""), geekBusy=gkb[0], setGeekBusy=gkb[1];
+  var gke = useState(""), geekErr=gke[0], setGeekErr=gke[1];
+  function openGeek(){ setGeekForm({date:new Date().toISOString().slice(0,10),name:"",unidades:"",bruto:"",neto:"",comision:""}); setGeekErr(""); setGeekBusy(""); setGeekModal(true); }
+  function geekFill(r){ setGeekForm(function(p){ return {date:r.date||p.date,name:p.name,unidades:r.unidades||p.unidades,bruto:r.bruto||p.bruto,neto:r.neto||p.neto,comision:r.comision||p.comision}; }); setGeekErr((!r.bruto&&!r.neto)?"Le\u00ed el PDF pero no encontr\u00e9 el total. Rev\u00edsalo o escribe los datos a mano.":""); }
+  function geekFromFile(file){ if(!file) return; setGeekErr(""); setGeekBusy("Leyendo PDF\u2026"); _cvPdfText(file,function(txt){ setGeekBusy(""); if(!txt){ setGeekErr("No pude leer el PDF. Escribe los datos a mano abajo."); return; } geekFill(_cvParseGeek(txt)); }); }
+  function saveGeekRec(){ var f=geekForm; var neto=parseFloat(f.neto)||0; var bruto=parseFloat(f.bruto)||0; var com=parseFloat(f.comision)||0; if(!neto && !bruto){ setGeekErr("Pon al menos el volumen neto o el bruto."); return; } var rec={id:uid(),date:f.date||new Date().toISOString().slice(0,10),name:(f.name||"").trim()||("Directo Geek "+(f.date||"")),unidades:parseInt(f.unidades)||0,bruto:bruto,neto:neto,comision:com}; if(saveGeek) saveGeek([rec].concat(geek||[])); setGeekModal(false); if(window._cvToast) window._cvToast("Directo de Geek guardado"); }
+  function delGeek(id){ var rec=(geek||[]).find(function(x){return x.id===id;}); if(saveGeek) saveGeek((geek||[]).filter(function(x){return x.id!==id;})); if(rec && window._cvToast) window._cvToast("Directo eliminado",{icon:"\uD83D\uDDD1",action:"Deshacer",duration:5000,onAction:function(){ var cur=[]; try{ cur=JSON.parse(localStorage.getItem("cv10_geek")||"[]"); }catch(e){} if(saveGeek) saveGeek([rec].concat(cur)); }}); }
   function _nrm(t){ return (t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim(); }
   function fldLbl(t){ return h("label",{style:{fontSize:10,fontWeight:700,color:SUB,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:4}},t); }
   function fld(label,val,on){ return h("div",null, fldLbl(label), h("input",{type:"text",inputMode:"decimal",value:val||"",onChange:function(e){ on(e.target.value.replace(",",".").replace(/[^0-9.]/g,"")); },placeholder:"0",style:IS})); }
@@ -21058,6 +21071,52 @@ function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, dire
     if(window._cvToast) window._cvToast(n+" cartas con precio de venta");
   }
   var _pills = h("div",{style:{display:"flex",gap:6,flexWrap:"wrap"}}, [["home","🏠 Inicio"],["directo","🎬 Subastas"],["breaks","🎁 Breaks de caja"],["clientes","👥 Compradores"]].map(function(o){ return h(Btn,{key:o[0],sm:true,v:sub===o[0]?"primary":"outline",onClick:function(){setSub(o[0]);}},o[1]); })); var _chooser = chooser? h("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:400,display:"flex",alignItems:"center",justifyContent:"center",padding:16},onClick:function(){setChooser(false);}}, h("div",{style:{background:"#fff",borderRadius:16,padding:24,maxWidth:430,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.35)"},onClick:function(ev){ev.stopPropagation();}}, h("div",{style:{fontSize:18,fontWeight:800,color:TXT,marginBottom:4}},"Nuevo directo"), h("div",{style:{fontSize:13,color:"#8a8f98",marginBottom:18}},"¿Qué quieres crear?"), h("div",{style:{display:"flex",gap:12,flexWrap:"wrap"}}, h("button",{onClick:function(){ setChooser(false); setSub("directo"); setCreating(true); },style:{flex:"1 1 150px",minWidth:140,padding:"20px 14px",borderRadius:12,border:"2px solid "+BDR,background:BGS,cursor:"pointer",fontSize:15,fontWeight:700,color:TXT,fontFamily:"inherit"}},"🎬 Subasta de cromos"), h("button",{onClick:function(){ setChooser(false); setSub("breaks"); var _n=0; var _iv=setInterval(function(){ _n++; if(window.gbxSetView){ try{window.gbxSetView("nuevo");}catch(e){} clearInterval(_iv); } else if(_n>20){ clearInterval(_iv); } }, 200); },style:{flex:"1 1 150px",minWidth:140,padding:"20px 14px",borderRadius:12,border:"2px solid "+BDR,background:BGS,cursor:"pointer",fontSize:15,fontWeight:700,color:TXT,fontFamily:"inherit"}},"🎁 Break de caja")), h("button",{onClick:function(){setChooser(false);},style:{marginTop:16,width:"100%",padding:"10px",borderRadius:9,border:"none",background:"#eef0f3",color:"#4b5563",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"inherit"}},"Cancelar"))) : null; var subnav = h("div",{style:{marginBottom:14}}, h(Btn,{sm:true,v:"outline",onClick:function(){setSub("home");}},"← Inicio"));
+  if(sub==="geek"){
+    var gl=(geek||[]); var tB=0,tN=0,tC=0; gl.forEach(function(r){ tB+=(+r.bruto||0); tN+=(+r.neto||0); tC+=(+r.comision||0); });
+    return h("div",{style:{maxWidth:820,margin:"0 auto"}},
+      subnav,
+      h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:14}},
+        h("div",null,
+          h("div",{style:{fontSize:11,textTransform:"uppercase",letterSpacing:"0.06em",color:SUB,fontWeight:700}},"Geek"),
+          h("div",{style:{fontFamily:"'Saira Condensed',sans-serif",fontWeight:800,fontSize:26,textTransform:"uppercase",color:TXT}},"Directos de Geek")),
+        h(Btn,{v:"primary",onClick:openGeek},"\uD83D\uDCC4 Importar factura")),
+      h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10,marginBottom:16}},
+        kpi("Directos",String(gl.length)),
+        kpi("Facturado (bruto)",eu(tB)),
+        kpi("Comisi\u00f3n Geek","-"+eu(tC),"#c0392b"),
+        kpi("Neto cobrado",eu(tN),"#0a7a55")),
+      gl.length===0? h("div",{style:{textAlign:"center",color:SUB,fontSize:13,padding:"34px 16px",border:"1px dashed "+BDR,borderRadius:12}},"A\u00fan no has importado ning\u00fan directo de Geek. Pulsa \u201cImportar factura\u201d y sube el PDF que te env\u00eda Geek \u2014 relleno los totales por ti.") :
+      h("div",{style:{display:"flex",flexDirection:"column",gap:8}}, gl.map(function(r){ return h(Card,{key:r.id,style:{padding:"12px 14px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12}},
+        h("div",{style:{minWidth:0}},
+          h("div",{style:{fontWeight:700,fontSize:14,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},r.name||"Directo Geek"),
+          h("div",{style:{fontSize:11.5,color:SUB,marginTop:2}},(r.date||"")+" \u00b7 "+(r.unidades||0)+" uds \u00b7 bruto "+eu(r.bruto||0)+" \u00b7 comisi\u00f3n "+eu(r.comision||0))),
+        h("div",{style:{display:"flex",alignItems:"center",gap:12,flexShrink:0}},
+          h("div",{style:{textAlign:"right"}}, h("div",{style:{fontSize:10,color:SUB,textTransform:"uppercase",letterSpacing:"0.04em"}},"Neto"), h("div",{style:{fontWeight:800,color:"#0a7a55",fontSize:15}},eu(r.neto||0))),
+          h("button",{onClick:function(){delGeek(r.id);},title:"Eliminar",style:{border:"none",background:"transparent",cursor:"pointer",fontSize:15,color:"#c0392b"}},"\uD83D\uDDD1"))); })),
+      geekModal? h("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:16},onClick:function(){setGeekModal(false);}},
+        h("div",{style:{background:"#fff",borderRadius:16,padding:22,maxWidth:470,width:"100%",maxHeight:"90vh",overflowY:"auto",boxShadow:"0 20px 60px rgba(0,0,0,0.35)"},onClick:function(ev){ev.stopPropagation();}},
+          h("div",{style:{fontSize:18,fontWeight:800,color:TXT,marginBottom:2}},"Importar directo de Geek"),
+          h("div",{style:{fontSize:12.5,color:SUB,marginBottom:14}},"Sube el PDF que te manda Geek y relleno los totales. Rev\u00edsalos antes de guardar."),
+          h("label",{style:{display:"block",border:"2px dashed "+BDR,borderRadius:12,padding:"16px",textAlign:"center",cursor:"pointer",marginBottom:12,background:BGS}},
+            h("input",{type:"file",accept:"application/pdf,.pdf",style:{display:"none"},onChange:function(e){ var f=e.target.files&&e.target.files[0]; geekFromFile(f); }}),
+            h("div",{style:{fontSize:26}},"\uD83D\uDCC4"),
+            h("div",{style:{fontSize:13,fontWeight:700,color:TXT,marginTop:4}},geekBusy||"Elegir PDF de Geek"),
+            h("div",{style:{fontSize:11,color:SUB,marginTop:2}},"o rellena los campos a mano")),
+          geekErr? h("div",{style:{background:"#fdecea",color:"#b02a37",fontSize:12,borderRadius:8,padding:"8px 10px",marginBottom:12}},geekErr) : null,
+          h("div",{style:{marginBottom:10}}, fldLbl("Nombre / descripci\u00f3n"), h("input",{type:"text",value:geekForm.name,onChange:function(e){ var v=e.target.value; setGeekForm(function(p){return Object.assign({},p,{name:v});}); },placeholder:"Directo 16 junio",style:IS})),
+          h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}},
+            h("div",null, fldLbl("Fecha"), h("input",{type:"date",value:geekForm.date,onChange:function(e){ var v=e.target.value; setGeekForm(function(p){return Object.assign({},p,{date:v});}); },style:IS})),
+            h("div",null, fldLbl("Unidades"), h("input",{type:"text",inputMode:"numeric",value:geekForm.unidades,onChange:function(e){ var v=e.target.value.replace(/[^0-9]/g,""); setGeekForm(function(p){return Object.assign({},p,{unidades:v});}); },placeholder:"0",style:IS}))),
+          h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}},
+            h("div",null, fldLbl("Bruto \u20ac"), h("input",{type:"text",inputMode:"decimal",value:geekForm.bruto,onChange:function(e){ var v=e.target.value.replace(",",".").replace(/[^0-9.]/g,""); setGeekForm(function(p){return Object.assign({},p,{bruto:v});}); },placeholder:"0",style:IS})),
+            h("div",null, fldLbl("Neto \u20ac"), h("input",{type:"text",inputMode:"decimal",value:geekForm.neto,onChange:function(e){ var v=e.target.value.replace(",",".").replace(/[^0-9.]/g,""); setGeekForm(function(p){return Object.assign({},p,{neto:v});}); },placeholder:"0",style:IS})),
+            h("div",null, fldLbl("Comisi\u00f3n \u20ac"), h("input",{type:"text",inputMode:"decimal",value:geekForm.comision,onChange:function(e){ var v=e.target.value.replace(",",".").replace(/[^0-9.]/g,""); setGeekForm(function(p){return Object.assign({},p,{comision:v});}); },placeholder:"0",style:IS}))),
+          h("div",{style:{display:"flex",gap:10}},
+            h(Btn,{v:"outline",onClick:function(){setGeekModal(false);},style:{flex:1}},"Cancelar"),
+            h(Btn,{v:"primary",onClick:saveGeekRec,style:{flex:2}},"Guardar directo"))
+        )) : null
+    );
+  }
   if(sub==="home") return h("div",null, (function(){
   function goBreaks(view){ window._gbxPending=view; setSub("breaks"); }
   function big(icon,title,desc,onC,accent){ return h("div",{onClick:onC,style:{flex:"1 1 200px",minWidth:200,border:"1px solid "+BDR,borderRadius:14,padding:18,cursor:"pointer",background:BG,position:"relative"}}, h("div",{style:{fontSize:30}},icon), h("div",{style:{fontFamily:"'Saira Condensed',sans-serif",fontWeight:700,fontSize:20,textTransform:"uppercase",marginTop:8,color:TXT}},title), h("div",{style:{color:"#8a8f98",fontSize:12,marginTop:4}},desc), h("div",{style:{position:"absolute",right:16,top:16,color:accent,fontWeight:700}},"→")); }
@@ -21077,7 +21136,8 @@ function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, dire
       tile("📊","Resumen","del mes",function(){ goBreaks("global"); }),
       tile("📦","Stock de cajas","ver stock",function(){ goBreaks("stock"); }),
       tile("💸","Impagos","",function(){ goBreaks("impagos"); }),
-      tile("👥","Compradores","",function(){ setSub("clientes"); })
+      tile("👥","Compradores","",function(){ setSub("clientes"); }),
+      tile("🟣","Geek","importar directo",function(){ setSub("geek"); })
     )
   );
 })());
@@ -21437,6 +21497,7 @@ function App() {
         setCards(function() { try { return JSON.parse(localStorage.getItem("cv10")||"[]"); } catch(e) { return []; } });
         try { setLots(JSON.parse(localStorage.getItem("cv10_lots")||"[]")); } catch(e){}
         try { setDirectos(JSON.parse(localStorage.getItem("cv10_directos")||"[]")); } catch(e){}
+        try { setGeek(JSON.parse(localStorage.getItem("cv10_geek")||"[]")); } catch(e){}
         try { var qr=JSON.parse(localStorage.getItem("cv10_qr")||"[]"); if(qr.length>0) setQuickReplies(qr); } catch(e){}
         try { var wl=JSON.parse(localStorage.getItem("cv10_wl")||"[]"); if(wl.length>0) setWishlist(wl); } catch(e){}
         try { setBreaks([]); } catch(e){}
@@ -21461,6 +21522,8 @@ function App() {
     function saveBreaks(b) { setBreaks(b); localStorage.setItem("cv10_breaks", JSON.stringify(b)); if(window._saveToFirestore) window._saveToFirestore({ breaksData: b }); }
     const [directos, setDirectos] = useState(function(){ try { return JSON.parse(localStorage.getItem("cv10_directos") || "[]"); } catch (e) { return []; } });
     function saveDirectos(d) { setDirectos(d); localStorage.setItem("cv10_directos", JSON.stringify(d)); if(window._saveToFirestore) window._saveToFirestore({ directosData: d }); }
+    const [geek, setGeek] = useState(function(){ try { return JSON.parse(localStorage.getItem("cv10_geek") || "[]"); } catch (e) { return []; } });
+    function saveGeek(g) { setGeek(g); localStorage.setItem("cv10_geek", JSON.stringify(g)); if(window._saveToFirestore) window._saveToFirestore({ geekData: g }); }
 
     const [showSettings, setShowSettings] = useState(false);
     const [showCheck, setShowCheck] = useState(false);
@@ -21547,17 +21610,17 @@ function App() {
     const [csView, setCsView] = useState("vender");
     const [prefillName, setPrefillName] = useState("");
     const [prefillLotId, setPrefillLotId] = useState("");
-    useEffect(() => { localStorage.setItem("cv10", JSON.stringify(cards)); if(window._cvCardsSaveT) clearTimeout(window._cvCardsSaveT); window._cvCardsSaveT=setTimeout(function(){ if (window._currentUser && cards.length > 0) window._saveToFirestore && window._saveToFirestore({ cards: cards }); var slug=localStorage.getItem("cv10_slug"); if(slug&&window._db&&window._currentUser&&cards.length>0){ var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";}); var sold=cards.filter(function(c){return c.status==="sold";}); var vc=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;}); window._db.ref("public/"+slug+"/cards").set(listed); window._db.ref("public/"+slug+"/validCodes").set(vc); } }, 1200); }, [cards]);
+    useEffect(() => { window._cvLatestCards = cards; localStorage.setItem("cv10", JSON.stringify(cards)); if(window._cvCardsSaveT) clearTimeout(window._cvCardsSaveT); window._cvCardsSaveT=setTimeout(function(){ if (window._currentUser && cards.length > 0) window._saveToFirestore && window._saveToFirestore({ cards: cards }); var slug=localStorage.getItem("cv10_slug"); if(slug&&window._db&&window._currentUser&&cards.length>0){ var listed=cards.filter(function(c){return (c.status==="listed"&&c.publicVisible)||c.mode==="collection";}); var sold=cards.filter(function(c){return c.status==="sold";}); var vc=sold.filter(function(c){return c.reviewCode;}).map(function(c){return c.reviewCode;}); window._db.ref("public/"+slug+"/cards").set(listed); window._db.ref("public/"+slug+"/validCodes").set(vc); } }, 1200); }, [cards]);
     useEffect(() => { localStorage.setItem("cv10i", JSON.stringify(invoices)); if(window._cvInvSaveT) clearTimeout(window._cvInvSaveT); window._cvInvSaveT=setTimeout(function(){ if (window._currentUser) window._saveToFirestore && window._saveToFirestore({ invoices: invoices }); },1200); }, [invoices]);
-    function ups(c) { var cur = cards; var nc = cur.find(function(x){return x.id === c.id;}) ? cur.map(function(x){return x.id === c.id ? c : x;}) : [c].concat(cur); setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if (window._cvToast) window._cvToast("Guardado"); }
-    function upsMany(list, msg){ if(!list||!list.length) return; var byId={}; list.forEach(function(c){ byId[c.id]=c; }); var seen={}; var nc=cards.map(function(x){ if(byId[x.id]){ seen[x.id]=1; return byId[x.id]; } return x; }); list.forEach(function(c){ if(!seen[c.id]){ nc.unshift(c); } }); setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if(window._cvToast) window._cvToast(msg || (list.length+" cartas vendidas \u2705")); }
-    function del(id) { var idx = cards.findIndex(function (c) { return c.id === id; }); var removed = idx >= 0 ? cards[idx] : null; var nc = cards.filter(function (c) { return c.id !== id; }); setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if (removed && window._cvToast) window._cvToast("Carta eliminada", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { setCards(function (p) { var np = p.slice(); np.splice(Math.min(idx, np.length), 0, removed); try{ localStorage.setItem("cv10", JSON.stringify(np)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: np }); return np; }); } }); }
+    function ups(c) { var cur = window._cvLatestCards || cards; var nc = cur.find(function(x){return x.id === c.id;}) ? cur.map(function(x){return x.id === c.id ? c : x;}) : [c].concat(cur); window._cvLatestCards = nc; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} var _pr = window._saveToFirestore && window._saveToFirestore({ cards: nc }); if (window._cvToast) window._cvToast("Guardado"); if(_pr && _pr.then){ _pr.then(function(ok){ if(!ok && window._cvToast) window._cvToast("No se confirm\u00F3 la subida a la nube. Se guard\u00F3 en este dispositivo \u2014 revisa tu conexi\u00F3n o vuelve a entrar en la cuenta.",{icon:"\u26A0\uFE0F",duration:8000}); }); } }
+    function upsMany(list, msg){ if(!list||!list.length) return; var cur = window._cvLatestCards || cards; var byId={}; list.forEach(function(c){ byId[c.id]=c; }); var seen={}; var nc=cur.map(function(x){ if(byId[x.id]){ seen[x.id]=1; return byId[x.id]; } return x; }); list.forEach(function(c){ if(!seen[c.id]){ nc.unshift(c); } }); window._cvLatestCards=nc; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if(window._cvToast) window._cvToast(msg || (list.length+" cartas vendidas \u2705")); }
+    function del(id) { var cur = window._cvLatestCards || cards; var idx = cur.findIndex(function (c) { return c.id === id; }); var removed = idx >= 0 ? cur[idx] : null; var nc = cur.filter(function (c) { return c.id !== id; }); window._cvLatestCards = nc; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if (removed && window._cvToast) window._cvToast("Carta eliminada", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { var p = window._cvLatestCards || cur; var np = p.slice(); np.splice(Math.min(idx, np.length), 0, removed); window._cvLatestCards = np; setCards(np); try{ localStorage.setItem("cv10", JSON.stringify(np)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: np }); } }); }
     function oa(m, name, lotId) { setDm(m); setEc(null); setPrefillName(name || ""); setPrefillLotId(lotId || ""); setSF(true); }
     function oe(c) { setEc(c); setDm(c.mode); setSF(true); }
     function dup(c) { setDupCard(c); }
-    function createCards(arr){ var nc=arr.concat(cards); setCards(nc); try{localStorage.setItem("cv10",JSON.stringify(nc));}catch(e){} if(window._saveToFirestore)window._saveToFirestore({cards:nc}); }
-    function bulkUpd(ids, changes) { var nc = cards.map(function (c) { return ids.indexOf(c.id) >= 0 ? Object.assign({}, c, changes) : c; }); setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if (window._cvToast) window._cvToast(ids.length + " cartas actualizadas"); }
-    function bulkDel(ids) { var removed = cards.filter(function (c) { return ids.indexOf(c.id) >= 0; }); var nc = cards.filter(function (c) { return ids.indexOf(c.id) < 0; }); setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if (window._cvToast) window._cvToast(removed.length + " cartas eliminadas", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { setCards(function (p) { var np = removed.concat(p); try{ localStorage.setItem("cv10", JSON.stringify(np)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: np }); return np; }); } }); }
+    function createCards(arr){ var cur=window._cvLatestCards||cards; var nc=arr.concat(cur); window._cvLatestCards=nc; setCards(nc); try{localStorage.setItem("cv10",JSON.stringify(nc));}catch(e){} if(window._saveToFirestore)window._saveToFirestore({cards:nc}); }
+    function bulkUpd(ids, changes) { var cur = window._cvLatestCards || cards; var nc = cur.map(function (c) { return ids.indexOf(c.id) >= 0 ? Object.assign({}, c, changes) : c; }); window._cvLatestCards = nc; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if (window._cvToast) window._cvToast(ids.length + " cartas actualizadas"); }
+    function bulkDel(ids) { var cur = window._cvLatestCards || cards; var removed = cur.filter(function (c) { return ids.indexOf(c.id) >= 0; }); var nc = cur.filter(function (c) { return ids.indexOf(c.id) < 0; }); window._cvLatestCards = nc; setCards(nc); try{ localStorage.setItem("cv10", JSON.stringify(nc)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: nc }); if (window._cvToast) window._cvToast(removed.length + " cartas eliminadas", { icon: "\uD83D\uDDD1\uFE0F", action: "Deshacer", duration: 5000, onAction: function () { var p = window._cvLatestCards || cur; var np = removed.concat(p); window._cvLatestCards = np; setCards(np); try{ localStorage.setItem("cv10", JSON.stringify(np)); }catch(e){} if(window._saveToFirestore) window._saveToFirestore({ cards: np }); } }); }
     const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Análisis"], ["cardshows", "🛒 Card shows"], ["breaks", "🎬 Directos"], ["redes", "📱 Redes"], ["psa", "🎴 Personales"]];
     return (React.createElement("div", { style: { height: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14, display: "flex", flexDirection: "column", overflow: "hidden" } },
         React.createElement("style", null, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Saira+Condensed:wght@600;700;800;900&display=swap');"),
@@ -21568,7 +21631,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v262")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v265")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -21926,6 +21989,10 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
       React.createElement("span", null, "\u2699\uFE0F Ajustes"),
       React.createElement("button", { onClick: function() { setShowSettings(false); }, style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB, lineHeight: 1 } }, "\u00D7")
     ),
+    React.createElement("div", { style: { background: BGS, border: "1px solid " + BDR, borderRadius: 10, padding: "11px 13px", marginBottom: 18 } },
+      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v265"),
+      (function(){ var t, ok=false; if(!window._currentUser){ t="\u26A0\uFE0F Sin sesi\u00F3n \u2014 los cambios NO se suben a la nube"; } else if(window._cvSyncErr){ t="\u26A0\uFE0F La \u00FAltima subida no se confirm\u00F3 \u2014 revisa tu conexi\u00F3n"; } else if(window._cvLastSync){ var s=Math.round((Date.now()-window._cvLastSync)/1000); t="\u2714 Nube sincronizada (hace "+(s<90?s+"s":Math.round(s/60)+" min")+")"; ok=true; } else { t="Nube conectada"; ok=true; } return React.createElement("div", { style: { fontSize: 11.5, color: ok?"#0a7a55":"#c0392b", marginTop: 4, fontWeight: 600 } }, t); })()
+    ),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "AYUDA"),
     React.createElement("button", { onClick: function() { setShowSettings(false); var __td2=document.createElement("div"); document.body.appendChild(__td2); ReactDOM.createRoot(__td2).render(React.createElement(window._TutorialModal,{onClose:function(){__td2.remove();}})); }, style: { width: "100%", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 13, color: TXT, textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 8 } }, "\uD83D\uDCD6 Ver tutorial"),
     React.createElement("button", { onClick: function() { setShowSettings(false); setTimeout(function(){ setShowChecklist(true); }, 200); }, style: { width: "100%", padding: "10px 14px", background: BGS, border: "1px solid " + BDR, borderRadius: 10, cursor: "pointer", fontSize: 13, color: TXT, textAlign: "left", fontFamily: "Inter,sans-serif", marginBottom: 16 } }, "\u2705 Ver checklist de inicio"),
@@ -22115,7 +22182,7 @@ showPublicProfile && React.createElement("div", { onMouseDown: function(e) { pro
             tab === "collection" && React.createElement(ColTab, { cards: cards, onEdit: oe, onDelete: del, onDuplicate: dup, onBulk: bulkUpd, onBulkDel: bulkDel, lots: lots }),
             tab === "fiscal" && React.createElement("div", null, React.createElement("div",{style:{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}, [["fiscal","\uD83D\uDCCA Fiscal / ROI"],["lotes","\uD83D\uDCE6 Lotes"],["estudio","\uD83D\uDD2C Estudio"]].map(function(o){ return React.createElement(Btn,{key:o[0],sm:true,v:(fiscalSub===o[0]?"primary":"outline"),onClick:function(){setFiscalSub(o[0]);}},o[1]); })), (fiscalSub==="estudio" ? React.createElement(EstudioTab, { cards: cards, lots: lots, setCards: setCards, onOpenCard: oe }) : fiscalSub==="lotes" ? React.createElement(LotsTab, { lots: lots, saveLots: saveLots, cards: cards, setCards: setCards, onEdit: oe, onAddNew: oa }) : React.createElement(AnalyticsTab, { cards: cards, onOpenCard: oe }))),
             tab === "cardshows" && React.createElement("div", null, React.createElement("div",{style:{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}, [["vender","\uD83D\uDED2 Vender"],["prep","\uD83E\uDDF0 Preparar"]].map(function(o){ return React.createElement(Btn,{key:o[0],sm:true,v:(csView===o[0]?"primary":"outline"),onClick:function(){setCsView(o[0]);}},o[1]); })), (csView==="prep" ? React.createElement(CardShowPrep, { cards: cards, setCards: setCards, onOpenCard: oe }) : React.createElement(CardshowPOS, { cards: cards, setCards: setCards, onOpenCard: oe }))),
-            tab === "breaks" && React.createElement(DirectosTab, { breaks: breaks, saveBreaks: saveBreaks, cards: cards, setCards: setCards, lots: lots, saveLots: saveLots, directos: directos, saveDirectos: saveDirectos, onEdit: oe }),
+            tab === "breaks" && React.createElement(DirectosTab, { breaks: breaks, saveBreaks: saveBreaks, cards: cards, setCards: setCards, lots: lots, saveLots: saveLots, directos: directos, saveDirectos: saveDirectos, geek: geek, saveGeek: saveGeek, onEdit: oe }),
             
             tab === "redes" && React.createElement(RedesTab, { cards: cards, onOpenPost: function(c,tpl){ setPostCard(c); setPostInitTpl(tpl||null); setShowPostModal(true); } }),
             tab === "psa" && React.createElement("div", null, React.createElement("div",{style:{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}, [["resumen","📊 Resumen"],["psa","🏆 PSA/BGS"],["aperturas","📦 Cajas abiertas"],["breaks","🎬 Participaciones break"]].map(function(o){ return React.createElement(Btn,{key:o[0],sm:true,v:psaSub===o[0]?"primary":"outline",onClick:function(){setPsaSub(o[0]);}},o[1]); })), (psaSub==="resumen" ? React.createElement(PersonalesResumen, { go: setPsaSub }) : psaSub==="aperturas" ? React.createElement(AperturasNative, null) : psaSub==="breaks" ? React.createElement(ParticipacionesBreakNative, null) : (isPremium() ? React.createElement(PSATab, null) : React.createElement("div",{style:{maxWidth:500,margin:"80px auto",textAlign:"center",padding:40}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"\uD83D\uDD12"),React.createElement("div",{style:{fontSize:20,fontWeight:700,marginBottom:8}},"Función Premium"),React.createElement("div",{style:{color:SUB,marginBottom:24}},"PSA/BGS es una función Premium"),React.createElement("button",{onClick:function(){setShowSettings(true);},style:{padding:"12px 24px",background:BLUE,border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B50 Hazte Premium")))))), 
@@ -22236,6 +22303,7 @@ window.uploadToCloudinary=function(blob,cb){var fd=new FormData();fd.append("fil
       var cv=localStorage.getItem("cv10"); if(cv){ var a=JSON.parse(cv); if(a&&a.length){ p.cards=a; } }
       var lo=localStorage.getItem("cv10_lots"); if(lo){ p.lotsData=JSON.parse(lo); }
       var di=localStorage.getItem("cv10_directos"); if(di){ p.directosData=JSON.parse(di); }
+      var gk=localStorage.getItem("cv10_geek"); if(gk){ p.geekData=JSON.parse(gk); }
       var csh=localStorage.getItem("cv10_cardshows"); if(csh){ p.cardshows=JSON.parse(csh); }
       var iv=localStorage.getItem("cv10i"); if(iv){ p.invoices=JSON.parse(iv); }
       var gb=localStorage.getItem("tcg_breaks_v2"); if(gb&&gb!=="null"){ p.gestorBreaks=JSON.parse(gb); }
@@ -22821,11 +22889,14 @@ function initFirebase() {
     window._appMounted = false;
 
     window._saveToFirestore = function(data) {
-      if (!window._currentUser) return;
-      db.collection('users').doc(window._currentUser.uid)
+      if (!window._currentUser) { window._cvSyncErr = "sin sesion"; return Promise.resolve(false); }
+      var _p = db.collection('users').doc(window._currentUser.uid)
         .collection('data').doc('main')
         .set(data, {merge: true})
-        .catch(function(e) { console.error('Save error:', e); });
+        .then(function(){ window._cvLastSync = Date.now(); window._cvSyncErr = null; return true; })
+        .catch(function(e) { console.error('Save error:', e); window._cvSyncErr = (e&&e.message)||"error"; return false; });
+      var _to = new Promise(function(res){ setTimeout(function(){ res(false); }, 6000); });
+      return Promise.race([_p, _to]);
     };
 
     window._cvPull = function() {
@@ -22841,6 +22912,7 @@ function initFirebase() {
             if (rd.cardshows) localStorage.setItem('cv10_cardshows', JSON.stringify(rd.cardshows));
             if (rd.lotsData) localStorage.setItem('cv10_lots', JSON.stringify(rd.lotsData));
             if (rd.directosData) localStorage.setItem('cv10_directos', JSON.stringify(rd.directosData));
+            if (rd.geekData) localStorage.setItem('cv10_geek', JSON.stringify(rd.geekData));
             if (rd.gestorBreaks) localStorage.setItem('tcg_breaks_v2', JSON.stringify(rd.gestorBreaks));
             if (rd.aperturas) localStorage.setItem('cv10_aperturas', JSON.stringify(rd.aperturas));
             if (rd.breakPart) localStorage.setItem('cv10_break_part', JSON.stringify(rd.breakPart));
@@ -22961,6 +23033,7 @@ function initFirebase() {
                   if (rd.cardshows) localStorage.setItem('cv10_cardshows', JSON.stringify(rd.cardshows));
                   if (rd.lotsData) localStorage.setItem('cv10_lots', JSON.stringify(rd.lotsData));
                   if (rd.directosData) localStorage.setItem('cv10_directos', JSON.stringify(rd.directosData));
+                  if (rd.geekData) localStorage.setItem('cv10_geek', JSON.stringify(rd.geekData));
                   if (rd.contactData) localStorage.setItem('cv10_contact', JSON.stringify(rd.contactData));
                   if (rd.gestorBreaks) localStorage.setItem('tcg_breaks_v2', JSON.stringify(rd.gestorBreaks));
                   if (rd.aperturas) localStorage.setItem('cv10_aperturas', JSON.stringify(rd.aperturas));
