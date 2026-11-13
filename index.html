@@ -17741,7 +17741,7 @@ function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards, p
                         } }, editCard ? "Guardar cambios" : "Añadir carta"), (!editCard ? React.createElement(Btn, { full: true, v: "outline", onClick: addAnother, style: { marginTop: 8 } }, "＋ Guardar y añadir otra") : null)))));
 
 }
-function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl, onDestino }) {
+function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl, onSetDestino }) {
     var _a, _b;
     const [open, setOpen] = useState(false), [lst, setLst] = useState(false);
     const isSold = card.status === "sold", isListed = card.status === "listed";
@@ -17793,7 +17793,7 @@ function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl, onDesti
                 eu(tt))) : (React.createElement("span", { style: { color: MUT, fontSize: 12 } }, "\u2014"))),
             React.createElement("td", { style: { padding: "8px 6px", verticalAlign: "middle", textAlign: "center" } }, isSold ? React.createElement(Bdg, { color: GREEN, bg: "#f0fdf8", dot: true }, "Vendida") : isListed ? React.createElement(Bdg, { color: AMBER, bg: "#fffbeb", dot: true }, "En venta") : card.mode === "collection" ? React.createElement(Bdg, { color: PURPLE, bg: "#f5f3ff", dot: true }, "Colecci\u00F3n") : React.createElement(Bdg, { color: BLUE, bg: "#eff4ff", dot: true }, "Cartera")),
             card.apartado ? React.createElement(Bdg, { color: "#7c3aed", bg: "#f5f3ff", dot: true }, "\uD83D\uDCCC Apartado") : null,
-            onDestino ? React.createElement("span", { onClick: function(e){ e.stopPropagation(); onDestino(card); }, title:"Cambiar destino", style:{ display:"inline-flex", alignItems:"center", gap:3, fontSize:10.5, fontWeight:700, padding:"3px 8px", borderRadius:9, cursor:"pointer", background:DESTINOS[cardDest(card)].c+"18", color:DESTINOS[cardDest(card)].c, marginLeft:2 } }, DESTINOS[cardDest(card)].l) : null,
+            card.mode==="inventory" ? React.createElement("span", { style:{ display:"inline-flex", alignItems:"center", gap:3, fontSize:10.5, fontWeight:700, padding:"3px 8px", borderRadius:9, background:DESTINOS[cardDest(card)].c+"18", color:DESTINOS[cardDest(card)].c, marginLeft:2 } }, DESTINOS[cardDest(card)].l) : null,
             React.createElement("td", { style: { padding: "8px 6px", verticalAlign: "middle" }, onClick: e => e.stopPropagation() },
                 React.createElement("div", { style: { display: "flex", gap: 4, justifyContent: "flex-end", flexWrap: "wrap" } },
                                         React.createElement("a", { href: "https://www.ebay.es/sch/i.html?_nkw=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", style: { padding: "5px 7px", borderRadius: 8, border: "1.5px solid #e8eaed", background: "transparent", color: SUB, fontSize: 11, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" } }, "eBay"),
@@ -17804,6 +17804,7 @@ function CardRow({ card, onEdit, onDelete, onSell, onDuplicate, showPnl, onDesti
                                         React.createElement(Btn, { sm: true, v: "outline", style: { color: RED, borderColor: "#fecaca" }, onClick: () => onDelete(card.id) }, "\u2715")))),
         open && (React.createElement("tr", { style: { background: BGS } },
             React.createElement("td", { colSpan: displayPnl ? 6 : 5, style: { padding: "8px 8px 8px 8px", borderBottom: "1px solid " + BDR } },
+                (onSetDestino && card.mode==="inventory") ? React.createElement("div", { style:{ display:"flex", alignItems:"center", gap:6, marginBottom:10, flexWrap:"wrap" } }, React.createElement("span", { style:{ fontSize:11, color:SUB, fontWeight:700 } }, "Formato:"), ["inversion","directa","subasta"].map(function(k){ var on=cardDest(card)===k; return React.createElement("button", { key:k, onClick: function(e){ e.stopPropagation(); if(onSetDestino) onSetDestino(card.id,k); }, style:{ padding:"6px 13px", borderRadius:16, border:"1.5px solid "+(on?DESTINOS[k].c:BDR), background:on?DESTINOS[k].c:"#fff", color:on?"#fff":SUB, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, DESTINOS[k].l); })) : null,
                 React.createElement("div", { style: { display: "flex", gap: 10, flexWrap: "wrap", fontSize: 12, color: SUB } },
                     card.buyDate && React.createElement("span", null,
                         "Compra: ",
@@ -18020,7 +18021,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
     const [statusFl, setStatusFl] = useState(new Set()), [catFl, setCatFl] = useState(new Set()), [locFl, setLocFl] = useState(new Set()), [lotFl, setLotFl] = useState(new Set()), [sortBy, setSortBy] = useState(""), [sortDir, setSortDir] = useState(1);
     const INV_MONTHS = [['all', 'Mes'], ['01', 'Ene'], ['02', 'Feb'], ['03', 'Mar'], ['04', 'Abr'], ['05', 'May'], ['06', 'Jun'], ['07', 'Jul'], ['08', 'Ago'], ['09', 'Sep'], ['10', 'Oct'], ['11', 'Nov'], ['12', 'Dic']];
     function toggleSet(setter, val) { setter(prev => { const n = new Set(prev); n.has(val) ? n.delete(val) : n.add(val); return n; }); }
-    const inv = cards.filter(c => c.mode === "inventory" || (selMode && c.mode === "collection"));
+    const inv = cards.filter(c => c.mode === "inventory");
     const invYears = ['all', ...new Set(inv.map(c => (c.buyDate || '').slice(0, 4)).filter(Boolean)).values()].sort((a, b) => b.localeCompare(a));
     let fi = inv.filter(c => {
         if (filterY !== 'all' && (c.buyDate || '').slice(0, 4) !== filterY)
@@ -18067,16 +18068,6 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
     
         const fiSorted=sortBy?[...fi].sort(function(a,b){var roi=function(c){var bp=c.buyPrice||0;var tp=c.targetPrice||0;return bp>0?(tp-bp)/bp*100:0;};var v=sortBy==="roi"?[roi(a),roi(b)]:sortBy==="price"?[a.buyPrice||0,b.buyPrice||0]:[(a.name||"").toLowerCase(),(b.name||"").toLowerCase()];return typeof v[0]==="string"?(v[0]<v[1]?-1:1)*sortDir:(v[0]-v[1])*sortDir;}):fi;
         return (React.createElement("div", null,
-        destPick && React.createElement("div", { onClick:function(){ setDestPick(null); }, style:{ position:"fixed", left:0, top:0, right:0, bottom:0, background:"rgba(0,0,0,.5)", zIndex:1200, display:"flex", alignItems:"flex-end", justifyContent:"center" } },
-          React.createElement("div", { onClick:function(e){e.stopPropagation();}, style:{ background:"#fff", borderRadius:"18px 18px 0 0", padding:20, width:"100%", maxWidth:480, boxSizing:"border-box", boxShadow:"0 -8px 30px rgba(0,0,0,.2)" } },
-            React.createElement("div", { style:{ fontSize:15, fontWeight:800, marginBottom:4 } }, "¿A dónde va esta carta?"),
-            React.createElement("div", { style:{ fontSize:12.5, color:SUB, marginBottom:14, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" } }, destPick.name),
-            [["inversion","Para mantener o gradear (PSA)"],["directa","Vinted · Wallapop · eBay · car shows"],["subasta","Para subastar en un directo (Geek)"]].map(function(o){
-              var d=DESTINOS[o[0]], on=cardDest(destPick)===o[0];
-              return React.createElement("button", { key:o[0], onClick:function(){ if(onBulk) onBulk([destPick.id], { destino:o[0] }); if(window._cvToast) window._cvToast("Destino: "+d.l); setDestPick(null); }, style:{ display:"flex", alignItems:"center", gap:11, width:"100%", textAlign:"left", padding:"13px 14px", marginBottom:8, borderRadius:12, border:"2px solid "+(on?d.c:BDR), background:on?d.c+"14":"#fff", cursor:"pointer", fontFamily:"Inter,sans-serif" } },
-                React.createElement("span", { style:{ minWidth:0 } }, React.createElement("span", { style:{ fontWeight:800, fontSize:14, color:TXT, display:"block" } }, d.l), React.createElement("span", { style:{ fontSize:11.5, color:SUB } }, o[1])));
-            }),
-            React.createElement("button", { onClick:function(){ setDestPick(null); }, style:{ width:"100%", padding:11, marginTop:4, borderRadius:10, border:"none", background:"#eef0f3", color:"#4b5563", fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "Cancelar"))),
         React.createElement("div", { style: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 6, marginBottom: 14, WebkitOverflowScrolling:"touch" } },
           [["","Todo"],["inversion","Inversión"],["directa","Venta directa"],["subasta","Subasta"]].map(function(o){
             var cnt = o[0] ? inv.filter(function(c){ return cardDest(c)===o[0]; }).length : inv.length;
@@ -18116,8 +18107,10 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
                 React.createElement("div", { style: { display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10, flexWrap:"wrap", gap:8 } },
                   React.createElement("div", { style:{ fontSize:13, fontWeight:700, color:BLUE } }, Object.keys(sel).length + " carta(s) seleccionada(s)"),
                   React.createElement("div", { style:{ display:"flex", gap:8 } },
-                    React.createElement("button", { onClick: function(){ var n={}; fi.forEach(function(c){ n[c.id]=true; }); setSel(n); }, style:{ padding:"5px 10px", border:"1px solid "+BDR, borderRadius:8, background:BG, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "Todas ("+fi.length+")"),
+                    React.createElement("button", { onClick: function(){ var n={}; fi.forEach(function(c){ n[c.id]=true; }); setSel(n); }, style:{ padding:"7px 13px", border:"none", borderRadius:8, background:BLUE, color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "✓ Todas ("+fi.length+")"),
                     React.createElement("button", { onClick: function(){ setSel({}); setSelMode(false); }, style:{ padding:"5px 10px", border:"none", background:"none", color:SUB, fontSize:11, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "✕ Salir"))),
+                React.createElement("button", { onClick: _crearDirecto, style: { width:"100%", padding:"13px", marginBottom:14, border:"none", borderRadius:10, background:"#A50044", color:"#fff", fontSize:14, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🔨 Crear directo con "+Object.keys(sel).length+" carta(s)"),
+                React.createElement("div", { style:{ fontSize:11, fontWeight:700, color:SUB, textTransform:"uppercase", letterSpacing:"0.05em", marginBottom:8 } }, "— o cambia sus datos —"),
                 React.createElement("div", { style: { fontSize:11, color:SUB, marginBottom:10 } }, "Cambia solo los campos que quieras y pulsa Aplicar. Lo que dejes en “Sin cambiar” o vacío no se toca."),
                 React.createElement("div", { style: { display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:10, marginBottom:12 } },
                   React.createElement("div", null, React.createElement("label", { style: LS }, "Estado"), React.createElement("select", { value: bf.status, onChange: function(e){ setBf(function(p){return Object.assign({},p,{status:e.target.value});}); }, style: IS }, React.createElement("option",{value:""},"Sin cambiar"), React.createElement("option",{value:"holding"},"Cartera"), React.createElement("option",{value:"listed"},"En venta"), React.createElement("option",{value:"sold"},"Vendida"))),
@@ -18128,7 +18121,6 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
                   React.createElement("div", null, React.createElement("label", { style: LS }, "Precio compra (€)"), React.createElement("input", { value: bf.buyPrice, onChange: function(e){ setBf(function(p){return Object.assign({},p,{buyPrice:e.target.value.replace(",",".").replace(/[^0-9.]/g,"")});}); }, placeholder:"(sin cambiar)", style: IS }))),
                 React.createElement("div", { style: { display:"flex", gap:8, flexWrap:"wrap" } },
                   React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length){ alert("Selecciona cartas primero"); return; } var ch={}; if(bf.status)ch.status=bf.status; if(bf.location)ch.location=bf.location; if(bf.category)ch.category=bf.category; if(bf.series.trim())ch.series=bf.series.trim(); if(bf.buyPrice.trim()!=="")ch.buyPrice=parseFloat(bf.buyPrice)||0; if(bf.destino)ch.destino=bf.destino; if(!Object.keys(ch).length){ alert("No has cambiado ningún campo"); return; } if(onBulk) onBulk(ids,ch); setBf({status:"",location:"",category:"",series:"",buyPrice:"",destino:""}); }, style: { flex:2, minWidth:150, padding:"11px", border:"none", borderRadius:8, background:BLUE, color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "✓ Aplicar a "+Object.keys(sel).length),
-                  React.createElement("button", { onClick: _crearDirecto, style: { padding:"11px 13px", border:"none", borderRadius:8, background:"#A50044", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "Crear directo"),
                   React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(ids.length&&onBulk){ onBulk(ids,{reserved:true}); } }, style: { padding:"11px 13px", border:"1px solid #0891b2", borderRadius:8, background:"rgba(8,145,178,0.08)", color:"#0891b2", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🔖 Reservar"),
                   React.createElement("button", { onClick: function(){ var ids=Object.keys(sel); if(!ids.length) return; if(confirm("¿Eliminar "+ids.length+" cartas? No se puede deshacer.")&&onBulkDel){ onBulkDel(ids); setSel({}); } }, style: { padding:"11px 13px", border:"1px solid #fecaca", borderRadius:8, background:"#fff5f5", color:RED, fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, "🗑️ Eliminar"))),
               fi.length===0 ? React.createElement("div", { style: { textAlign:"center", padding:"30px", color:MUT, fontSize:13 } }, "Sin cartas para ese filtro") :
@@ -18184,7 +18176,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
             ) :
             (React.createElement("table", { style: { width: "100%", borderCollapse: "collapse" } },
                 React.createElement("thead",null,React.createElement("tr",null,["Carta","Rareza","Coste","ROI","Estado",""].map(function(h,i){var al=i>=2?"right":i===4?"center":"left";var cl=["Coste","ROI","Carta"].includes(h);var ky=h==="Coste"?"price":h==="ROI"?"roi":h==="Carta"?"name":"";return React.createElement("th",{key:h,onClick:cl?function(){if(sortBy===ky){setSortDir(sortDir*-1);}else{setSortBy(ky);setSortDir(-1);}}:null,style:{padding:"8px 6px",textAlign:al,fontSize:11,fontWeight:600,color:sortBy===ky?BLUE:SUB,cursor:cl?"pointer":"default",userSelect:"none",borderBottom:"2px solid "+BDR}},h+(sortBy===ky?(sortDir===1?" ↑":" ↓"):""));}))),
-                React.createElement("tbody", null, fiSorted.map(c => React.createElement(CardRow, { key: c.id, card: c, onEdit: onEdit, onDelete: onDelete, onSell: onSell, onDuplicate: onDuplicate, onDestino: function(cd){ setDestPick(cd); } }))),
+                React.createElement("tbody", null, fiSorted.map(c => React.createElement(CardRow, { key: c.id, card: c, onEdit: onEdit, onDelete: onDelete, onSell: onSell, onDuplicate: onDuplicate, onSetDestino: function(id,k){ if(onBulk) onBulk([id],{destino:k}); if(window._cvToast) window._cvToast("Formato: "+DESTINOS[k].l); } }))),
                 fi.length > 1 && React.createElement("tfoot", null,
                     React.createElement("tr", { style: { borderTop: "1.5px solid " + BDR, background: BGS } },
                         React.createElement("td", { colSpan: 2, style: { padding: "9px 14px", fontSize: 12, fontWeight: 600, color: SUB } },
@@ -21605,7 +21597,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v272")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v273")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -21964,7 +21956,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
       React.createElement("button", { onClick: function() { setShowSettings(false); }, style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB, lineHeight: 1 } }, "\u00D7")
     ),
     React.createElement("div", { style: { background: BGS, border: "1px solid " + BDR, borderRadius: 10, padding: "11px 13px", marginBottom: 18 } },
-      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v272"),
+      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v273"),
       (function(){ var t, ok=false; if(!window._currentUser){ t="\u26A0\uFE0F Sin sesi\u00F3n \u2014 los cambios NO se suben a la nube"; } else if(window._cvSyncErr){ t="\u26A0\uFE0F La \u00FAltima subida no se confirm\u00F3 \u2014 revisa tu conexi\u00F3n"; } else if(window._cvLastSync){ var s=Math.round((Date.now()-window._cvLastSync)/1000); t="\u2714 Nube sincronizada (hace "+(s<90?s+"s":Math.round(s/60)+" min")+")"; ok=true; } else { t="Nube conectada"; ok=true; } return React.createElement("div", { style: { fontSize: 11.5, color: ok?"#0a7a55":"#c0392b", marginTop: 4, fontWeight: 600 } }, t); })()
     ),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "AYUDA"),
