@@ -17926,15 +17926,16 @@ function DashResumen(p){ var h=React.createElement;
       h("div",{style:{fontSize:15,fontWeight:800,textTransform:"capitalize"}},lbl(m)),
       h("button",{onClick:function(){shift(1);},"aria-label":"Mes siguiente",style:btn},"›")),
     s.r>0 ? h("div",null,
-      h("div",{style:{fontSize:15,lineHeight:1.45,fontWeight:500}}, "Has vendido ", h("b",null,euk(s.r)), " y ganado ", h("b",{style:{color:cl(s.b)}},_dbSg(s.b)), ". "+frase, h("b",{style:{color:_DB_CH[top].c}},nombres[top]), "."),
-      vs!==null ? h("div",{style:{fontSize:11.5,color:SUB,marginTop:4}}, (vs>=0?"+":"")+vs+"% de beneficio respecto a "+MN[parseInt(pm.slice(5,7),10)-1]) : null,
-      h("div",{style:{display:"flex",height:12,borderRadius:6,overflow:"hidden",marginTop:12,background:BGS}}, keys.map(function(k){ var w=s.r>0?(s.ch[k]/s.r*100):0; return w>0?h("div",{key:k,style:{width:w+"%",background:_DB_CH[k].c}}):null; })),
-      h("div",{style:{display:"flex",gap:10,flexWrap:"wrap",fontSize:11,color:SUB,marginTop:7}}, keys.map(function(k){ return h("span",{key:k}, h("b",{style:{color:_DB_CH[k].c}},Math.round(s.r>0?s.ch[k]/s.r*100:0)+"%"), " "+(k==="on"?"Online":k==="cs"?"Car show":k==="sub"?"Subastas":"Breaks")); })),
-      h("div",{style:{fontSize:11,fontWeight:700,color:SUB,textTransform:"uppercase",letterSpacing:"0.05em",marginTop:16}},"Lo que pasó"),
-      ev.map(function(e,i){ return h("div",{key:i,style:{display:"flex",gap:10,alignItems:"center",padding:"10px 0",borderBottom:i<ev.length-1?"1px solid "+BDR:"none"}},
-        h("div",{style:{width:44,fontSize:10.5,fontWeight:700,color:MUT,flexShrink:0}},dd(e.f)),
-        h("div",{style:{flex:1,minWidth:0}}, h("div",{style:{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},e.t), h("div",{style:{fontSize:11,color:SUB}},e.s)),
-        h("div",{style:{fontSize:13,fontWeight:700,color:cl(e.b)}},_dbSg(e.b))); }))
+      h("div",{style:{display:"flex",alignItems:"baseline",gap:10,flexWrap:"wrap"}},
+        h("span",{style:{fontSize:15,fontWeight:700}},euk(s.r)), h("span",{style:{fontSize:11,color:SUB}},"vendido"),
+        h("span",{style:{fontSize:15,fontWeight:700,color:cl(s.b)}},_dbSg(s.b)), h("span",{style:{fontSize:11,color:SUB}},"beneficio"),
+        vs!==null ? h("span",{style:{fontSize:11,fontWeight:600,color:vs>=0?GREEN:RED,marginLeft:"auto"}},(vs>=0?"+":"")+vs+"% vs "+MN[parseInt(pm.slice(5,7),10)-1].slice(0,3)) : null),
+      h("div",{style:{display:"flex",height:6,borderRadius:3,overflow:"hidden",marginTop:10,background:BGS}}, keys.map(function(k){ var w=s.r>0?(s.ch[k]/s.r*100):0; return w>0?h("div",{key:k,style:{width:w+"%",background:_DB_CH[k].c}}):null; })),
+      h("div",{style:{display:"flex",gap:10,flexWrap:"wrap",fontSize:10.5,color:SUB,marginTop:6}}, keys.filter(function(k){ return s.ch[k]>0; }).map(function(k){ return h("span",{key:k,style:{display:"inline-flex",alignItems:"center",gap:4}}, h("span",{style:{width:6,height:6,borderRadius:3,background:_DB_CH[k].c}}), (k==="on"?"Online":k==="cs"?"Car show":k==="sub"?"Subastas":"Breaks")+" "+Math.round(s.ch[k]/s.r*100)+"%"); })),
+      h("div",{style:{marginTop:10,borderTop:"1px solid "+BDR}}, ev.map(function(e,i){ return h("div",{key:i,style:{display:"flex",gap:8,alignItems:"center",padding:"7px 0",borderBottom:i<ev.length-1?"1px solid "+BDR:"none"}},
+        h("div",{style:{width:40,fontSize:10,fontWeight:700,color:MUT,flexShrink:0}},dd(e.f)),
+        h("div",{style:{flex:1,minWidth:0,fontSize:12,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}, h("span",{style:{fontWeight:600}},e.t), h("span",{style:{color:MUT}}," \u00b7 "+e.s)),
+        h("div",{style:{fontSize:12,fontWeight:700,color:cl(e.b),flexShrink:0}},_dbSg(e.b))); })))
     : h("div",{style:{fontSize:13,color:MUT,padding:"14px 0",textAlign:"center"}},"Sin ventas en "+lbl(m)+"."));
 }
 
@@ -18035,11 +18036,8 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
                 React.createElement("span", { style: { color: TXT } }, euk(invested), " invertido"),
                 React.createElement("span", { style: { color: MUT } }, " = "),
                 React.createElement("span", { style: { fontWeight: 700, color: cl(balance) } }, balance >= 0 ? "+" : "", euk(balance)))),
-        React.createElement(DashRecorrido, { invested: invested, inPortfolio: inPortfolio, recovered: recovered, realized: realized, nAll: cohort.length, nHold: hold.length, nSold: sold.length }),
         React.createElement(DashCanales, { sold: sold, per: pPer, lot: pLot }),
-        React.createElement(DashStock, { hold: hold }),
         React.createElement(DashResumen, { cards: cards, lot: pLot }),
-        React.createElement(DashPersonal, null),
 
                 React.createElement("div", { className: "dash-chart-grid", style: { display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(0,2fr)", gap: 16, marginBottom: 20 } },
             React.createElement(Card, { style: { padding: "18px 18px 12px" } },
@@ -18132,7 +18130,10 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
             })(),
             React.createElement("div", { style: { display: "flex", gap: 16, marginTop: 10, justifyContent: "center" } }, [["#eff4ff", "#004D98", "Invertido"], [GREEN, GREEN, "Recuperado"], [BLUE, BLUE, "Stock activo"]].map(([bg, c, l]) => React.createElement("div", { key: l, style: { display: "flex", alignItems: "center", gap: 5 } },
                 React.createElement("div", { style: { width: 10, height: 10, borderRadius: 2, background: bg, border: "1px solid " + c } }),
-                React.createElement("span", { style: { fontSize: 10, color: SUB } }, l)))))));
+                React.createElement("span", { style: { fontSize: 10, color: SUB } }, l))))),
+        React.createElement(DashRecorrido, { invested: invested, inPortfolio: inPortfolio, recovered: recovered, realized: realized, nAll: cohort.length, nHold: hold.length, nSold: sold.length }),
+        React.createElement(DashStock, { hold: hold }),
+        React.createElement(DashPersonal, null)));
 }
 function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDel, lots, onCreateCards }) {
     function _scanMultiple(e){ var file=e.target.files&&e.target.files[0]; if(!file)return; e.target.value=""; if(window.__bgBusy)return; window.__bgBusy=true; if(window._cvToast)window._cvToast("Escaneando cartas... (tarda un poco)",{icon:"\u2728"}); var srcUrl=URL.createObjectURL(file); import("https://esm.sh/@imgly/background-removal@1.5.8").then(function(m){ var rb=m.removeBackground||(m.default&&m.default.removeBackground); return rb(srcUrl,{model:"isnet_quint8",output:{format:"image/png"}}); }).then(function(blob){ var im=new Image(); im.onload=function(){ try{ var w=im.naturalWidth,hh=im.naturalHeight; var scl=1; if(w*hh>1200000){scl=Math.sqrt(1200000/(w*hh));} var W=Math.round(w*scl),H=Math.round(hh*scl); var cv=document.createElement("canvas"); cv.width=W; cv.height=H; var ctx=cv.getContext("2d"); ctx.drawImage(im,0,0,W,H); var d=ctx.getImageData(0,0,W,H).data; var Np=W*H; var lab=new Int32Array(Np); var comps=[]; var stack=new Int32Array(Np); for(var i0=0;i0<Np;i0++){ if(lab[i0]||d[i0*4+3]<=30)continue; var spp=0; stack[spp++]=i0; lab[i0]=comps.length+1; var mnx=W,mny=H,mxx=0,mxy=0,ar=0; while(spp>0){ var idx=stack[--spp]; var x=idx%W,y=(idx-x)/W; ar++; if(x<mnx)mnx=x; if(x>mxx)mxx=x; if(y<mny)mny=y; if(y>mxy)mxy=y; if(x>0&&!lab[idx-1]&&d[(idx-1)*4+3]>30){lab[idx-1]=comps.length+1;if(spp<Np)stack[spp++]=idx-1;} if(x<W-1&&!lab[idx+1]&&d[(idx+1)*4+3]>30){lab[idx+1]=comps.length+1;if(spp<Np)stack[spp++]=idx+1;} if(y>0&&!lab[idx-W]&&d[(idx-W)*4+3]>30){lab[idx-W]=comps.length+1;if(spp<Np)stack[spp++]=idx-W;} if(y<H-1&&!lab[idx+W]&&d[(idx+W)*4+3]>30){lab[idx+W]=comps.length+1;if(spp<Np)stack[spp++]=idx+W;} } comps.push({mnx:mnx,mny:mny,mxx:mxx,mxy:mxy,ar:ar}); } comps=comps.filter(function(c){return c.ar>(W*H*0.012)&&(c.mxx-c.mnx)>W*0.06&&(c.mxy-c.mny)>H*0.06;}); comps.sort(function(a,b){return a.mnx-b.mnx;}); comps=comps.slice(0,12); var big=document.createElement("canvas"); big.width=w; big.height=hh; big.getContext("2d").drawImage(im,0,0); var today=new Date().toISOString().slice(0,10); var newCards=comps.map(function(c){ var pad=Math.round(Math.max(w,hh)*0.015); var x0=Math.max(0,Math.round(c.mnx/scl)-pad),y0=Math.max(0,Math.round(c.mny/scl)-pad),x1=Math.min(w,Math.round(c.mxx/scl)+pad),y1=Math.min(hh,Math.round(c.mxy/scl)+pad); var cw=x1-x0,ch=y1-y0; var ms=480/Math.max(cw,ch); if(ms>1)ms=1; var ow=Math.round(cw*ms),oh=Math.round(ch*ms); var oc=document.createElement("canvas"); oc.width=ow; oc.height=oh; oc.getContext("2d").drawImage(big,x0,y0,cw,ch,0,0,ow,oh); return { id:(Date.now().toString(36)+Math.random().toString(36).slice(2,6)), name:"", mode:"inventory", status:"holding", buyPrice:0, quantity:1, imageUrl:oc.toDataURL("image/png"), buyDate:today }; }); window.__bgBusy=false; try{URL.revokeObjectURL(srcUrl);}catch(_){}; if(!newCards.length){ if(window._cvToast)window._cvToast("No se detectaron cartas"); return; } if(onCreateCards)onCreateCards(newCards); if(window._cvToast)window._cvToast(newCards.length+" carta(s) creada(s) \u2014 ponles nombre y precio"); }catch(err){ window.__bgBusy=false; if(window._cvToast)window._cvToast("No se pudo escanear"); } }; im.onerror=function(){ window.__bgBusy=false; if(window._cvToast)window._cvToast("No se pudo"); }; im.src=URL.createObjectURL(blob); }).catch(function(){ window.__bgBusy=false; if(window._cvToast)window._cvToast("No se pudo (revisa conexi\u00F3n)"); }); }
@@ -21753,7 +21754,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v278")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v279")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -22112,7 +22113,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
       React.createElement("button", { onClick: function() { setShowSettings(false); }, style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB, lineHeight: 1 } }, "\u00D7")
     ),
     React.createElement("div", { style: { background: BGS, border: "1px solid " + BDR, borderRadius: 10, padding: "11px 13px", marginBottom: 18 } },
-      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v278"),
+      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v279"),
       (function(){ var t, ok=false; if(!window._currentUser){ t="\u26A0\uFE0F Sin sesi\u00F3n \u2014 los cambios NO se suben a la nube"; } else if(window._cvSyncErr){ t="\u26A0\uFE0F La \u00FAltima subida no se confirm\u00F3 \u2014 revisa tu conexi\u00F3n"; } else if(window._cvLastSync){ var s=Math.round((Date.now()-window._cvLastSync)/1000); t="\u2714 Nube sincronizada (hace "+(s<90?s+"s":Math.round(s/60)+" min")+")"; ok=true; } else { t="Nube conectada"; ok=true; } return React.createElement("div", { style: { fontSize: 11.5, color: ok?"#0a7a55":"#c0392b", marginTop: 4, fontWeight: 600 } }, t); })()
     ),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "AYUDA"),
