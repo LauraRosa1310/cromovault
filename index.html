@@ -14,6 +14,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="CromoVault">
   <meta name="theme-color" content="#ffffff">
+<style>.cv-only-mobile{display:none !important;}</style>
 <style>
 @media(max-width:700px){
   .cv-form-ov{padding:6px !important;align-items:flex-end !important;}
@@ -87,6 +88,7 @@
       /* Top bar */
       #cv-top-bar > div { padding: 0 12px !important; height: 48px !important; }
       #cv-top-bar > div.cv-tb-line { height: 3px !important; padding: 0 !important; pointer-events: none; }
+      .cv-only-mobile { display: inline-flex !important; }
       /* Hide "Nueva carta", "Venta multiple", "Comprar" buttons in top bar on mobile */
       .nav-label { display: none !important; }
       /* Hide "Nueva carta" and "Venta multiple" buttons on mobile (available via FAB) */
@@ -17692,8 +17694,9 @@ function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards, p
                 tab === "info" && (React.createElement("div", null,
                     f.mode === "inventory" && (React.createElement("div", { style: { marginBottom: 14 } },
                         React.createElement("label", { style: LS }, "Estado"),
-                        React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 8 } }, [["holding", "En cartera", BLUE], ["listed", "En venta", AMBER], ["sold", "Vendida", GREEN]].map(([k, l, ac]) => (React.createElement("button", { key: k, onClick: () => setStatus(k), style: { flex: 1, padding: "8px 0", borderRadius: 8, cursor: "pointer", border: "1.5px solid " + (f.status === k ? ac : BDR), background: f.status === k ? ac + "18" : "transparent", color: f.status === k ? ac : SUB, fontFamily: "Inter,sans-serif", fontWeight: 500, fontSize: 11 } }, l)))),
-                        React.createElement("button", { onClick: () => sf("reserved", !f.reserved), style: { marginBottom: 8, padding: "6px 12px", borderRadius: 8, border: "1.5px solid " + (f.reserved ? "#0891b2" : BDR), background: f.reserved ? "rgba(8,145,178,0.10)" : "transparent", color: f.reserved ? "#0891b2" : SUB, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, f.reserved ? "🔖 Reservada (clic para quitar)" : "🔖 Marcar reservada"), React.createElement("button", { onClick: () => sf("apartado", !f.apartado), style: { marginBottom: 8, marginLeft: 8, padding: "6px 12px", borderRadius: 8, border: "1.5px solid " + (f.apartado ? "#7c3aed" : BDR), background: f.apartado ? "rgba(124,58,237,0.10)" : "transparent", color: f.apartado ? "#7c3aed" : SUB, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, f.apartado ? "📌 Apartado (clic para quitar)" : "📌 Apartar"),
+                        React.createElement("div", { style: { display: "flex", gap: 5, marginBottom: 8 } }, [["holding", "Cartera", BLUE], ["listed", "En venta", AMBER], ["sold", "Vendida", GREEN]].map(([k, l, ac]) => (React.createElement("button", { key: k, type: "button", onClick: () => setStatus(k), style: { flex: 1, minWidth: 0, padding: "6px 2px", borderRadius: 8, cursor: "pointer", border: "1.5px solid " + (f.status === k ? ac : BDR), background: f.status === k ? ac + "18" : "transparent", color: f.status === k ? ac : SUB, fontFamily: "Inter,sans-serif", fontWeight: 600, fontSize: 11, whiteSpace: "nowrap" } }, l))).concat([
+                            React.createElement("button", { key: "res", type: "button", title: "Reservada para un comprador", onClick: () => sf("reserved", !f.reserved), style: { flex: 1, minWidth: 0, padding: "6px 2px", borderRadius: 8, cursor: "pointer", border: "1.5px solid " + (f.reserved ? "#0891b2" : BDR), background: f.reserved ? "rgba(8,145,178,0.10)" : "transparent", color: f.reserved ? "#0891b2" : SUB, fontFamily: "Inter,sans-serif", fontWeight: 600, fontSize: 11, whiteSpace: "nowrap" } }, "\uD83D\uDD16 Reserva"),
+                            React.createElement("button", { key: "apa", type: "button", title: "Apartada: fuera de la venta por ahora", onClick: () => sf("apartado", !f.apartado), style: { flex: 1, minWidth: 0, padding: "6px 2px", borderRadius: 8, cursor: "pointer", border: "1.5px solid " + (f.apartado ? "#7c3aed" : BDR), background: f.apartado ? "rgba(124,58,237,0.10)" : "transparent", color: f.apartado ? "#7c3aed" : SUB, fontFamily: "Inter,sans-serif", fontWeight: 600, fontSize: 11, whiteSpace: "nowrap" } }, "\uD83D\uDCCC Apartar")])),
                         f.status === "sold" && (f.quantity || 1) > 1 && (React.createElement("div", { style: { background: "#f0fdf8", border: "1px solid #d1fae5", borderRadius: 8, padding: "10px 12px" } },
                             React.createElement("label", { style: Object.assign(Object.assign({}, LS), { marginBottom: 6 }) }, "\u00BFCu\u00E1ntas unidades vendes?"),
                             React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
@@ -17703,39 +17706,42 @@ function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards, p
                                     f.quantity || 1,
                                     " \u00B7 quedar\u00E1n ",
                                     React.createElement("b", { style: { color: BLUE } }, (f.quantity || 1) - (f.sellQty || 1)))))))),
+                    React.createElement("div", { style: { marginBottom: 12 } },
+                        React.createElement("label", { style: LS }, "Formato (destino)"),
+                        React.createElement("div", { style:{ display:"flex", gap:6 } },
+                          ["inversion","directa","subasta","coleccion"].map(function(k){ var isC=k==="coleccion"; var D=isC?DEST_COL:DESTINOS[k]; var on=isC?(f.mode==="collection"):(f.mode!=="collection" && (f.destino||"directa")===k); return React.createElement("button",{ key:k, type:"button", onClick:function(){ if(isC){ sf("mode","collection"); return; } var stf=_cvDestStatus(f,k); sf("mode","inventory"); sf("destino",k); sf("destinoAt",Date.now()); sf("dirId",""); if(stf.status) sf("status",stf.status); if(stf.listingDate) sf("listingDate",stf.listingDate); }, style:{ flex:1, minWidth:0, padding:"6px 2px", borderRadius:8, border:"1.5px solid "+(on?D.c:BDR), background:on?D.c:"#fff", color:on?"#fff":SUB, fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" } }, isC?"Colecci\u00f3n":D.l); }))),
                     f.mode === "inventory" && f.status === "sold" && (React.createElement("div", { style: { marginBottom: 12, background: "#f0fdf8", border: "1px solid #d1fae5", borderRadius: 10, padding: "12px 14px" } },
                         React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: GREEN, marginBottom: 8, letterSpacing: "0.04em" } }, "VENTA"),
                         React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } },
                             React.createElement("div", null, React.createElement("label", { style: LS }, "Precio de venta (\u20AC)"), React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.sellPrice, onChange: e => sf("sellPrice", e.target.value), placeholder: "0.00", style: IS })),
                             React.createElement("div", null, React.createElement("label", { style: LS }, "Fecha venta"), React.createElement("input", { type: "date", value: f.sellDate || "", onChange: e => sf("sellDate", e.target.value), style: IS }))))),
-                                        f.mode === "inventory" && f.status === "listed" && (React.createElement("div", { style: { marginBottom: 12 } },
-                    
-                        React.createElement("label", { style: LS }, "\uD83D\uDCC5 Fecha en que la pusiste en venta"),
-                        React.createElement("input", { type: "date", value: f.listingDate || "", onChange: e => sf("listingDate", e.target.value), style: IS }))),
-                                        React.createElement("div", { style: { marginBottom: 12 } },
-                        React.createElement("label", { style: LS }, "\uD83D\uDCC5 Fecha de compra"),
-                        React.createElement("input", { type: "date", value: f.buyDate, onChange: e => sf("buyDate", e.target.value), style: IS })),
+                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: (f.mode === "inventory" && f.status === "listed") ? "repeat(2,minmax(0,1fr))" : "minmax(0,1fr)", gap: 10, marginBottom: 12 } },
+                        React.createElement("div", { style: { minWidth: 0 } },
+                            React.createElement("label", { style: LS }, "\uD83D\uDCC5 Fecha de compra"),
+                            React.createElement("input", { type: "date", value: f.buyDate, onChange: e => sf("buyDate", e.target.value), style: IS })),
+                        (f.mode === "inventory" && f.status === "listed") ? React.createElement("div", { style: { minWidth: 0 } },
+                            React.createElement("label", { style: LS }, "\uD83D\uDCC5 Puesta en venta"),
+                            React.createElement("input", { type: "date", value: f.listingDate || "", onChange: e => sf("listingDate", e.target.value), style: IS })) : null),
                     React.createElement("div", { style: { marginBottom: 12 } },
                         React.createElement("label", { style: LS }, "Nombre *"),
                         React.createElement("input", { list: "cf-names", value: f.name, onChange: e => sf("name", e.target.value), placeholder: "Charizard Holo / Messi Rookie...", style: IS, autoFocus: true }),  React.createElement("datalist", { id: "cf-names" }, _names.map(function(n){ return React.createElement("option", { key:n, value:n }); }))),
                     
                     (function(){ if (editCard) return null; var nm = (f.name || "").trim().toLowerCase(); if (nm.length < 4) return null; var w = nm.split(/\s+/).slice(0, 2).join(" "); var src = (window._cvLatestCards || cards || []).filter(function(c){ var cn = (c.name || "").toLowerCase(); return cn.indexOf(w) === 0 && (c.series || c.team || c.league || c.player); }); if (!src.length) return null; var c0 = src[0]; var fill = { category: c0.category, series: c0.series || f.series, league: c0.league || f.league, team: c0.team || f.team, player: c0.player || f.player, brand: c0.brand || f.brand, rarity: c0.rarity || f.rarity }; var same = Object.keys(fill).every(function(k){ return (fill[k] || "") === (f[k] || ""); }); if (same) return null; var desc = [CATS[c0.category], c0.series, c0.team, c0.player].filter(function(x){ return x; }).join(" \u00b7 ");
                       return React.createElement("button", { type: "button", onClick: function(){ Object.keys(fill).forEach(function(k){ if (fill[k]) sf(k, fill[k]); }); }, style: { width: "100%", textAlign: "left", margin: "-4px 0 12px", padding: "8px 10px", borderRadius: 8, border: "1px solid #cfe0ff", background: "#eff4ff", color: BLUE, fontSize: 12, cursor: "pointer", fontFamily: "Inter,sans-serif", lineHeight: 1.4 } }, React.createElement("b", null, "\u2728 Rellenar como tus otras \u00ab" + w + "\u00bb: "), desc); })(),
-                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } },
-                        React.createElement("div", null,
+                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 8, marginBottom: 12 } },
+                        React.createElement("div", { style: { minWidth: 0 } },
                             React.createElement("label", { style: LS }, "Categor\u00EDa"),
                             React.createElement("select", { value: f.category, onChange: e => sf("category", e.target.value), style: IS }, Object.entries(CATS).map(([k, v]) => React.createElement("option", { key: k, value: k }, v)))),
-                        showDet && React.createElement("div", null,
-                            React.createElement("label", { style: LS }, "Rareza"),
-                            React.createElement("select", { value: f.rarity, onChange: e => sf("rarity", e.target.value), style: IS }, RARS.map(r => React.createElement("option", { key: r, value: r }, r))))),
-                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } },
-                        React.createElement("div", null,
+                        React.createElement("div", { style: { minWidth: 0 } },
                             React.createElement("label", { style: LS }, 
                     "Serie / Set"),
                             React.createElement("input", { list: "cf-series", value: f.series, onChange: e => sf("series", e.target.value), placeholder: "Base Set, LaLiga...", style: IS }), React.createElement("datalist", { id: "cf-series" }, _series.map(function(se){ return React.createElement("option", { key:se, value:se }); }))),
-                        React.createElement("div", null,
+                        React.createElement("div", { style: { minWidth: 0 } },
                             React.createElement("label", { style: LS }, "Condici\u00F3n"),
                             React.createElement("select", { value: f.condition, onChange: e => sf("condition", e.target.value), style: IS }, CONDS.map(c => React.createElement("option", { key: c, value: c }, c))))),
+                    showDet && React.createElement("div", { style: { marginBottom: 12 } },
+                        React.createElement("label", { style: LS }, "Rareza"),
+                        React.createElement("select", { value: f.rarity, onChange: e => sf("rarity", e.target.value), style: IS }, RARS.map(r => React.createElement("option", { key: r, value: r }, r)))),
                     
                     React.createElement("button", { type: "button", onClick: _togDet, style: { width: "100%", margin: "2px 0 12px", padding: "8px 10px", borderRadius: 8, border: "1px dashed " + BDR, background: showDet ? BGS : "transparent", color: BLUE, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif", textAlign: "left" } }, showDet ? "Menos detalles \u25B4" : ("M\u00e1s detalles \u25BE" + ((f.league || f.team || f.player || f.brand || (f.tags || []).length || f.location) ? "  \u00b7 " + [f.team, f.player, f.brand, f.location].filter(function(x){ return x; }).join(" \u00b7 ") : "  (rareza, liga, equipo, jugador, marca, tipo, ubicaci\u00f3n)"))),
                     showDet && React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } }, React.createElement("div", null, React.createElement("label", { style: LS }, "Liga"), React.createElement("input", { value: f.league || "", onChange: function(e){ sf("league", e.target.value); }, placeholder: "Premier League", list: "cv-leagues", style: IS }), React.createElement("datalist", { id: "cv-leagues" }, _distL.map(function(v){ return React.createElement("option", { key: v, value: v }); }))), React.createElement("div", null, React.createElement("label", { style: LS }, "Equipo"), React.createElement("input", { value: f.team || "", onChange: function(e){ sf("team", e.target.value); }, placeholder: "FC Barcelona", list: "cv-teams", style: IS }), React.createElement("datalist", { id: "cv-teams" }, _distT.map(function(v){ return React.createElement("option", { key: v, value: v }); })))),
@@ -17772,10 +17778,6 @@ function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards, p
                             })()
                           )),
                     
-                    React.createElement("div", null,
-                        React.createElement("label", { style: LS }, "Formato (destino)"),
-                        React.createElement("div", { style:{ display:"flex", gap:6 } },
-                          ["inversion","directa","subasta","coleccion"].map(function(k){ var isC=k==="coleccion"; var D=isC?DEST_COL:DESTINOS[k]; var on=isC?(f.mode==="collection"):(f.mode!=="collection" && (f.destino||"directa")===k); return React.createElement("button",{ key:k, type:"button", onClick:function(){ if(isC){ sf("mode","collection"); return; } var stf=_cvDestStatus(f,k); sf("mode","inventory"); sf("destino",k); sf("destinoAt",Date.now()); sf("dirId",""); if(stf.status) sf("status",stf.status); if(stf.listingDate) sf("listingDate",stf.listingDate); }, style:{ flex:1, minWidth:0, padding:"9px 2px", borderRadius:9, border:"1.5px solid "+(on?D.c:BDR), background:on?D.c:"#fff", color:on?"#fff":SUB, fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" } }, isC?"Colecci\u00f3n":D.l); }))),
                     React.createElement("div", { style: { gridColumn: "1/-1" } },
                         React.createElement("label", { style: LS }, "\uD83D\uDCF7 Foto de la carta"),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, f.imageUrl ? React.createElement("img", { src: f.imageUrl, style: { width: "100%", maxHeight: 140, objectFit: "contain", borderRadius: 8, background: "#f8fafc" } }) : null, React.createElement("div", { style: { display: "flex", gap: 8 } }, React.createElement("label", { style: { flex: 1, padding: "10px 8px", background: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#1d4ed8", fontFamily: "Inter,sans-serif", textAlign: "center", display: "block" } }, "\uD83D\uDCF7 Hacer foto", React.createElement("input", { type: "file", accept: "image/*", capture: "environment", style: { display: "none" }, onChange: function(e){ var file=e.target.files[0]; if(!file) return; if(window.compressImage){window.compressImage(file,function(blob0,dataUrl0){ var go=function(blob,dataUrl){ if(window.uploadToCloudinary){window.uploadToCloudinary(blob,function(err,url){if(err){if(window._cvToast)window._cvToast("No se pudo subir la foto, reint\u00e9ntalo",{icon:"\u26a0\ufe0f"});}else{sf("imageUrl",url);}});}else{sf("imageUrl",dataUrl||dataUrl0);} }; if(localStorage.getItem("cv10_autocrop")!=="0" && window._cvAutoCrop){ window._cvAutoCrop(blob0, function(b2,d2){ if(d2 && window._cvToast) window._cvToast("Foto recortada \u2702\uFE0F"); go(b2,d2); }); } else go(blob0,dataUrl0); });} e.target.value=""; } })), React.createElement("label", { style: { flex: 1, padding: "10px 8px", background: "#f0fdf4", border: "1.5px solid #bbf7d0", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#15803d", fontFamily: "Inter,sans-serif", textAlign: "center", display: "block" } }, "\uD83D\uDDBC\uFE0F Galer\u00EDa", React.createElement("input", { type: "file", accept: "image/*", style: { display: "none" }, onChange: function(e){ var file=e.target.files[0]; if(!file) return; if(window.compressImage){window.compressImage(file,function(blob0,dataUrl0){ var go=function(blob,dataUrl){ if(window.uploadToCloudinary){window.uploadToCloudinary(blob,function(err,url){if(err){if(window._cvToast)window._cvToast("No se pudo subir la foto, reint\u00e9ntalo",{icon:"\u26a0\ufe0f"});}else{sf("imageUrl",url);}});}else{sf("imageUrl",dataUrl||dataUrl0);} }; if(localStorage.getItem("cv10_autocrop")!=="0" && window._cvAutoCrop){ window._cvAutoCrop(blob0, function(b2,d2){ if(d2 && window._cvToast) window._cvToast("Foto recortada \u2702\uFE0F"); go(b2,d2); }); } else go(blob0,dataUrl0); });} e.target.value=""; } }))))),
@@ -17787,16 +17789,14 @@ function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards, p
                             React.createElement("option", { value: "" }, "Sin asignar"),
                             (JSON.parse(localStorage.getItem("cv10_locs") || "null") || DEFAULT_LOCATIONS).map(l => React.createElement("option", { key: l, value: l }, l)))))),
                 React.createElement("div", null,
-                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 } },
+                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 } },
                         React.createElement("div", null,
                             React.createElement("label", { style: LS }, "Precio/ud (\u20AC)"),
                             React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.buyPrice, onChange: e => sf("buyPrice", e.target.value), placeholder: "0.00", style: IS })),
                         React.createElement("div", null,
                             React.createElement("label", { style: LS }, "Cantidad"),
                             React.createElement("input", { type: "number", min: "1", value: f.quantity, onChange: e => sf("quantity", +e.target.value), style: IS })),
-                        React.createElement("div", null,
-                            React.createElement("label", { style: LS }, "Fecha"),
-                            React.createElement("input", { type: "date", value: f.buyDate, onChange: e => sf("buyDate", e.target.value), style: IS }))),
+                        null),
                     
                     false,
                     tB > 0 && React.createElement("div", { style: { background: BGS, borderRadius: 8, padding: "9px 12px", fontSize: 13 } },
@@ -18404,7 +18404,7 @@ function BackupsPanel({ onRestore, onRestoreCard, onClose }) {
         list.map(function(b){ return h("div", { key: b.id, style: { display: "flex", alignItems: "center", gap: 8, padding: "9px 0", borderTop: "1px solid " + BDR } },
           h("div", { style: { flex: 1, minWidth: 0 } }, h("div", { style: { fontSize: 13, fontWeight: 600 } }, fmt(b.at)), h("div", { style: { fontSize: 11, color: MUT } }, b.n + " cartas")),
           h("button", { onClick: function(){ window._cvGetBackup(b.id).then(function(x){ dl(x, "cromovault-copia-" + b.id + ".json"); }); }, style: bS, "aria-label": "Descargar" }, "\u2B07"),
-          h("button", { disabled: !!busy, onClick: function(){ if (!window.confirm("\u00bfRestaurar la copia del " + fmt(b.at) + "?\n\nTus cartas, lotes, directos y card shows volver\u00e1n a como estaban ese d\u00eda. Antes se guarda una copia de c\u00f3mo est\u00e1 todo ahora, por si acaso.")) return; setBusy(b.id); window._cvMakeBackup().catch(function(){}).then(function(){ return window._cvGetBackup(b.id); }).then(function(x){ onRestore(x); setBusy(""); load(); }).catch(function(e){ setBusy(""); alert("No se pudo restaurar: " + ((e && e.message) || e)); }); }, style: Object.assign({}, bS, { color: "#A50044" }) }, busy === b.id ? "\u2026" : "Restaurar")); }),
+          h("button", { disabled: !!busy, onClick: function(){ if (!window.confirm("\u00bfRestaurar la copia del " + fmt(b.at) + "?\n\nTus cartas, lotes, directos y card shows volver\u00e1n a como estaban ese d\u00eda. Antes se guarda una copia de c\u00f3mo est\u00e1 todo ahora, por si acaso.")) return; setBusy(b.id); window._cvMakeBackup().then(function(){ return window._cvGetBackup(b.id); }, function(e){ throw new Error("no se pudo guardar antes la copia de seguridad de c\u00f3mo est\u00e1 todo ahora, as\u00ed que no he tocado nada"); }).then(function(x){ onRestore(x); setBusy(""); load(); }).catch(function(e){ setBusy(""); alert("No se pudo restaurar: " + ((e && e.message) || e)); }); }, style: Object.assign({}, bS, { color: "#A50044" }) }, busy === b.id ? "\u2026" : "Restaurar")); }),
         h("div", { style: { fontSize: 11, fontWeight: 700, color: SUB, textTransform: "uppercase", letterSpacing: "0.05em", margin: "16px 0 6px" } }, "Cartas borradas"),
         dels === null ? h("div", { style: { fontSize: 12, color: MUT } }, "Cargando\u2026") : !dels.filter(function(x){ return x.card; }).length ? h("div", { style: { fontSize: 12, color: MUT } }, "No hay cartas borradas desde la v290.") :
         dels.filter(function(x){ return x.card; }).map(function(x){ return h("div", { key: x._k, style: { display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderTop: "1px solid " + BDR } },
@@ -22120,6 +22120,7 @@ function App() {
     const [showMore, setShowMore] = useState(false);
     const [showBk, setShowBk] = useState(false);
     const [showBulkAdd, setShowBulkAdd] = useState(false);
+    const [topMore, setTopMore] = useState(false);
     const [tab, setTab] = useState("dashboard"), [psaSub, setPsaSub] = useState("resumen"), [sf, setSF] = useState(false), [dm, setDm] = useState("inventory"), [ec, setEc] = useState(null), [sc, setSc] = useState(null);
     window._cvSetTab = setTab;
     const [fiscalSub, setFiscalSub] = useState("fiscal");
@@ -22145,21 +22146,23 @@ function App() {
     const TABS = [["dashboard", "Dashboard"], ["inventory", "Inventario"], ["collection", "Colección"], ["fiscal", "Análisis"], ["cardshows", "🛒 Card shows"], ["breaks", "🎬 Directos"], ["redes", "📱 Redes"], ["psa", "🎴 Personales"]];
     return (React.createElement("div", { style: { height: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14, display: "flex", flexDirection: "column", overflow: "hidden" } },
         React.createElement("style", null, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Saira+Condensed:wght@600;700;800;900&display=swap');"),
-        React.createElement("div", { id: "cv-top-bar", style: { background: "#ffffff", borderBottom: "1px solid " + BDR, position: "relative", zIndex: 1000, flexShrink: 0, boxShadow: "0 2px 12px rgba(0,0,0,0.10)" } },
+        React.createElement("div", { id: "cv-top-bar", style: { background: "#ffffff", borderBottom: "1px solid " + BDR, position: "relative", zIndex: 300, flexShrink: 0, boxShadow: "0 2px 12px rgba(0,0,0,0.10)" } },
             React.createElement("div", { className: "cv-tb-line", style: { position: "absolute", left: 0, right: 0, bottom: 0, height: 3, background: "linear-gradient(to right,#004D98,#A50044)", zIndex: 1, pointerEvents: "none" } }),
             React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "0 24px", display: "flex", justifyContent: "space-between", alignItems: "center", height: 54 } },
                 React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 24 } },
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v294")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v295")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
-                    React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, v: "outline", onClick: () => setShowLot(true) }, "Venta m\u00FAltiple")),
-                    React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, v: "outline", onClick: () => setShowBulkAdd(true) }, "\uD83D\uDCCB Alta masiva")),
-                    React.createElement("button", { onClick: () => setShowSettings(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\u2699\uFE0F"),
-                    React.createElement("button", { onClick: () => setShowPrefs(true), style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\uD83C\uDF9B\uFE0F"),
+                    React.createElement("span", { className: "cv-hide-mobile", style: { position: "relative" } },
+                        React.createElement(Btn, { sm: true, v: "outline", onClick: function(){ setTopMore(!topMore); } }, "M\u00e1s \u25BE"),
+                        topMore ? React.createElement("div", { onClick: function(){ setTopMore(false); }, style: { position: "fixed", inset: 0, zIndex: 1 } }) : null,
+                        topMore ? React.createElement("div", { style: { position: "absolute", right: 0, top: "calc(100% + 8px)", zIndex: 2, background: BG, border: "1px solid " + BDR, borderRadius: 12, boxShadow: "0 12px 32px rgba(0,0,0,.14)", padding: 6, minWidth: 230 } },
+                            [["\uD83D\uDCCB","Alta masiva", function(){ setShowBulkAdd(true); }],["\uD83D\uDECD\uFE0F","Venta m\u00faltiple", function(){ setShowLot(true); }],["\u2699\uFE0F","Ajustes, nube y copias", function(){ setShowSettings(true); }],["\uD83C\uDF9B\uFE0F","Preferencias", function(){ setShowPrefs(true); }]].map(function(it, i){ return React.createElement("button", { key: i, onClick: function(){ setTopMore(false); it[2](); }, style: { display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 12px", border: "none", borderTop: i === 2 ? "1px solid " + BDR : "none", background: "none", borderRadius: i === 2 ? 0 : 8, fontSize: 13.5, fontWeight: 600, color: TXT, cursor: "pointer", fontFamily: "Inter,sans-serif", textAlign: "left" } }, React.createElement("span", { style: { fontSize: 16, width: 20, textAlign: "center" } }, it[0]), it[1]); })) : null),
+                    React.createElement("button", { className: "cv-only-mobile", onClick: () => setShowSettings(true), "aria-label": "Ajustes", style: { background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 16, padding: "4px 10px", color: SUB } }, "\u2699\uFE0F"),
                     ))),
                 tooltip && React.createElement("div", { onClick: function(){ setTooltip(null); }, style: { position: "fixed", inset: 0, zIndex: 998 } }),
         tooltip && React.createElement("div", { style: { position: "fixed", background: "#1e293b", color: "#fff", borderRadius: 10, padding: "10px 14px", fontSize: 12, maxWidth: 220, zIndex: 999, top: tooltip.y, left: tooltip.x, lineHeight: 1.5 } }, tooltip.text),
@@ -22513,7 +22516,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
       React.createElement("button", { onClick: function() { setShowSettings(false); }, style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB, lineHeight: 1 } }, "\u00D7")
     ),
     React.createElement("div", { style: { background: BGS, border: "1px solid " + BDR, borderRadius: 10, padding: "11px 13px", marginBottom: 18 } },
-      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v294"),
+      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v295"),
       (function(){ var t, ok=false; if(!window._currentUser){ t="\u26A0\uFE0F Sin sesi\u00F3n \u2014 los cambios NO se suben a la nube"; } else if(window._cvSyncErr){ t="\u26A0\uFE0F La \u00FAltima subida no se confirm\u00F3 \u2014 revisa tu conexi\u00F3n"; } else if(window._cvLastSync){ var s=Math.round((Date.now()-window._cvLastSync)/1000); t="\u2714 Nube sincronizada (hace "+(s<90?s+"s":Math.round(s/60)+" min")+")"; ok=true; } else { t="Nube conectada"; ok=true; } if(ok){ t += window._cvCardsV2 ? " \u00b7 cada carta guardada por separado" : (window._cvV2Err ? " \u00b7 \u26A0\uFE0F no se pudo activar el guardado por carta ("+window._cvV2Err+")" : ""); } return React.createElement("div", { style: { fontSize: 11.5, color: ok?"#0a7a55":"#c0392b", marginTop: 4, fontWeight: 600 } }, t); })()
     ),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "AYUDA"),
@@ -22759,6 +22762,8 @@ showPublicProfile && React.createElement("div", { onMouseDown: function(e) { pro
             React.createElement("div", { id: "cv-more-sheet", onClick: function(e){ e.stopPropagation(); }, style: { position: "absolute", left: 0, right: 0, bottom: 0, background: BG, borderRadius: "18px 18px 0 0", padding: "8px 18px calc(18px + env(safe-area-inset-bottom))", boxShadow: "0 -10px 30px rgba(0,0,0,.15)" } },
                 React.createElement("div", { style: { width: 38, height: 4, borderRadius: 2, background: BDR, margin: "4px auto 10px" } }),
                 [["collection","\u2B50","Colecci\u00f3n"],["fiscal","\uD83D\uDCCA","An\u00e1lisis y lotes"],["redes","\uD83D\uDCF1","Redes"]].map(function(it){ return React.createElement("button", { key: it[0], className: "cv-more-item" + (tab === it[0] ? " on" : ""), onClick: function(){ setTab(it[0]); setShowMore(false); try{ window.scrollTo(0,0); }catch(e){} } }, React.createElement("span", { style: { fontSize: 20, width: 26, textAlign: "center" } }, it[1]), it[2]); }),
+                React.createElement("button", { className: "cv-more-item", onClick: function(){ setShowMore(false); setShowBulkAdd(true); } }, React.createElement("span", { style: { fontSize: 20, width: 26, textAlign: "center" } }, "\uD83D\uDCCB"), "Alta masiva"),
+                React.createElement("button", { className: "cv-more-item", onClick: function(){ setShowMore(false); setShowLot(true); } }, React.createElement("span", { style: { fontSize: 20, width: 26, textAlign: "center" } }, "\uD83D\uDECD\uFE0F"), "Venta m\u00faltiple"),
                 React.createElement("button", { className: "cv-more-item", onClick: function(){ setShowMore(false); setShowSettings(true); } }, React.createElement("span", { style: { fontSize: 20, width: 26, textAlign: "center" } }, "\u2699\uFE0F"), "Ajustes, nube y copias"),
                 React.createElement("button", { className: "cv-more-item", style: { borderBottom: "none" }, onClick: function(){ setShowMore(false); setShowPrefs(true); } }, React.createElement("span", { style: { fontSize: 20, width: 26, textAlign: "center" } }, "\uD83C\uDF9B\uFE0F"), "Preferencias"))) : null,
         React.createElement("div", { id: "cv-bottom-nav" },
