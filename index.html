@@ -9,7 +9,9 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="CromoVault">
   <meta name="theme-color" content="#ffffff">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -36,22 +38,23 @@
   </style>
   <style>
     #cv-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg,#fff);border-top:2px solid transparent;border-image:linear-gradient(to right,#004D98,#A50044) 1;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
-    #cv-bottom-nav-inner{display:flex;height:50px;}
-    #cv-bottom-nav button{flex:1;border:none;background:none;font-size:8px;font-family:Inter,sans-serif;color:var(--sub,#6b7280);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px 1px;min-width:0;}
+    #cv-bottom-nav-inner{display:flex;height:56px;}
+    #cv-bottom-nav button{flex:1;border:none;background:none;font-family:Inter,sans-serif;color:var(--sub,#6b7280);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px 2px;min-width:0;-webkit-tap-highlight-color:transparent;}
     #cv-bottom-nav button.active{color:#A50044;}
-    #cv-bottom-nav button:nth-child(5) span.label{visibility:hidden;position:relative;}
-    #cv-bottom-nav button:nth-child(5) span.label::after{content:"Fin.";visibility:visible;position:absolute;left:50%;transform:translateX(-50%);}
-    /* all tabs visible */
-    #cv-bottom-nav button span.icon{font-size:15px;}
-    #cv-bottom-nav button span.label{font-size:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
+    #cv-bottom-nav button.active span.label{font-weight:700;}
+    #cv-bottom-nav button span.icon{font-size:20px;line-height:1;}
+    #cv-bottom-nav button span.label{font-size:10.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
+    #cv-more-sheet button.cv-more-item{display:flex;align-items:center;gap:12px;width:100%;padding:13px 6px;border:none;background:none;border-bottom:1px solid var(--bdr,#e8eaed);font-family:Inter,sans-serif;font-size:15px;font-weight:600;color:var(--txt,#0a0a0a);cursor:pointer;text-align:left;}
+    #cv-more-sheet button.cv-more-item.on{color:#A50044;}
     @media(max-width:768px){
       /* Nav */
       #cv-bottom-nav{display:block;}
       #cv-top-nav{display:none!important;}
-      #cv-root{padding-bottom:calc(56px + env(safe-area-inset-bottom));}
+      #cv-root{padding-bottom:calc(66px + env(safe-area-inset-bottom));}
 
       /* Top bar */
       #cv-top-bar > div { padding: 0 12px !important; height: 48px !important; }
+      #cv-top-bar > div.cv-tb-line { height: 3px !important; padding: 0 !important; pointer-events: none; }
       /* Hide "Nueva carta", "Venta multiple", "Comprar" buttons in top bar on mobile */
       .nav-label { display: none !important; }
       /* Hide "Nueva carta" and "Venta multiple" buttons on mobile (available via FAB) */
@@ -21813,6 +21816,7 @@ function App() {
             localStorage.setItem("cv10_last_backup", today);
         } catch(e) {}
     }, []);
+    const [showMore, setShowMore] = useState(false);
     const [tab, setTab] = useState("dashboard"), [psaSub, setPsaSub] = useState("resumen"), [sf, setSF] = useState(false), [dm, setDm] = useState("inventory"), [ec, setEc] = useState(null), [sc, setSc] = useState(null);
     window._cvSetTab = setTab;
     const [fiscalSub, setFiscalSub] = useState("fiscal");
@@ -21836,13 +21840,13 @@ function App() {
     return (React.createElement("div", { style: { height: "100vh", background: BGS, fontFamily: "Inter,sans-serif", color: TXT, fontSize: 14, display: "flex", flexDirection: "column", overflow: "hidden" } },
         React.createElement("style", null, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Saira+Condensed:wght@600;700;800;900&display=swap');"),
         React.createElement("div", { id: "cv-top-bar", style: { background: "#ffffff", borderBottom: "1px solid " + BDR, position: "relative", zIndex: 1000, flexShrink: 0, boxShadow: "0 2px 12px rgba(0,0,0,0.10)" } },
-            React.createElement("div", { style: { position: "absolute", left: 0, right: 0, bottom: 0, height: 3, background: "linear-gradient(to right,#004D98,#A50044)", zIndex: 1 } }),
+            React.createElement("div", { className: "cv-tb-line", style: { position: "absolute", left: 0, right: 0, bottom: 0, height: 3, background: "linear-gradient(to right,#004D98,#A50044)", zIndex: 1, pointerEvents: "none" } }),
             React.createElement("div", { style: { maxWidth: 1100, margin: "0 auto", padding: "0 24px", display: "flex", justifyContent: "space-between", alignItems: "center", height: 54 } },
                 React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 24 } },
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v285")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v286")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -22201,7 +22205,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
       React.createElement("button", { onClick: function() { setShowSettings(false); }, style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB, lineHeight: 1 } }, "\u00D7")
     ),
     React.createElement("div", { style: { background: BGS, border: "1px solid " + BDR, borderRadius: 10, padding: "11px 13px", marginBottom: 18 } },
-      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v285"),
+      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v286"),
       (function(){ var t, ok=false; if(!window._currentUser){ t="\u26A0\uFE0F Sin sesi\u00F3n \u2014 los cambios NO se suben a la nube"; } else if(window._cvSyncErr){ t="\u26A0\uFE0F La \u00FAltima subida no se confirm\u00F3 \u2014 revisa tu conexi\u00F3n"; } else if(window._cvLastSync){ var s=Math.round((Date.now()-window._cvLastSync)/1000); t="\u2714 Nube sincronizada (hace "+(s<90?s+"s":Math.round(s/60)+" min")+")"; ok=true; } else { t="Nube conectada"; ok=true; } return React.createElement("div", { style: { fontSize: 11.5, color: ok?"#0a7a55":"#c0392b", marginTop: 4, fontWeight: 600 } }, t); })()
     ),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "AYUDA"),
@@ -22439,13 +22443,21 @@ showPublicProfile && React.createElement("div", { onMouseDown: function(e) { pro
         showLot && React.createElement(LotModal, { cards: cards, onSell: ups, onSellMany: upsMany, onClose: () => setShowLot(false) }),
         sc && React.createElement(SellModal, { card: sc, onSave: ups, onClose: () => setSc(null) }),
         dupCard && React.createElement(DupModal, { card: dupCard, onSave: ups, onSaveMany: upsMany, onClose: () => setDupCard(null) }),
+        showMore ? React.createElement("div", { onClick: function(){ setShowMore(false); }, style: { position: "fixed", left: 0, top: 0, right: 0, bottom: 0, background: "rgba(0,0,0,.4)", zIndex: 1100 } },
+            React.createElement("div", { id: "cv-more-sheet", onClick: function(e){ e.stopPropagation(); }, style: { position: "absolute", left: 0, right: 0, bottom: 0, background: BG, borderRadius: "18px 18px 0 0", padding: "8px 18px calc(18px + env(safe-area-inset-bottom))", boxShadow: "0 -10px 30px rgba(0,0,0,.15)" } },
+                React.createElement("div", { style: { width: 38, height: 4, borderRadius: 2, background: BDR, margin: "4px auto 10px" } }),
+                [["collection","\u2B50","Colecci\u00f3n"],["fiscal","\uD83D\uDCCA","An\u00e1lisis y lotes"],["psa","\uD83C\uDFB4","Personales"],["redes","\uD83D\uDCF1","Redes"]].map(function(it){ return React.createElement("button", { key: it[0], className: "cv-more-item" + (tab === it[0] ? " on" : ""), onClick: function(){ setTab(it[0]); setShowMore(false); try{ window.scrollTo(0,0); }catch(e){} } }, React.createElement("span", { style: { fontSize: 20, width: 26, textAlign: "center" } }, it[1]), it[2]); }),
+                React.createElement("button", { className: "cv-more-item", onClick: function(){ setShowMore(false); setShowSettings(true); } }, React.createElement("span", { style: { fontSize: 20, width: 26, textAlign: "center" } }, "\u2699\uFE0F"), "Ajustes, nube y copias"),
+                React.createElement("button", { className: "cv-more-item", style: { borderBottom: "none" }, onClick: function(){ setShowMore(false); setShowPrefs(true); } }, React.createElement("span", { style: { fontSize: 20, width: 26, textAlign: "center" } }, "\uD83C\uDF9B\uFE0F"), "Preferencias"))) : null,
         React.createElement("div", { id: "cv-bottom-nav" },
             React.createElement("div", { id: "cv-bottom-nav-inner" },
-                [["dashboard","\uD83D\uDCCA","Inicio"],["inventory","\uD83D\uDCE6","Inv."],["collection","\u2B50","Colec."],["fiscal","\uD83D\uDCCA","An\u00E1l."],["cardshows","\uD83D\uDED2","Cardsh."],["breaks","\uD83C\uDFAC","Direct."],["redes","\uD83D\uDCF1","Redes"],["psa","\uD83C\uDFB4","Personal"]].map(function(item) {
-                    return React.createElement("button", { key: item[0], className: tab === item[0] ? "active" : "", onClick: function() { setTab(item[0]); } },
+                [["dashboard","\uD83C\uDFE0","Inicio"],["inventory","\uD83D\uDCE6","Inventario"],["breaks","\uD83C\uDFAC","Directos"],["cardshows","\uD83D\uDED2","Card shows"]].map(function(item) {
+                    return React.createElement("button", { key: item[0], className: (tab === item[0] && !showMore) ? "active" : "", onClick: function() { setShowMore(false); setTab(item[0]); } },
                         React.createElement("span", { className: "icon" }, item[1]),
                         React.createElement("span", { className: "label" }, item[2]));
-                })))));
+                }).concat([React.createElement("button", { key: "more", className: (showMore || ["collection","fiscal","psa","redes"].indexOf(tab) >= 0) ? "active" : "", onClick: function(){ setShowMore(!showMore); } },
+                    React.createElement("span", { className: "icon" }, "\u2630"),
+                    React.createElement("span", { className: "label" }, ["collection","fiscal","psa","redes"].indexOf(tab) >= 0 ? ({collection:"Colecci\u00f3n",fiscal:"An\u00e1lisis",psa:"Personales",redes:"Redes"})[tab] : "M\u00e1s"))])))));
 }
 
 window._mountApp = function() {
