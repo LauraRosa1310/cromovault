@@ -17840,12 +17840,124 @@ React.createElement("div", { style: { display: "flex", gap: 10, flexWrap: "wrap"
                         card.location),
                     React.createElement("a", { href: "https://www.130point.com/sales/?q=" + encodeURIComponent(card.name), target: "_blank", rel: "noreferrer", style: { color: BLUE, textDecoration: "none", fontWeight: 500 } }, "130point \u2192")))))));
 }
+function _dbTile(label, val, sub, color, extra){ var h=React.createElement; return h("div",{style:{background:BGS,borderRadius:10,padding:"10px 12px",border:"1px solid "+BDR,minWidth:0}}, h("div",{style:{fontSize:10,color:SUB,marginBottom:3}},label), h("div",{style:{fontSize:15,fontWeight:700,color:color||TXT,letterSpacing:"-0.02em"}},val), sub?h("div",{style:{fontSize:10,color:MUT,marginTop:2}},sub):null, extra||null); }
+function _dbSg(n){ n=+(n||0); return (n>=0?"+":"-")+euk(Math.abs(n)); }
+function _dbNet(c){ return (c.sellPrice||0)*(c.quantity||1)*(1-(c.platformFee||0)/100)-(c.shippingCost||0); }
+function _dbDirInfo(){ var dirs=[]; try{ dirs=JSON.parse(localStorage.getItem("cv10_directos")||"[]")||[]; }catch(e){} var ids={}, byCard={}; dirs.forEach(function(d){ ids[d.id]=d; (d.cardIds||[]).forEach(function(cid){ byCard[cid]=d.id; }); }); return { dirs:dirs, ids:ids, byCard:byCard }; }
+function _dbChan(c, di){ if(c.csId) return "cs"; if(c.dirId && di.ids[c.dirId]) return "sub"; if(di.byCard[c.id]) return "sub"; return "on"; }
+function _dbDirOf(c, di){ if(c.dirId && di.ids[c.dirId]) return c.dirId; return di.byCard[c.id]||""; }
+function _dbBreaks(){ var gb={}; try{ gb=JSON.parse(localStorage.getItem("tcg_breaks_v2")||"{}")||{}; }catch(e){} var out=[]; (gb.breaks||[]).forEach(function(b){ var sold=0; (b.spots||[]).forEach(function(sp){ if((sp.comp||"").trim()) sold+=(+sp.precio||0); }); if(sold>0) out.push({ nombre:(b.nombre||"Break"), fecha:(b.fecha||""), r:sold, c:(+b.coste||0)+(+b.comision||0) }); }); return out; }
+function _dbPerMatch(fecha, per){ if(!per||per==="todo") return true; var f=fecha||""; if(!f) return false; var t=per.slice(0,1), v=per.slice(2); if(t==="a") return f.slice(0,4)===v; if(t==="m") return f.slice(0,7)===v; if(t==="t"){ if(f.length<7) return false; var qq=Math.ceil(parseInt(f.slice(5,7),10)/3); return (f.slice(0,4)+"-T"+qq)===v; } return true; }
+var _DB_CH = { on:{l:"Venta directa online",c:"#004D98"}, cs:{l:"Car shows",c:"#f59e0b"}, sub:{l:"Subastas (Geek)",c:"#A50044"}, brk:{l:"Breaks",c:"#7c3aed"} };
+
+function DashRecorrido(p){ var h=React.createElement;
+  function step(n,label,sub,val,color){ return h("div",{style:{display:"flex",alignItems:"center",gap:10}},
+    h("div",{style:{width:22,height:22,borderRadius:11,background:"linear-gradient(135deg,#004D98,#A50044)",color:"#fff",fontSize:11,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}},n),
+    h("div",{style:{flex:1,minWidth:0,background:BGS,border:"1px solid "+BDR,borderRadius:10,padding:"9px 12px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:8}},
+      h("div",null,h("div",{style:{fontSize:11,color:SUB}},label),h("div",{style:{fontSize:10,color:MUT}},sub)),
+      h("div",{style:{fontSize:15,fontWeight:700,color:color||TXT,whiteSpace:"nowrap"}},val))); }
+  function vl(){ return h("div",{style:{width:2,height:10,background:"linear-gradient(#004D98,#A50044)",marginLeft:10}}); }
+  var costSold=p.invested-p.inPortfolio; var marg=costSold>0?Math.round(p.realized/costSold*100):0;
+  return h(Card,{style:{marginBottom:20,padding:"18px"}}, h(SL,null,"🔁 Recorrido del dinero"),
+    step(1,"Comprado",p.nAll+" cartas",euk(p.invested)), vl(),
+    step(2,"Aún en stock",p.nHold+" cartas",euk(p.inPortfolio),BLUE), vl(),
+    step(3,"Vendido",p.nSold+" cartas · neto",euk(p.recovered),GREEN), vl(),
+    step(4,"Beneficio","margen "+marg+"% sobre lo vendido",_dbSg(p.realized),cl(p.realized)));
+}
+
+function DashCanales(p){ var h=React.createElement; var di=_dbDirInfo();
+  var agg={ on:{r:0,b:0,n:0}, cs:{r:0,b:0,n:0}, sub:{r:0,b:0,n:0}, brk:{r:0,b:0,n:0} }, plat={}, shows={}, dset={};
+  (p.sold||[]).forEach(function(c){ var k=_dbChan(c,di); agg[k].r+=_dbNet(c); agg[k].b+=np(c); agg[k].n+=1; if(k==="on"){ var pl=c.platform||"Otro"; plat[pl]=(plat[pl]||0)+_dbNet(c); } if(k==="cs") shows[c.csId]=1; if(k==="sub"){ var d=_dbDirOf(c,di); if(d) dset[d]=1; } });
+  var brs=p.lot?[]:_dbBreaks().filter(function(b){ return _dbPerMatch(b.fecha,p.per); }); brs.forEach(function(b){ agg.brk.r+=b.r; agg.brk.b+=b.r-b.c; agg.brk.n+=1; });
+  var pls=Object.keys(plat).sort(function(a,b){return plat[b]-plat[a];}).slice(0,3).map(function(k){ return k+" "+euk(plat[k]); }).join(" · ");
+  function mg(a){ var cost=a.r-a.b; return cost>0?Math.round(a.b/cost*100)+"%":"—"; }
+  var det={ on:(pls||"sin ventas"), cs:Object.keys(shows).length+" car show(s) · margen "+mg(agg.cs), sub:Object.keys(dset).length+" directo(s) · margen "+mg(agg.sub), brk:(p.lot?"no aplica a lotes":agg.brk.n+" break(s) · margen "+mg(agg.brk)) };
+  var cnt={ on:agg.on.n+" cartas", cs:agg.cs.n+" cartas", sub:agg.sub.n+" cartas", brk:"" };
+  return h(Card,{style:{marginBottom:20,padding:"18px"}}, h(SL,null,"🛒 Ventas por canal"),
+    h("div",{style:{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:10}}, ["on","cs","sub","brk"].map(function(k){ var a=agg[k];
+      return h("div",{key:k,style:{background:BGS,borderRadius:10,padding:"10px 12px",border:"1px solid "+BDR,minWidth:0}},
+        h("div",{style:{display:"flex",alignItems:"center",gap:6}}, h("span",{style:{width:8,height:8,borderRadius:4,background:_DB_CH[k].c,flexShrink:0}}), h("span",{style:{fontSize:11,fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},_DB_CH[k].l)),
+        h("div",{style:{fontSize:15,fontWeight:700,color:a.n?cl(a.b):MUT,marginTop:5}}, a.n?_dbSg(a.b):"—"),
+        h("div",{style:{fontSize:10,color:SUB,marginTop:1}}, euk(a.r)+" vendido"+(cnt[k]?" · "+cnt[k]:"")),
+        h("div",{style:{fontSize:10,color:MUT,marginTop:5,lineHeight:1.4}}, det[k])); })),
+    h("div",{style:{fontSize:10.5,color:MUT,marginTop:10}},"Cuenta las cartas del filtro de arriba. El canal sale de dónde se vendió de verdad (car show, directo o plataforma)."));
+}
+
+function DashStock(p){ var h=React.createElement;
+  var hold=(p.hold||[]); var g={ inversion:{n:0,cost:0,val:0}, directa:{n:0,cost:0,old:0}, subasta:{n:0,cost:0,lots:{}} };
+  hold.forEach(function(c){ var k=cardDest(c), q=(c.quantity||1), cost=(c.buyPrice||0)*q; g[k].n+=1; g[k].cost+=cost; if(k==="inversion") g[k].val+=(c.marketPrice||c.targetPrice||c.buyPrice||0)*q; if(k==="directa"){ var ds=_diasStock(c.buyDate); if(ds!=null&&ds>90) g[k].old+=1; } if(k==="subasta"&&c.lotId) g[k].lots[c.lotId]=1; });
+  function row(k,right,rc,last){ var d=DESTINOS[k]; return h("div",{key:k,style:{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,padding:"11px 0",borderBottom:last?"none":"1px solid "+BDR}},
+    h("div",{style:{minWidth:0}}, h("span",{style:{fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:20,background:d.c+"14",color:d.c,border:"1.5px solid "+d.c}},d.l), h("div",{style:{fontSize:11.5,color:SUB,marginTop:5}}, g[k].n+" cartas · costaron "+euk(g[k].cost))),
+    h("div",{style:{fontSize:12.5,fontWeight:700,color:rc||TXT,textAlign:"right"}},right)); }
+  var lat=g.inversion.val-g.inversion.cost;
+  return h(Card,{style:{marginBottom:20,padding:"18px"}}, h(SL,null,"📦 Stock por destino"),
+    row("inversion", h("span",null,"vale "+euk(g.inversion.val), h("br"), h("span",{style:{color:cl(lat)}},_dbSg(lat)+" latente"))),
+    row("directa", g.directa.old? g.directa.old+" con +90 días" : "al día", g.directa.old?AMBER:SUB),
+    row("subasta", Object.keys(g.subasta.lots).length+" lote(s)", SUB, true));
+}
+
+function DashResumen(p){ var h=React.createElement;
+  var now=new Date(); var cur=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+  var _m=React.useState(cur); var m=_m[0], setM=_m[1];
+  function shift(d){ var y=parseInt(m.slice(0,4),10), mo=parseInt(m.slice(5,7),10)+d; while(mo<1){mo+=12;y--;} while(mo>12){mo-=12;y++;} setM(y+"-"+String(mo).padStart(2,"0")); }
+  var MN=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  function lbl(x){ return MN[parseInt(x.slice(5,7),10)-1]+" "+x.slice(0,4); }
+  var di=_dbDirInfo(); var inv=(p.cards||[]).filter(function(c){ return c.mode==="inventory" && c.status==="sold" && (!p.lot || c.lotId===p.lot); });
+  function stats(mm){ var r=0,b=0,ch={on:0,cs:0,sub:0,brk:0}; inv.forEach(function(c){ if((c.sellDate||"").slice(0,7)!==mm) return; var v=_dbNet(c); r+=v; b+=np(c); ch[_dbChan(c,di)]+=v; }); if(!p.lot){ _dbBreaks().forEach(function(x){ if((x.fecha||"").slice(0,7)===mm){ r+=x.r; b+=x.r-x.c; ch.brk+=x.r; } }); } return {r:r,b:b,ch:ch}; }
+  var s=stats(m); var y0=parseInt(m.slice(0,4),10), m0=parseInt(m.slice(5,7),10)-1; if(m0<1){m0=12;y0--;} var pm=y0+"-"+String(m0).padStart(2,"0"); var ps=stats(pm);
+  var keys=["sub","cs","on","brk"]; var top=keys.slice().sort(function(a,b){return s.ch[b]-s.ch[a];})[0]; var share=s.r>0?s.ch[top]/s.r:0;
+  var nombres={on:"la venta online",cs:"los car shows",sub:"los directos",brk:"los breaks"};
+  var frase = share>=0.5?"Más de la mitad vino de ":share>=0.4?"Casi la mitad vino de ":"Lo que más vendió: ";
+  var vs = ps.b!==0 ? Math.round((s.b-ps.b)/Math.abs(ps.b)*100) : null;
+  // eventos
+  var ev=[]; var dirAgg={}, csAgg={}, onAgg={n:0,r:0,b:0,pl:{}};
+  inv.forEach(function(c){ if((c.sellDate||"").slice(0,7)!==m) return; var k=_dbChan(c,di); if(k==="sub"){ var d=_dbDirOf(c,di)||"?"; var a=dirAgg[d]=dirAgg[d]||{n:0,r:0,b:0}; a.n++; a.r+=_dbNet(c); a.b+=np(c); } else if(k==="cs"){ var a2=csAgg[c.csId]=csAgg[c.csId]||{n:0,r:0,b:0}; a2.n++; a2.r+=_dbNet(c); a2.b+=np(c); } else { onAgg.n++; onAgg.r+=_dbNet(c); onAgg.b+=np(c); var pl=c.platform||"Otro"; onAgg.pl[pl]=(onAgg.pl[pl]||0)+1; } });
+  Object.keys(dirAgg).forEach(function(id){ var d=di.ids[id]||{}; ev.push({f:(d.date||m+"-01"),t:(d.name||"Directo"),s:dirAgg[id].n+" cartas · "+euk(dirAgg[id].r),b:dirAgg[id].b}); });
+  var shows=[]; try{ shows=JSON.parse(localStorage.getItem("cv10_cardshows")||"[]")||[]; }catch(e){}
+  Object.keys(csAgg).forEach(function(id){ var sh=shows.find(function(x){return x.id===id;})||{}; ev.push({f:(sh.fecha||m+"-01"),t:(sh.nombre||"Card show"),s:csAgg[id].n+" cartas · "+euk(csAgg[id].r),b:csAgg[id].b}); });
+  if(!p.lot){ _dbBreaks().forEach(function(x){ if((x.fecha||"").slice(0,7)===m) ev.push({f:x.fecha,t:x.nombre,s:"Break · "+euk(x.r),b:x.r-x.c}); }); }
+  ev.sort(function(a,b){ return (b.f||"").localeCompare(a.f||""); });
+  if(onAgg.n){ ev.push({f:"",t:"Ventas online sueltas",s:Object.keys(onAgg.pl).map(function(k){return k+" "+onAgg.pl[k];}).join(" · "),b:onAgg.b}); }
+  function dd(f){ if(!f) return "mes"; var d=parseInt(f.slice(8,10),10); return (isNaN(d)?"":d+" ")+MN[parseInt(f.slice(5,7),10)-1].slice(0,3); }
+  var btn={width:34,height:34,borderRadius:17,border:"1px solid "+BDR,background:BGS,fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",color:TXT};
+  return h(Card,{style:{marginBottom:20,padding:"18px"}}, h(SL,null,"🗓️ Resumen del periodo"),
+    h("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}},
+      h("button",{onClick:function(){shift(-1);},"aria-label":"Mes anterior",style:btn},"‹"),
+      h("div",{style:{fontSize:15,fontWeight:800,textTransform:"capitalize"}},lbl(m)),
+      h("button",{onClick:function(){shift(1);},"aria-label":"Mes siguiente",style:btn},"›")),
+    s.r>0 ? h("div",null,
+      h("div",{style:{fontSize:15,lineHeight:1.45,fontWeight:500}}, "Has vendido ", h("b",null,euk(s.r)), " y ganado ", h("b",{style:{color:cl(s.b)}},_dbSg(s.b)), ". "+frase, h("b",{style:{color:_DB_CH[top].c}},nombres[top]), "."),
+      vs!==null ? h("div",{style:{fontSize:11.5,color:SUB,marginTop:4}}, (vs>=0?"+":"")+vs+"% de beneficio respecto a "+MN[parseInt(pm.slice(5,7),10)-1]) : null,
+      h("div",{style:{display:"flex",height:12,borderRadius:6,overflow:"hidden",marginTop:12,background:BGS}}, keys.map(function(k){ var w=s.r>0?(s.ch[k]/s.r*100):0; return w>0?h("div",{key:k,style:{width:w+"%",background:_DB_CH[k].c}}):null; })),
+      h("div",{style:{display:"flex",gap:10,flexWrap:"wrap",fontSize:11,color:SUB,marginTop:7}}, keys.map(function(k){ return h("span",{key:k}, h("b",{style:{color:_DB_CH[k].c}},Math.round(s.r>0?s.ch[k]/s.r*100:0)+"%"), " "+(k==="on"?"Online":k==="cs"?"Car show":k==="sub"?"Subastas":"Breaks")); })),
+      h("div",{style:{fontSize:11,fontWeight:700,color:SUB,textTransform:"uppercase",letterSpacing:"0.05em",marginTop:16}},"Lo que pasó"),
+      ev.map(function(e,i){ return h("div",{key:i,style:{display:"flex",gap:10,alignItems:"center",padding:"10px 0",borderBottom:i<ev.length-1?"1px solid "+BDR:"none"}},
+        h("div",{style:{width:44,fontSize:10.5,fontWeight:700,color:MUT,flexShrink:0}},dd(e.f)),
+        h("div",{style:{flex:1,minWidth:0}}, h("div",{style:{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},e.t), h("div",{style:{fontSize:11,color:SUB}},e.s)),
+        h("div",{style:{fontSize:13,fontWeight:700,color:cl(e.b)}},_dbSg(e.b))); }))
+    : h("div",{style:{fontSize:13,color:MUT,padding:"14px 0",textAlign:"center"}},"Sin ventas en "+lbl(m)+"."));
+}
+
+function DashPersonal(){ var h=React.createElement;
+  var psa=[],aps=[],brs=[]; try{ psa=JSON.parse(localStorage.getItem("cv10p")||"[]")||[]; }catch(e){} try{ aps=JSON.parse(localStorage.getItem("cv10_aperturas")||"[]")||[]; }catch(e){} try{ brs=JSON.parse(localStorage.getItem("cv10_break_part")||"[]")||[]; }catch(e){}
+  var inv=0,val=0; psa.forEach(function(p){ inv+=(+p.cardCost||0)+(+p.shippingCost||0)+(+p.gradingCost||0); val+=(+p.realSellPrice||0); });
+  aps.forEach(function(a){ inv+=(+a.coste||0); (a.hits||[]).forEach(function(x){ val+=(+x.v||0); }); });
+  brs.forEach(function(b){ inv+=(+b.coste||0); (b.hits||[]).forEach(function(x){ val+=(+x.v||0); }); });
+  var prof=val-inv;
+  return h(Card,{style:{marginBottom:20,padding:"16px 18px"}}, h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10}},
+    h("div",{style:{minWidth:0}}, h(SL,{style:{marginBottom:6}},"🎴 Personales"), h("div",{style:{fontSize:11.5,color:SUB}},"Invertido "+euk(inv)+" · Obtenido "+euk(val))),
+    h("div",{style:{textAlign:"right",flexShrink:0}}, h("div",{style:{fontSize:15,fontWeight:700,color:cl(prof)}},_dbSg(prof)),
+      h("button",{onClick:function(){ if(window._cvSetTab) window._cvSetTab("psa"); },style:{border:"none",background:"none",padding:"4px 0",fontSize:12,fontWeight:700,color:BLUE,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Ver →"))));
+}
+
 function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
     const [chartRange, setChartRange] = React.useState("6m");
     const [portfolioRange, setPortfolioRange] = React.useState("12m");
     var uname=(window._currentUser&&(window._currentUser.displayName||window._currentUser.email.split("@")[0]))||"";
     const [dScope, setDScope] = React.useState("todo");
     const [dVal, setDVal] = React.useState("");
+    const [pPer, setPPer] = React.useState("todo");
+    const [pLot, setPLot] = React.useState("");
     const [showExp, setShowExp] = React.useState(false);
     const [expScope, setExpScope] = React.useState("total");
     const [expApart, setExpApart] = React.useState("sin");
@@ -17857,8 +17969,8 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
     var _mset={},_qset={}; inv.forEach(function(c){ var bd=(c.buyDate||""); if(bd.length>=7){ _mset[bd.slice(0,7)]=1; var qq=Math.ceil(parseInt(bd.slice(5,7),10)/3); _qset[bd.slice(0,4)+"-T"+qq]=1; } }); var monthList=Object.keys(_mset).sort().reverse(); var quarterList=Object.keys(_qset).sort().reverse();
     function _expList(){ var base=inv.filter(function(c){ var bd=(c.buyDate||""); if(expScope==="total") return true; if(!bd) return false; if(expScope==="anio") return bd.slice(0,4)===(expYear||yearList[0]); if(expScope==="mes") return bd.slice(0,7)===(expMonth||monthList[0]); if(expScope==="trimestre"){ var qq=Math.ceil(parseInt(bd.slice(5,7),10)/3); return (bd.slice(0,4)+"-T"+qq)===(expQ||quarterList[0]); } return true; }); if(expApart==="sin") base=base.filter(function(c){return !c.apartado;}); return base; }
     function _doExport(){ var L=_expList(); var mesN=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]; var per="", fkey=""; if(expScope==="total"){ per="Hist\u00f3rico (todo)"; fkey="total"; } else if(expScope==="anio"){ var yv=expYear||yearList[0]||""; per="A\u00f1o "+yv; fkey="anio-"+yv; } else if(expScope==="mes"){ var mv=expMonth||monthList[0]||""; per=(mv?(mesN[parseInt(mv.slice(5,7),10)-1]+" "+mv.slice(0,4)):"Mes"); fkey="mes-"+mv; } else if(expScope==="trimestre"){ var qv=expQ||quarterList[0]||""; per=qv?(qv.slice(5)+" "+qv.slice(0,4)):"Trimestre"; fkey="trim-"+qv; } var modo=(expApart==="con"?"con apartados":"sin apartados"); dlBalancePDF(L, "Balance de cartera", per+"  \u00b7  "+modo, "balance-"+fkey+"-"+(expApart==="con"?"con":"sin")+"-apartados"); setShowExp(false); }
-    const _dTodo = (dScope==="todo");
-    function _inScope(c){ if(_dTodo) return true; if(dScope==="destino") return cardDest(c)===(dVal||"directa"); if(dScope==="lote") return c.lotId===(dVal||((lots||[])[0]&&lots[0].id)||""); var bd=(c.buyDate||""); if(!bd) return false; if(dScope==="anio") return bd.slice(0,4)===(dVal||yearList[0]||""); if(dScope==="mes") return bd.slice(0,7)===(dVal||monthList[0]||""); if(dScope==="trimestre"){ if(bd.length<7) return false; var qq=Math.ceil(parseInt(bd.slice(5,7),10)/3); return (bd.slice(0,4)+"-T"+qq)===(dVal||quarterList[0]||""); } return true; }
+    const _dTodo = (pPer==="todo" && !pLot);
+    function _inScope(c){ if(pLot && c.lotId!==pLot) return false; return _dbPerMatch(c.buyDate||"", pPer); }
     const _periodCards = inv.filter(_inScope);
     const apartadoCards = _periodCards.filter(c=>c.apartado);
     const apartadoVal = apartadoCards.reduce((a,c)=>a+(c.buyPrice||0)*(c.quantity||1),0);
@@ -17884,15 +17996,18 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
         uname?React.createElement("div",{style:{padding:"10px 20px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",null,React.createElement("div",{style:{fontSize:17,fontWeight:700,color:TXT,fontFamily:"Inter,sans-serif"}},"Hola, "+(uname.split(" ")[0])+" \uD83D\uDC4B"),React.createElement("div",{style:{fontSize:13,color:SUB,marginTop:2}},"Bienvenido a tu portfolio")),null):null,
         React.createElement(Card, { style: { marginBottom: 20, padding: "20px 24px" } },
             React.createElement(SL, { style: { marginBottom: 12 } }, "\uD83D\uDCB0 Balance de cartera"),
-            React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 10 } },
-                [["todo","Todo"],["anio","A\u00f1o"],["trimestre","Trimestre"],["mes","Mes"],["lote","Lote"],["destino","Destino"]].map(function(o){ return React.createElement("button",{ key:o[0], onClick:function(){ setDScope(o[0]); setDVal(""); }, style:{ padding:"6px 13px", borderRadius:20, border:"1px solid "+(dScope===o[0]?BLUE:BDR), background:(dScope===o[0]?BLUE:BGS), color:(dScope===o[0]?"#fff":TXT), fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" } }, o[1]); }),
-                dScope==="anio" ? React.createElement("select",{value:(dVal||yearList[0]||""),onChange:function(e){setDVal(e.target.value);},style:{padding:"7px 10px",borderRadius:8,border:"1px solid "+BDR,background:BGS,color:TXT,fontSize:13,fontFamily:"Inter,sans-serif"}}, (yearList.length?yearList:[""]).map(function(y){return React.createElement("option",{key:y,value:y}, y||"(sin fechas)");})) : null,
-                dScope==="trimestre" ? React.createElement("select",{value:(dVal||quarterList[0]||""),onChange:function(e){setDVal(e.target.value);},style:{padding:"7px 10px",borderRadius:8,border:"1px solid "+BDR,background:BGS,color:TXT,fontSize:13,fontFamily:"Inter,sans-serif"}}, (quarterList.length?quarterList:[""]).map(function(q){return React.createElement("option",{key:q,value:q}, q?(q.slice(5)+" "+q.slice(0,4)):"(sin fechas)");})) : null,
-                dScope==="mes" ? React.createElement("select",{value:(dVal||monthList[0]||""),onChange:function(e){setDVal(e.target.value);},style:{padding:"7px 10px",borderRadius:8,border:"1px solid "+BDR,background:BGS,color:TXT,fontSize:13,fontFamily:"Inter,sans-serif"}}, (monthList.length?monthList:[""]).map(function(m){ var mn=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]; return React.createElement("option",{key:m,value:m}, m?(mn[parseInt(m.slice(5,7),10)-1]+" "+m.slice(0,4)):"(sin fechas)");})) : null,
-                dScope==="destino" ? React.createElement("select",{value:(dVal||"directa"),onChange:function(e){setDVal(e.target.value);},style:{padding:"7px 10px",borderRadius:8,border:"1px solid "+BDR,background:BGS,color:TXT,fontSize:13,fontFamily:"Inter,sans-serif"}}, ["inversion","directa","subasta"].map(function(k){return React.createElement("option",{key:k,value:k},DESTINOS[k].l);})) : null,
-                dScope==="lote" ? React.createElement("select",{value:(dVal||((lots||[])[0]&&lots[0].id)||""),onChange:function(e){setDVal(e.target.value);},style:{padding:"7px 10px",borderRadius:8,border:"1px solid "+BDR,background:BGS,color:TXT,fontSize:13,fontFamily:"Inter,sans-serif",maxWidth:220}}, ((lots&&lots.length)?lots:[{id:"",name:"(sin lotes)"}]).map(function(l){return React.createElement("option",{key:l.id,value:l.id}, l.name||"Lote");})) : null,
-                React.createElement("div",{style:{flexGrow:1,minWidth:4}}),
-                React.createElement("button", { onClick: function(){ setShowExp(true); }, style: { padding: "6px 13px", borderRadius: 20, border: "none", background: BLUE, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, "\u2B07 Exportar")),
+            (function(){ var selS={ flex:"1 1 130px", minWidth:0, padding:"8px 10px", borderRadius:8, border:"1px solid "+BDR, background:BGS, color:TXT, fontSize:13, fontWeight:600, fontFamily:"Inter,sans-serif" }; var MNn=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+              return React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center", marginBottom: 12 } },
+                React.createElement("select", { "aria-label":"Periodo", value:pPer, onChange:function(e){ setPPer(e.target.value); }, style:selS },
+                  React.createElement("option",{value:"todo"},"Todo"),
+                  yearList.length ? React.createElement("optgroup",{label:"A\u00f1o"}, yearList.map(function(y){ return React.createElement("option",{key:y,value:"a:"+y},y); })) : null,
+                  quarterList.length ? React.createElement("optgroup",{label:"Trimestre"}, quarterList.map(function(q){ return React.createElement("option",{key:q,value:"t:"+q},q.slice(5)+" "+q.slice(0,4)); })) : null,
+                  monthList.length ? React.createElement("optgroup",{label:"Mes"}, monthList.map(function(m){ return React.createElement("option",{key:m,value:"m:"+m},MNn[parseInt(m.slice(5,7),10)-1]+" "+m.slice(0,4)); })) : null),
+                React.createElement("select", { "aria-label":"Lote", value:pLot, onChange:function(e){ setPLot(e.target.value); }, style:selS },
+                  React.createElement("option",{value:""},"Lote: todos"),
+                  (lots||[]).map(function(l){ return React.createElement("option",{key:l.id,value:l.id},l.name); })),
+                React.createElement("button", { onClick: function(){ setShowExp(true); }, "aria-label":"Exportar", style: { padding: "8px 11px", borderRadius: 8, border: "none", background: BLUE, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif", flexShrink: 0 } }, "\u2B07"));
+            })(),
             apartadoCards.length ? React.createElement("div", { style: { fontSize: 12, color: SUB, marginBottom: 12 } }, "\uD83D\uDCCC Tienes " + apartadoCards.length + " carta(s) apartada(s) por " + euk(apartadoVal) + " (incluidas en el balance; al Exportar eliges con o sin ellas)") : null,
             showExp ? React.createElement("div", { onClick:function(){setShowExp(false);}, style:{ position:"fixed", left:0, top:0, right:0, bottom:0, background:"rgba(0,0,0,.5)", zIndex:400, display:"flex", alignItems:"center", justifyContent:"center", padding:16 } },
                 React.createElement("div", { onClick:function(e){e.stopPropagation();}, style:{ background:"#fff", borderRadius:16, padding:20, width:"92%", maxWidth:380, boxSizing:"border-box", boxShadow:"0 10px 40px rgba(0,0,0,.25)" } },
@@ -17920,6 +18035,11 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
                 React.createElement("span", { style: { color: TXT } }, euk(invested), " invertido"),
                 React.createElement("span", { style: { color: MUT } }, " = "),
                 React.createElement("span", { style: { fontWeight: 700, color: cl(balance) } }, balance >= 0 ? "+" : "", euk(balance)))),
+        React.createElement(DashRecorrido, { invested: invested, inPortfolio: inPortfolio, recovered: recovered, realized: realized, nAll: cohort.length, nHold: hold.length, nSold: sold.length }),
+        React.createElement(DashCanales, { sold: sold, per: pPer, lot: pLot }),
+        React.createElement(DashStock, { hold: hold }),
+        React.createElement(DashResumen, { cards: cards, lot: pLot }),
+        React.createElement(DashPersonal, null),
 
                 React.createElement("div", { className: "dash-chart-grid", style: { display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(0,2fr)", gap: 16, marginBottom: 20 } },
             React.createElement(Card, { style: { padding: "18px 18px 12px" } },
@@ -21633,7 +21753,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v277")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v278")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -21992,7 +22112,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
       React.createElement("button", { onClick: function() { setShowSettings(false); }, style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB, lineHeight: 1 } }, "\u00D7")
     ),
     React.createElement("div", { style: { background: BGS, border: "1px solid " + BDR, borderRadius: 10, padding: "11px 13px", marginBottom: 18 } },
-      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v277"),
+      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v278"),
       (function(){ var t, ok=false; if(!window._currentUser){ t="\u26A0\uFE0F Sin sesi\u00F3n \u2014 los cambios NO se suben a la nube"; } else if(window._cvSyncErr){ t="\u26A0\uFE0F La \u00FAltima subida no se confirm\u00F3 \u2014 revisa tu conexi\u00F3n"; } else if(window._cvLastSync){ var s=Math.round((Date.now()-window._cvLastSync)/1000); t="\u2714 Nube sincronizada (hace "+(s<90?s+"s":Math.round(s/60)+" min")+")"; ok=true; } else { t="Nube conectada"; ok=true; } return React.createElement("div", { style: { fontSize: 11.5, color: ok?"#0a7a55":"#c0392b", marginTop: 4, fontWeight: 600 } }, t); })()
     ),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "AYUDA"),
