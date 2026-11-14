@@ -17848,7 +17848,9 @@ function _dbChan(c, di){ if(c.csId) return "cs"; if(c.dirId && di.ids[c.dirId]) 
 function _dbDirOf(c, di){ if(c.dirId && di.ids[c.dirId]) return c.dirId; return di.byCard[c.id]||""; }
 function _dbBreaks(){ var gb={}; try{ gb=JSON.parse(localStorage.getItem("tcg_breaks_v2")||"{}")||{}; }catch(e){} var out=[]; (gb.breaks||[]).forEach(function(b){ var sold=0; (b.spots||[]).forEach(function(sp){ if((sp.comp||"").trim()) sold+=(+sp.precio||0); }); if(sold>0) out.push({ nombre:(b.nombre||"Break"), fecha:(b.fecha||""), r:sold, c:(+b.coste||0)+(+b.comision||0) }); }); return out; }
 function _dbPerMatch(fecha, per){ if(!per||per==="todo") return true; var f=fecha||""; if(!f) return false; var t=per.slice(0,1), v=per.slice(2); if(t==="a") return f.slice(0,4)===v; if(t==="m") return f.slice(0,7)===v; if(t==="t"){ if(f.length<7) return false; var qq=Math.ceil(parseInt(f.slice(5,7),10)/3); return (f.slice(0,4)+"-T"+qq)===v; } return true; }
-var _DB_CH = { on:{l:"Venta directa online",c:"#004D98"}, cs:{l:"Car shows",c:"#f59e0b"}, sub:{l:"Subastas (Geek)",c:"#A50044"}, brk:{l:"Breaks",c:"#7c3aed"} };
+function _dbTag(t){ return t ? React.createElement("span",{style:{marginLeft:2,fontSize:10,fontWeight:700,letterSpacing:0,textTransform:"none",color:BLUE,background:"#eff4ff",border:"1px solid #cfe0ff",borderRadius:20,padding:"1px 8px",whiteSpace:"nowrap"}},t) : null; }
+function _dbGo(tab, dest){ if(dest){ window._cvInvDest=dest; setTimeout(function(){ window._cvInvDest=""; },2500); } if(window._cvSetTab) window._cvSetTab(tab); try{ window.scrollTo(0,0); }catch(e){} }
+var _DB_CH = { on:{l:"Venta directa online",c:"#004D98"}, cs:{l:"Card shows",c:"#f59e0b"}, sub:{l:"Subastas (Geek)",c:"#A50044"}, brk:{l:"Breaks",c:"#7c3aed"} };
 
 function DashRecorrido(p){ var h=React.createElement;
   function step(n,label,sub,val,color){ return h("div",{style:{display:"flex",alignItems:"center",gap:10}},
@@ -17858,7 +17860,7 @@ function DashRecorrido(p){ var h=React.createElement;
       h("div",{style:{fontSize:15,fontWeight:700,color:color||TXT,whiteSpace:"nowrap"}},val))); }
   function vl(){ return h("div",{style:{width:2,height:10,background:"linear-gradient(#004D98,#A50044)",marginLeft:10}}); }
   var costSold=p.invested-p.inPortfolio; var marg=costSold>0?Math.round(p.realized/costSold*100):0;
-  return h(Card,{style:{marginBottom:20,padding:"18px"}}, h(SL,null,"🔁 Recorrido del dinero"),
+  return h(Card,{style:{marginBottom:20,padding:"18px"}}, h(SL,null,["\uD83D\uDD01 Recorrido del dinero ", _dbTag(p.scope)]),
     step(1,"Comprado",p.nAll+" cartas",euk(p.invested)), vl(),
     step(2,"Aún en stock",p.nHold+" cartas",euk(p.inPortfolio),BLUE), vl(),
     step(3,"Vendido",p.nSold+" cartas · neto",euk(p.recovered),GREEN), vl(),
@@ -17871,26 +17873,27 @@ function DashCanales(p){ var h=React.createElement; var di=_dbDirInfo();
   var brs=p.lot?[]:_dbBreaks().filter(function(b){ return _dbPerMatch(b.fecha,p.per); }); brs.forEach(function(b){ agg.brk.r+=b.r; agg.brk.b+=b.r-b.c; agg.brk.n+=1; });
   var pls=Object.keys(plat).sort(function(a,b){return plat[b]-plat[a];}).slice(0,3).map(function(k){ return k+" "+euk(plat[k]); }).join(" · ");
   function mg(a){ var cost=a.r-a.b; return cost>0?Math.round(a.b/cost*100)+"%":"—"; }
-  var det={ on:(pls||"sin ventas"), cs:Object.keys(shows).length+" car show(s) · margen "+mg(agg.cs), sub:Object.keys(dset).length+" directo(s) · margen "+mg(agg.sub), brk:(p.lot?"no aplica a lotes":agg.brk.n+" break(s) · margen "+mg(agg.brk)) };
+  var det={ on:(pls||"sin ventas"), cs:Object.keys(shows).length+" card show(s) \u00b7 margen "+mg(agg.cs), sub:Object.keys(dset).length+" directo(s) · margen "+mg(agg.sub), brk:(p.lot?"no aplica a lotes":agg.brk.n+" break(s) · margen "+mg(agg.brk)) };
   var cnt={ on:agg.on.n+" cartas", cs:agg.cs.n+" cartas", sub:agg.sub.n+" cartas", brk:"" };
-  return h(Card,{style:{marginBottom:20,padding:"18px"}}, h(SL,null,"🛒 Ventas por canal"),
+  var go={ on:function(){ _dbGo("inventory","directa"); }, cs:function(){ _dbGo("cardshows"); }, sub:function(){ _dbGo("inventory","subasta"); }, brk:function(){ _dbGo("breaks"); } };
+  return h(Card,{style:{marginBottom:20,padding:"18px"}}, h(SL,null,["\uD83D\uDED2 Ventas por canal ", _dbTag(p.scope)]),
     h("div",{style:{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:10}}, ["on","cs","sub","brk"].map(function(k){ var a=agg[k];
-      return h("div",{key:k,style:{background:BGS,borderRadius:10,padding:"10px 12px",border:"1px solid "+BDR,minWidth:0}},
-        h("div",{style:{display:"flex",alignItems:"center",gap:6}}, h("span",{style:{width:8,height:8,borderRadius:4,background:_DB_CH[k].c,flexShrink:0}}), h("span",{style:{fontSize:11,fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},_DB_CH[k].l)),
-        h("div",{style:{fontSize:15,fontWeight:700,color:a.n?cl(a.b):MUT,marginTop:5}}, a.n?_dbSg(a.b):"—"),
+      return h("button",{key:k,onClick:go[k],style:{textAlign:"left",background:BGS,borderRadius:10,padding:"10px 12px",border:"1px solid "+BDR,minWidth:0,cursor:"pointer",fontFamily:"Inter,sans-serif",color:TXT,display:"block",width:"100%"}},
+        h("div",{style:{display:"flex",alignItems:"center",gap:6}}, h("span",{style:{width:8,height:8,borderRadius:4,background:_DB_CH[k].c,flexShrink:0}}), h("span",{style:{fontSize:11,fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",flex:1}},_DB_CH[k].l), h("span",{style:{fontSize:12,color:MUT,flexShrink:0}},"\u203A")),
+        h("div",{style:{display:"flex",alignItems:"baseline",gap:5,marginTop:5}}, h("span",{style:{fontSize:15,fontWeight:700,color:a.n?cl(a.b):MUT}}, a.n?_dbSg(a.b):"\u2014"), a.n?h("span",{style:{fontSize:10,color:SUB}},"beneficio"):null),
         h("div",{style:{fontSize:10,color:SUB,marginTop:1}}, euk(a.r)+" vendido"+(cnt[k]?" · "+cnt[k]:"")),
         h("div",{style:{fontSize:10,color:MUT,marginTop:5,lineHeight:1.4}}, det[k])); })),
-    h("div",{style:{fontSize:10.5,color:MUT,marginTop:10}},"Cuenta las cartas del filtro de arriba. El canal sale de dónde se vendió de verdad (car show, directo o plataforma)."));
+    h("div",{style:{fontSize:10.5,color:MUT,marginTop:10}},"Cuenta las cartas del filtro de arriba. Toca un canal para ir a \u00e9l."));
 }
 
 function DashStock(p){ var h=React.createElement;
   var hold=(p.hold||[]); var g={ inversion:{n:0,cost:0,val:0}, directa:{n:0,cost:0,old:0}, subasta:{n:0,cost:0,lots:{}} };
   hold.forEach(function(c){ var k=cardDest(c), q=(c.quantity||1), cost=(c.buyPrice||0)*q; g[k].n+=1; g[k].cost+=cost; if(k==="inversion") g[k].val+=(c.marketPrice||c.targetPrice||c.buyPrice||0)*q; if(k==="directa"){ var ds=_diasStock(c.buyDate); if(ds!=null&&ds>90) g[k].old+=1; } if(k==="subasta"&&c.lotId) g[k].lots[c.lotId]=1; });
-  function row(k,right,rc,last){ var d=DESTINOS[k]; return h("div",{key:k,style:{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,padding:"11px 0",borderBottom:last?"none":"1px solid "+BDR}},
+  function row(k,right,rc,last){ var d=DESTINOS[k]; return h("button",{key:k,onClick:function(){ _dbGo("inventory",k); },style:{display:"flex",width:"100%",textAlign:"left",background:"none",border:"none",borderBottom:last?"none":"1px solid "+BDR,fontFamily:"Inter,sans-serif",color:TXT,cursor:"pointer",justifyContent:"space-between",alignItems:"center",gap:10,padding:"11px 0"}},
     h("div",{style:{minWidth:0}}, h("span",{style:{fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:20,background:d.c+"14",color:d.c,border:"1.5px solid "+d.c}},d.l), h("div",{style:{fontSize:11.5,color:SUB,marginTop:5}}, g[k].n+" cartas · costaron "+euk(g[k].cost))),
     h("div",{style:{fontSize:12.5,fontWeight:700,color:rc||TXT,textAlign:"right"}},right)); }
   var lat=g.inversion.val-g.inversion.cost;
-  return h(Card,{style:{marginBottom:20,padding:"18px"}}, h(SL,null,"📦 Stock por destino"),
+  return h(Card,{style:{marginBottom:20,padding:"18px"}}, h(SL,null,["\uD83D\uDCE6 Stock por destino ", _dbTag(p.scope)]),
     row("inversion", h("span",null,"vale "+euk(g.inversion.val), h("br"), h("span",{style:{color:cl(lat)}},_dbSg(lat)+" latente"))),
     row("directa", g.directa.old? g.directa.old+" con +90 días" : "al día", g.directa.old?AMBER:SUB),
     row("subasta", Object.keys(g.subasta.lots).length+" lote(s)", SUB, true));
@@ -17906,7 +17909,7 @@ function DashResumen(p){ var h=React.createElement;
   function stats(mm){ var r=0,b=0,ch={on:0,cs:0,sub:0,brk:0}; inv.forEach(function(c){ if((c.sellDate||"").slice(0,7)!==mm) return; var v=_dbNet(c); r+=v; b+=np(c); ch[_dbChan(c,di)]+=v; }); if(!p.lot){ _dbBreaks().forEach(function(x){ if((x.fecha||"").slice(0,7)===mm){ r+=x.r; b+=x.r-x.c; ch.brk+=x.r; } }); } return {r:r,b:b,ch:ch}; }
   var s=stats(m); var y0=parseInt(m.slice(0,4),10), m0=parseInt(m.slice(5,7),10)-1; if(m0<1){m0=12;y0--;} var pm=y0+"-"+String(m0).padStart(2,"0"); var ps=stats(pm);
   var keys=["sub","cs","on","brk"]; var top=keys.slice().sort(function(a,b){return s.ch[b]-s.ch[a];})[0]; var share=s.r>0?s.ch[top]/s.r:0;
-  var nombres={on:"la venta online",cs:"los car shows",sub:"los directos",brk:"los breaks"};
+  var nombres={on:"la venta online",cs:"los card shows",sub:"los directos",brk:"los breaks"};
   var frase = share>=0.5?"Más de la mitad vino de ":share>=0.4?"Casi la mitad vino de ":"Lo que más vendió: ";
   var vs = ps.b!==0 ? Math.round((s.b-ps.b)/Math.abs(ps.b)*100) : null;
   // eventos
@@ -17920,23 +17923,30 @@ function DashResumen(p){ var h=React.createElement;
   if(onAgg.n){ ev.push({f:"",t:"Ventas online sueltas",s:Object.keys(onAgg.pl).map(function(k){return k+" "+onAgg.pl[k];}).join(" · "),b:onAgg.b}); }
   function dd(f){ if(!f) return "mes"; var d=parseInt(f.slice(8,10),10); return (isNaN(d)?"":d+" ")+MN[parseInt(f.slice(5,7),10)-1].slice(0,3); }
   var btn={width:34,height:34,borderRadius:17,border:"1px solid "+BDR,background:BGS,fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",color:TXT};
-  return h(Card,{style:{marginBottom:20,padding:"18px"}}, h(SL,null,"🗓️ Resumen del periodo"),
+  var bought=(p.cards||[]).filter(function(c){ return c.mode==="inventory" && (c.buyDate||"").slice(0,7)===m && (!p.lot || c.lotId===p.lot); });
+  var gast=bought.reduce(function(a,c){ return a+(c.buyPrice||0)*(c.quantity||1); },0);
+  var pend=bought.filter(function(c){ return c.status!=="sold"; }); var pendCost=pend.reduce(function(a,c){ return a+(c.buyPrice||0)*(c.quantity||1); },0);
+  var costSold=s.r-s.b; var caja=s.r-gast;
+  function mini(label,val,color,l1,l2){ return h("div",{style:{background:BGS,border:"1px solid "+BDR,borderRadius:10,padding:"9px 10px",minWidth:0}}, h("div",{style:{fontSize:10,color:SUB,lineHeight:1.25}},label), h("div",{style:{fontSize:15,fontWeight:700,color:color||TXT,marginTop:3,whiteSpace:"nowrap"}},val), h("div",{style:{fontSize:10,color:MUT,marginTop:3,lineHeight:1.35}},l1), l2?h("div",{style:{fontSize:10,color:MUT,lineHeight:1.35}},l2):null); }
+  var moneyRow = h("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:8,marginBottom:10}},
+    mini("Beneficio de lo vendido", s.r>0?_dbSg(s.b):"\u2014", s.r>0?cl(s.b):MUT, "cobrado "+euk(s.r), "coste "+euk(costSold)),
+    mini("Caja del mes", (gast||s.r)?_dbSg(caja):"\u2014", (gast||s.r)?cl(caja):MUT, "gastado "+euk(gast), "cobrado "+euk(s.r)),
+    mini("Pendientes", pend.length+" cartas", pend.length?AMBER:TXT, "compradas este mes", "costaron "+euk(pendCost)));
+  return h(Card,{style:{marginBottom:20,padding:"18px"}}, h(SL,null,["\uD83D\uDDD3\uFE0F Resumen del periodo ", _dbTag(p.lotName)]),
     h("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}},
       h("button",{onClick:function(){shift(-1);},"aria-label":"Mes anterior",style:btn},"‹"),
       h("div",{style:{fontSize:15,fontWeight:800,textTransform:"capitalize"}},lbl(m)),
-      h("button",{onClick:function(){shift(1);},"aria-label":"Mes siguiente",style:btn},"›")),
+      h("button",{onClick:function(){shift(1);},"aria-label":"Mes siguiente",style:btn},"\u203A")),
+    moneyRow,
     s.r>0 ? h("div",null,
-      h("div",{style:{display:"flex",alignItems:"baseline",gap:10,flexWrap:"wrap"}},
-        h("span",{style:{fontSize:15,fontWeight:700}},euk(s.r)), h("span",{style:{fontSize:11,color:SUB}},"vendido"),
-        h("span",{style:{fontSize:15,fontWeight:700,color:cl(s.b)}},_dbSg(s.b)), h("span",{style:{fontSize:11,color:SUB}},"beneficio"),
-        vs!==null ? h("span",{style:{fontSize:11,fontWeight:600,color:vs>=0?GREEN:RED,marginLeft:"auto"}},(vs>=0?"+":"")+vs+"% vs "+MN[parseInt(pm.slice(5,7),10)-1].slice(0,3)) : null),
+      vs!==null ? h("div",{style:{fontSize:10.5,color:SUB}}, "Beneficio de lo vendido ", h("b",{style:{color:vs>=0?GREEN:RED}},(vs>=0?"+":"")+vs+"%"), " vs "+MN[parseInt(pm.slice(5,7),10)-1]) : null,
       h("div",{style:{display:"flex",height:6,borderRadius:3,overflow:"hidden",marginTop:10,background:BGS}}, keys.map(function(k){ var w=s.r>0?(s.ch[k]/s.r*100):0; return w>0?h("div",{key:k,style:{width:w+"%",background:_DB_CH[k].c}}):null; })),
-      h("div",{style:{display:"flex",gap:10,flexWrap:"wrap",fontSize:10.5,color:SUB,marginTop:6}}, keys.filter(function(k){ return s.ch[k]>0; }).map(function(k){ return h("span",{key:k,style:{display:"inline-flex",alignItems:"center",gap:4}}, h("span",{style:{width:6,height:6,borderRadius:3,background:_DB_CH[k].c}}), (k==="on"?"Online":k==="cs"?"Car show":k==="sub"?"Subastas":"Breaks")+" "+Math.round(s.ch[k]/s.r*100)+"%"); })),
+      h("div",{style:{display:"flex",gap:10,flexWrap:"wrap",fontSize:10.5,color:SUB,marginTop:6}}, keys.filter(function(k){ return s.ch[k]>0; }).map(function(k){ return h("span",{key:k,style:{display:"inline-flex",alignItems:"center",gap:4}}, h("span",{style:{width:6,height:6,borderRadius:3,background:_DB_CH[k].c}}), (k==="on"?"Online":k==="cs"?"Card show":k==="sub"?"Subastas":"Breaks")+" "+Math.round(s.ch[k]/s.r*100)+"%"); })),
       h("div",{style:{marginTop:10,borderTop:"1px solid "+BDR}}, ev.map(function(e,i){ return h("div",{key:i,style:{display:"flex",gap:8,alignItems:"center",padding:"7px 0",borderBottom:i<ev.length-1?"1px solid "+BDR:"none"}},
         h("div",{style:{width:40,fontSize:10,fontWeight:700,color:MUT,flexShrink:0}},dd(e.f)),
         h("div",{style:{flex:1,minWidth:0,fontSize:12,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}, h("span",{style:{fontWeight:600}},e.t), h("span",{style:{color:MUT}}," \u00b7 "+e.s)),
         h("div",{style:{fontSize:12,fontWeight:700,color:cl(e.b),flexShrink:0}},_dbSg(e.b))); })))
-    : h("div",{style:{fontSize:13,color:MUT,padding:"14px 0",textAlign:"center"}},"Sin ventas en "+lbl(m)+"."));
+    : h("div",{style:{fontSize:12,color:MUT,padding:"6px 0",textAlign:"center"}},"Sin ventas en "+lbl(m)+"."));
 }
 
 function DashPersonal(){ var h=React.createElement;
@@ -17971,6 +17981,10 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
     function _expList(){ var base=inv.filter(function(c){ var bd=(c.buyDate||""); if(expScope==="total") return true; if(!bd) return false; if(expScope==="anio") return bd.slice(0,4)===(expYear||yearList[0]); if(expScope==="mes") return bd.slice(0,7)===(expMonth||monthList[0]); if(expScope==="trimestre"){ var qq=Math.ceil(parseInt(bd.slice(5,7),10)/3); return (bd.slice(0,4)+"-T"+qq)===(expQ||quarterList[0]); } return true; }); if(expApart==="sin") base=base.filter(function(c){return !c.apartado;}); return base; }
     function _doExport(){ var L=_expList(); var mesN=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]; var per="", fkey=""; if(expScope==="total"){ per="Hist\u00f3rico (todo)"; fkey="total"; } else if(expScope==="anio"){ var yv=expYear||yearList[0]||""; per="A\u00f1o "+yv; fkey="anio-"+yv; } else if(expScope==="mes"){ var mv=expMonth||monthList[0]||""; per=(mv?(mesN[parseInt(mv.slice(5,7),10)-1]+" "+mv.slice(0,4)):"Mes"); fkey="mes-"+mv; } else if(expScope==="trimestre"){ var qv=expQ||quarterList[0]||""; per=qv?(qv.slice(5)+" "+qv.slice(0,4)):"Trimestre"; fkey="trim-"+qv; } var modo=(expApart==="con"?"con apartados":"sin apartados"); dlBalancePDF(L, "Balance de cartera", per+"  \u00b7  "+modo, "balance-"+fkey+"-"+(expApart==="con"?"con":"sin")+"-apartados"); setShowExp(false); }
     const _dTodo = (pPer==="todo" && !pLot);
+    var _MNx=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+    var _perLbl = pPer==="todo" ? "" : pPer.slice(0,1)==="a" ? ("A\u00f1o "+pPer.slice(2)) : pPer.slice(0,1)==="t" ? (pPer.slice(7)+" "+pPer.slice(2,6)) : (_MNx[parseInt(pPer.slice(7,9),10)-1]+" "+pPer.slice(2,6));
+    var _lotObj = pLot ? (lots||[]).find(function(l){ return l.id===pLot; }) : null; var _lotLbl = _lotObj ? _lotObj.name : "";
+    var _scope = [_perLbl, _lotLbl].filter(function(x){ return x; }).join(" \u00b7 ");
     function _inScope(c){ if(pLot && c.lotId!==pLot) return false; return _dbPerMatch(c.buyDate||"", pPer); }
     const _periodCards = inv.filter(_inScope);
     const apartadoCards = _periodCards.filter(c=>c.apartado);
@@ -17995,20 +18009,35 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
 
     return (React.createElement("div", null,
         uname?React.createElement("div",{style:{padding:"10px 20px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",null,React.createElement("div",{style:{fontSize:17,fontWeight:700,color:TXT,fontFamily:"Inter,sans-serif"}},"Hola, "+(uname.split(" ")[0])+" \uD83D\uDC4B"),React.createElement("div",{style:{fontSize:13,color:SUB,marginTop:2}},"Bienvenido a tu portfolio")),null):null,
-        React.createElement(Card, { style: { marginBottom: 20, padding: "20px 24px" } },
-            React.createElement(SL, { style: { marginBottom: 12 } }, "\uD83D\uDCB0 Balance de cartera"),
-            (function(){ var selS={ flex:"1 1 130px", minWidth:0, padding:"8px 10px", borderRadius:8, border:"1px solid "+BDR, background:BGS, color:TXT, fontSize:13, fontWeight:600, fontFamily:"Inter,sans-serif" }; var MNn=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-              return React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center", marginBottom: 12 } },
-                React.createElement("select", { "aria-label":"Periodo", value:pPer, onChange:function(e){ setPPer(e.target.value); }, style:selS },
-                  React.createElement("option",{value:"todo"},"Todo"),
-                  yearList.length ? React.createElement("optgroup",{label:"A\u00f1o"}, yearList.map(function(y){ return React.createElement("option",{key:y,value:"a:"+y},y); })) : null,
+        (function(){
+          var act = !_dTodo;
+          function pill(icon, text, on, selEl){ return React.createElement("div", { style: { position:"relative", flex:"1 1 0", minWidth:0, display:"flex", alignItems:"center", gap:6, padding:"9px 11px", borderRadius:10, border:"1.5px solid "+(on?BLUE:BDR), background:on?BLUE:"#fff", color:on?"#fff":TXT, fontSize:13, fontWeight:700, overflow:"hidden" } },
+            React.createElement("span", { style:{ fontSize:13, flexShrink:0 } }, icon),
+            React.createElement("span", { style:{ flex:1, minWidth:0, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" } }, text),
+            React.createElement("span", { style:{ fontSize:10, opacity:0.8, flexShrink:0 } }, "\u25BE"), selEl); }
+          var ov = { position:"absolute", top:0, left:0, width:"100%", height:"100%", opacity:0, cursor:"pointer", fontSize:16 };
+          return React.createElement(Card, { style: { marginBottom: 14, padding: "12px 14px", background: act ? "#f4f8ff" : BG, border: "1px solid "+(act?"#cfe0ff":BDR), position: act ? "sticky" : "relative", top: 0, zIndex: 5, boxShadow: act ? "0 4px 14px rgba(0,77,152,0.12)" : "none" } },
+            React.createElement("div", { style: { display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: 8 } },
+              React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: act?BLUE:SUB, textTransform:"uppercase", letterSpacing:"0.06em" } }, act ? "Filtro aplicado a todo el dashboard" : "Mostrando todo"),
+              act ? React.createElement("button", { onClick:function(){ setPPer("todo"); setPLot(""); }, style:{ border:"none", background:"none", color:RED, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif", padding:"2px 0" } }, "\u2715 Quitar") : null),
+            React.createElement("div", { style: { display:"flex", gap:8 } },
+              pill("\uD83D\uDCC5", _perLbl || "Todas las fechas", pPer!=="todo",
+                React.createElement("select", { "aria-label":"Periodo", value:pPer, onChange:function(e){ setPPer(e.target.value); }, style:ov },
+                  React.createElement("option",{value:"todo"},"Todas las fechas"),
+                  yearList.length ? React.createElement("optgroup",{label:"A\u00f1o"}, yearList.map(function(y){ return React.createElement("option",{key:y,value:"a:"+y},"A\u00f1o "+y); })) : null,
                   quarterList.length ? React.createElement("optgroup",{label:"Trimestre"}, quarterList.map(function(q){ return React.createElement("option",{key:q,value:"t:"+q},q.slice(5)+" "+q.slice(0,4)); })) : null,
-                  monthList.length ? React.createElement("optgroup",{label:"Mes"}, monthList.map(function(m){ return React.createElement("option",{key:m,value:"m:"+m},MNn[parseInt(m.slice(5,7),10)-1]+" "+m.slice(0,4)); })) : null),
-                React.createElement("select", { "aria-label":"Lote", value:pLot, onChange:function(e){ setPLot(e.target.value); }, style:selS },
-                  React.createElement("option",{value:""},"Lote: todos"),
-                  (lots||[]).map(function(l){ return React.createElement("option",{key:l.id,value:l.id},l.name); })),
-                React.createElement("button", { onClick: function(){ setShowExp(true); }, "aria-label":"Exportar", style: { padding: "8px 11px", borderRadius: 8, border: "none", background: BLUE, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif", flexShrink: 0 } }, "\u2B07"));
-            })(),
+                  monthList.length ? React.createElement("optgroup",{label:"Mes"}, monthList.map(function(mm){ return React.createElement("option",{key:mm,value:"m:"+mm},_MNx[parseInt(mm.slice(5,7),10)-1]+" "+mm.slice(0,4)); })) : null)),
+              pill("\uD83D\uDCE6", _lotLbl || "Todos los lotes", !!pLot,
+                React.createElement("select", { "aria-label":"Lote", value:pLot, onChange:function(e){ setPLot(e.target.value); }, style:ov },
+                  React.createElement("option",{value:""},"Todos los lotes"),
+                  (lots||[]).map(function(l){ return React.createElement("option",{key:l.id,value:l.id},l.name); })))),
+            act ? React.createElement("div", { style:{ fontSize:10.5, color:SUB, marginTop:8 } }, "Las fechas son de compra. Cada bloque lleva la etiqueta azul con el filtro.") : null);
+        })(),
+        React.createElement(Card, { style: { marginBottom: 20, padding: "20px 24px" } },
+            React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 12 } },
+              React.createElement(SL, { style: { marginBottom: 0 } }, ["\uD83D\uDCB0 Balance de cartera ", _dbTag(_scope)]),
+              React.createElement("button", { onClick: function(){ setShowExp(true); }, "aria-label":"Exportar", style: { padding: "5px 10px", borderRadius: 8, border: "1px solid "+BDR, background: BGS, color: BLUE, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif", flexShrink: 0 } }, "\u2B07 PDF")),
+
             apartadoCards.length ? React.createElement("div", { style: { fontSize: 12, color: SUB, marginBottom: 12 } }, "\uD83D\uDCCC Tienes " + apartadoCards.length + " carta(s) apartada(s) por " + euk(apartadoVal) + " (incluidas en el balance; al Exportar eliges con o sin ellas)") : null,
             showExp ? React.createElement("div", { onClick:function(){setShowExp(false);}, style:{ position:"fixed", left:0, top:0, right:0, bottom:0, background:"rgba(0,0,0,.5)", zIndex:400, display:"flex", alignItems:"center", justifyContent:"center", padding:16 } },
                 React.createElement("div", { onClick:function(e){e.stopPropagation();}, style:{ background:"#fff", borderRadius:16, padding:20, width:"92%", maxWidth:380, boxSizing:"border-box", boxShadow:"0 10px 40px rgba(0,0,0,.25)" } },
@@ -18036,13 +18065,13 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
                 React.createElement("span", { style: { color: TXT } }, euk(invested), " invertido"),
                 React.createElement("span", { style: { color: MUT } }, " = "),
                 React.createElement("span", { style: { fontWeight: 700, color: cl(balance) } }, balance >= 0 ? "+" : "", euk(balance)))),
-        React.createElement(DashCanales, { sold: sold, per: pPer, lot: pLot }),
-        React.createElement(DashResumen, { cards: cards, lot: pLot }),
+        React.createElement(DashCanales, { sold: sold, per: pPer, lot: pLot, scope: _scope }),
+        React.createElement(DashResumen, { cards: cards, lot: pLot, lotName: _lotLbl }),
 
                 React.createElement("div", { className: "dash-chart-grid", style: { display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(0,2fr)", gap: 16, marginBottom: 20 } },
             React.createElement(Card, { style: { padding: "18px 18px 12px" } },
                 React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } },
-                  React.createElement(SL, null, "P&L mensual (neto)"),
+                  React.createElement(SL, null, ["P&L mensual (neto) ", _dbTag(_scope)]),
                   React.createElement("div", { style: { display: "flex", gap: 4 } },
                     ["3m","6m","12m","todo"].map(function(r) {
                       return React.createElement("button", { key: r, onClick: function(){ setChartRange(r); }, style: { padding: "3px 8px", fontSize: 10, fontWeight: chartRange===r?700:400, border: "1px solid " + (chartRange===r?"#004D98":"#e5e7eb"), borderRadius: 6, background: chartRange===r?"#eff6ff":"transparent", color: chartRange===r?"#004D98":"#6b7280", cursor: "pointer", fontFamily: "Inter,sans-serif" } }, r);
@@ -18057,7 +18086,7 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
                         React.createElement(Recharts.Bar, { dataKey: "pnl", radius: [4, 4, 0, 0] }, chartData.map((d, i) => React.createElement(Recharts.Cell, { key: i, fill: d.pnl >= 0 ? GREEN : RED })))))) : (React.createElement("div", { style: { height: 150, display: "flex", alignItems: "center", justifyContent: "center" } },
                     React.createElement("span", { style: { color: MUT, fontSize: 12 } }, "Sin ventas a\u00FAn")))),
             React.createElement(Card, { style: { padding: "18px" } },
-                React.createElement(SL, null, "Mejores operaciones"),
+                React.createElement(SL, null, ["Mejores operaciones ", _dbTag(_scope)]),
                 topSold.length > 0 ? topSold.map((p, i) => (React.createElement("div", { key: i, style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid " + BDR } },
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 7 } },
                         React.createElement("span", { style: { width: 18, height: 18, background: "#eff4ff", color: BLUE, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700 } }, i + 1),
@@ -18070,9 +18099,9 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
                             sg(p.r),
                             p.r.toFixed(1),
                             "%"))))) : (React.createElement("div", { style: { color: MUT, fontSize: 12, padding: "20px 0", textAlign: "center" } }, "Sin ventas a\u00FAn")))),
-        Object.entries(CATS).some(([k]) => inv.some(c => c.category === k)) && (React.createElement(Card, { style: { marginBottom: 20, padding: "14px 18px" } },
-            React.createElement(SL, { style: { marginBottom: 8 } }, "ROI por categor\u00EDa"),
-            React.createElement("div", { style: { display: "flex", gap: 6 } }, Object.entries(CATS).map(([k, label]) => { const ci = inv.filter(c => c.category === k); if (!ci.length)
+        Object.entries(CATS).some(([k]) => cohort.some(c => c.category === k)) && (React.createElement(Card, { style: { marginBottom: 20, padding: "14px 18px" } },
+            React.createElement(SL, { style: { marginBottom: 8 } }, ["ROI por categor\u00EDa ", _dbTag(_scope)]),
+            React.createElement("div", { style: { display: "flex", gap: 6 } }, Object.entries(CATS).map(([k, label]) => { const ci = cohort.filter(c => c.category === k); if (!ci.length)
                 return null; const cc = ci.reduce((a, c) => a + (c.buyPrice || 0) * (c.quantity || 1), 0), cp = ci.filter(c => c.status === "sold").reduce((a, c) => a + np(c), 0), cr = cc ? pc(cc + cp, cc) : 0; return (React.createElement("div", { key: k, style: { background: BGS, borderRadius: 8, padding: "7px 12px", border: "1px solid " + BDR, display: "flex", alignItems: "center", gap: 8 } },
                 React.createElement("span", { style: { fontSize: 12 } }, label),
                 React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: cl(cr) } },
@@ -18092,7 +18121,7 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
                     React.createElement("span", { style: { fontSize: 11, fontWeight: 600 } }, eu((c.buyPrice || 0) * (c.quantity || 1)))))))))),
         React.createElement(Card, { style: { padding: "18px" } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 } },
-              React.createElement(SL, null, "\uD83D\uDCC8 Hist\u00F3rico de cartera por mes"),
+              React.createElement(SL, null, ["\uD83D\uDCC8 Hist\u00F3rico de cartera por mes ", _dbTag(_scope)]),
               React.createElement("div", { style: { display: "flex", gap: 4 } },
                 ["3m","6m","12m","todo"].map(function(r) {
                   return React.createElement("button", { key: r, onClick: function(){ setPortfolioRange(r); }, style: { padding: "3px 8px", fontSize: 10, fontWeight: portfolioRange===r?700:400, border: "1px solid " + (portfolioRange===r?"#004D98":"#e5e7eb"), borderRadius: 6, background: portfolioRange===r?"#eff6ff":"transparent", color: portfolioRange===r?"#004D98":"#6b7280", cursor: "pointer", fontFamily: "Inter,sans-serif" } }, r);
@@ -18101,7 +18130,7 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
             ),
             (() => {
                 const mo = {};
-                inv.forEach(c => {
+                cohort.forEach(c => {
                     const k = (c.buyDate || "").slice(0, 7);
                     if (!k)
                         return;
@@ -18131,8 +18160,8 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
             React.createElement("div", { style: { display: "flex", gap: 16, marginTop: 10, justifyContent: "center" } }, [["#eff4ff", "#004D98", "Invertido"], [GREEN, GREEN, "Recuperado"], [BLUE, BLUE, "Stock activo"]].map(([bg, c, l]) => React.createElement("div", { key: l, style: { display: "flex", alignItems: "center", gap: 5 } },
                 React.createElement("div", { style: { width: 10, height: 10, borderRadius: 2, background: bg, border: "1px solid " + c } }),
                 React.createElement("span", { style: { fontSize: 10, color: SUB } }, l))))),
-        React.createElement(DashRecorrido, { invested: invested, inPortfolio: inPortfolio, recovered: recovered, realized: realized, nAll: cohort.length, nHold: hold.length, nSold: sold.length }),
-        React.createElement(DashStock, { hold: hold }),
+        React.createElement(DashRecorrido, { scope: _scope, invested: invested, inPortfolio: inPortfolio, recovered: recovered, realized: realized, nAll: cohort.length, nHold: hold.length, nSold: sold.length }),
+        React.createElement(DashStock, { hold: hold, scope: _scope }),
         React.createElement(DashPersonal, null)));
 }
 function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDel, lots, onCreateCards }) {
@@ -18141,7 +18170,7 @@ function InvTab({ cards, onEdit, onDelete, onSell, onDuplicate, onBulk, onBulkDe
     const [sr, setSr] = useState(""), [st, setSt] = useState("date"), [filterY, setFilterY] = useState("all"), [filterM, setFilterM] = useState("all");
     const [selMode, setSelMode] = useState(false), [sel, setSel] = useState({});
     const [bf, setBf] = useState({ status: "", location: "", category: "", series: "", buyPrice: "", destino: "" });
-    const [destFl, setDestFl] = useState("");
+    const [destFl, setDestFl] = useState(function(){ return window._cvInvDest||""; });
     const [destPick, setDestPick] = useState(null);
     const [bulkOpen, setBulkOpen] = useState(false);
     function _crearDirecto(idsArg){ var ids=(idsArg&&idsArg.length)?idsArg:Object.keys(sel); if(!ids.length){ alert("Selecciona cartas primero"); return; } var dirs=[]; try{ dirs=JSON.parse(localStorage.getItem("cv10_directos")||"[]"); }catch(e){} var snap={}; ids.forEach(function(id){ var c=cards.find(function(x){return x.id===id;}); if(c) snap[id]={name:c.name,buyPrice:c.buyPrice||0,img:(c.imageUrl||c.cloudinaryUrl||""),series:c.series||c.category||"",condition:c.condition||""}; }); var d={ id:(Date.now().toString(36)+Math.random().toString(36).slice(2,6)), name:"Directo "+new Date().toLocaleDateString("es-ES",{day:"2-digit",month:"short"}), date:new Date().toISOString().slice(0,10), cardIds:ids, snap:snap, envio:"", aduanas:"", irpf:"15", autonomos:"" }; var nd=[d].concat(dirs||[]); try{ localStorage.setItem("cv10_directos", JSON.stringify(nd)); }catch(e){} window._cvDirty=true; if(window._saveToFirestore) window._saveToFirestore({ directosData: nd }); window.dispatchEvent(new Event("cv10-data-loaded")); if(onBulk) onBulk(ids,{dirId:d.id}); window._cvLive={ type:"directo", id:d.id }; setSel({}); setSelMode(false); if(window._cvSetTab) window._cvSetTab("breaks"); if(window._cvToast) window._cvToast(ids.length+" cartas \u2192 directo en vivo"); }
@@ -21754,7 +21783,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v279")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v280")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -22113,7 +22142,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
       React.createElement("button", { onClick: function() { setShowSettings(false); }, style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB, lineHeight: 1 } }, "\u00D7")
     ),
     React.createElement("div", { style: { background: BGS, border: "1px solid " + BDR, borderRadius: 10, padding: "11px 13px", marginBottom: 18 } },
-      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v279"),
+      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v280"),
       (function(){ var t, ok=false; if(!window._currentUser){ t="\u26A0\uFE0F Sin sesi\u00F3n \u2014 los cambios NO se suben a la nube"; } else if(window._cvSyncErr){ t="\u26A0\uFE0F La \u00FAltima subida no se confirm\u00F3 \u2014 revisa tu conexi\u00F3n"; } else if(window._cvLastSync){ var s=Math.round((Date.now()-window._cvLastSync)/1000); t="\u2714 Nube sincronizada (hace "+(s<90?s+"s":Math.round(s/60)+" min")+")"; ok=true; } else { t="Nube conectada"; ok=true; } return React.createElement("div", { style: { fontSize: 11.5, color: ok?"#0a7a55":"#c0392b", marginTop: 4, fontWeight: 600 } }, t); })()
     ),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "AYUDA"),
