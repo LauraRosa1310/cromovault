@@ -17974,12 +17974,12 @@ function DashResumen(p){ var h=React.createElement;
   var bought=(p.cards||[]).filter(function(c){ return _cvDashCard(c) && (c.buyDate||"").slice(0,7)===m && (!p.lot || c.lotId===p.lot); });
   var gast=bought.reduce(function(a,c){ return a+(c.buyPrice||0)*(c.quantity||1); },0);
   var pend=bought.filter(function(c){ return c.status!=="sold"; }); var pendCost=pend.reduce(function(a,c){ return a+(c.buyPrice||0)*(c.quantity||1); },0);
-  var costSold=s.r-s.b; var caja=s.r-gast;
+  var costSold=s.r-s.b; var caja=s.r-gast; var nSoldM=inv.filter(function(c){ return (c.sellDate||"").slice(0,7)===m; }).length;
   function mini(label,val,color,l1,l2){ return h("div",{style:{background:BGS,border:"1px solid "+BDR,borderRadius:10,padding:"9px 10px",minWidth:0}}, h("div",{style:{fontSize:10,color:SUB,lineHeight:1.25}},label), h("div",{style:{fontSize:15,fontWeight:700,color:color||TXT,marginTop:3,whiteSpace:"nowrap"}},val), h("div",{style:{fontSize:10,color:MUT,marginTop:3,lineHeight:1.35}},l1), l2?h("div",{style:{fontSize:10,color:MUT,lineHeight:1.35}},l2):null); }
   var moneyRow = h("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:8,marginBottom:10}},
-    mini("Beneficio de lo vendido", s.r>0?_dbSg(s.b):"\u2014", s.r>0?cl(s.b):MUT, "cobrado "+euk(s.r), "coste "+euk(costSold)),
-    mini("Caja del mes", (gast||s.r)?_dbSg(caja):"\u2014", (gast||s.r)?cl(caja):MUT, "gastado "+euk(gast), "cobrado "+euk(s.r)),
-    mini("Pendientes", pend.length+" cartas", pend.length?AMBER:TXT, "compradas este mes", "costaron "+euk(pendCost)));
+    mini("Vendido", s.r>0?euk(s.r):"\u2014", TXT, nSoldM+" cartas", null),
+    mini("Coste", s.r>0?euk(costSold):"\u2014", TXT, "de esas cartas", null),
+    mini("Beneficio", s.r>0?_dbSg(s.b):"\u2014", s.r>0?cl(s.b):MUT, "de lo vendido", null));
   return h(Card,{style:{marginBottom:20,padding:"18px"}}, h(SL,null,["\uD83D\uDDD3\uFE0F Resumen del periodo ", _dbTag(p.lotName)]),
     h("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}},
       h("button",{onClick:function(){shift(-1);},"aria-label":"Mes anterior",style:btn},"‹"),
@@ -17997,6 +17997,37 @@ function DashResumen(p){ var h=React.createElement;
     : h("div",{style:{fontSize:12,color:MUT,padding:"6px 0",textAlign:"center"}},"Sin ventas en "+lbl(m)+"."));
 }
 
+function DashLotes(p){ var h=React.createElement; var lots=p.lots||[]; var cards=p.cards||[];
+  var _o=useState(false); var open=_o[0], setOpen=_o[1];
+  var rows=lots.filter(function(l){ return !p.lot || l.id===p.lot; }).map(function(l){
+    var lc=cards.filter(function(c){ return c.lotId===l.id; });
+    if(!lc.length) return null;
+    var cost=lc.reduce(function(a,c){ return a+(c.buyPrice||0)*(c.quantity||1); },0)+(parseFloat(l.shipping)||0)+(parseFloat(l.customs)||0);
+    var sold=lc.filter(function(c){ return c.mode!=="collection" && c.status==="sold"; });
+    var cob=sold.reduce(function(a,c){ return a+_dbNet(c); },0);
+    var left=lc.filter(function(c){ return c.mode==="inventory" && c.status!=="sold"; });
+    var leftVal=left.reduce(function(a,c){ return a+((c.targetPrice||c.marketPrice||c.buyPrice||0)*(c.quantity||1)); },0);
+    var kept=lc.filter(function(c){ return c.mode==="collection"; }).length;
+    var last=lc.reduce(function(a,c){ return (c.buyDate||"")>a?(c.buyDate||""):a; },"");
+    return { l:l, cost:cost, cob:cob, pct: cost>0 ? cob/cost : 0, n:lc.length, nSold:sold.length, left:left.length, leftVal:leftVal, kept:kept, last:last };
+  }).filter(function(x){ return x; }).sort(function(a,b){ return (b.last||"").localeCompare(a.last||""); });
+  if(!rows.length) return null;
+  var shown = (open || p.lot) ? rows : rows.slice(0,4);
+  return h(Card,{style:{marginBottom:20,padding:"18px"}}, h(SL,null,["\uD83D\uDCE6 Recuperaci\u00f3n por lote ", _dbTag(p.lotName)]),
+    h("div",{style:{fontSize:11,color:MUT,marginTop:-6,marginBottom:10}},"Lo cobrado de cada lote frente a lo que te cost\u00f3 (con env\u00edo y aduanas), sin mirar fechas."),
+    shown.map(function(r,i){ var pc=Math.round(r.pct*100); var over=r.cob-r.cost; var ok=r.pct>=1;
+      return h("div",{key:r.l.id,style:{padding:"10px 0",borderBottom:i<shown.length-1?"1px solid "+BDR:"none"}},
+        h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:8}},
+          h("div",{style:{fontSize:13.5,fontWeight:700,minWidth:0,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},r.l.name),
+          h("div",{style:{fontSize:13,fontWeight:800,color:ok?GREEN:TXT,flexShrink:0}},pc+"%")),
+        h("div",{style:{height:8,borderRadius:4,background:BGS,border:"1px solid "+BDR,overflow:"hidden",marginTop:6}}, h("div",{style:{width:Math.min(100,pc)+"%",height:"100%",background:ok?GREEN:"linear-gradient(90deg,#004D98,#A50044)"}})),
+        h("div",{style:{display:"flex",justifyContent:"space-between",gap:8,fontSize:11,color:SUB,marginTop:5,flexWrap:"wrap"}},
+          h("span",null,"cost\u00f3 "+euk(r.cost)+" \u00b7 cobrado "+euk(r.cob)),
+          h("span",{style:{fontWeight:700,color:ok?GREEN:AMBER}}, ok ? ("ya est\u00e1s por encima: "+_dbSg(over)) : ("faltan "+euk(-over)+" para recuperar"))),
+        h("div",{style:{fontSize:10.5,color:MUT,marginTop:3}}, r.nSold+" de "+r.n+" vendidas"+(r.left?" \u00b7 quedan "+r.left+" (valen ~"+euk(r.leftVal)+")":"")+(r.kept?" \u00b7 "+r.kept+" en tu colecci\u00f3n":"")));
+    }),
+    (!p.lot && rows.length>4) ? h("button",{onClick:function(){ setOpen(!open); },style:{marginTop:8,width:"100%",padding:"8px",border:"1px solid "+BDR,borderRadius:8,background:BGS,color:BLUE,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}}, open?"Ver menos":"Ver los "+rows.length+" lotes") : null);
+}
 function DashPersonal(){ var h=React.createElement;
   var psa=[],aps=[],brs=[]; try{ psa=JSON.parse(localStorage.getItem("cv10p")||"[]")||[]; }catch(e){} try{ aps=JSON.parse(localStorage.getItem("cv10_aperturas")||"[]")||[]; }catch(e){} try{ brs=JSON.parse(localStorage.getItem("cv10_break_part")||"[]")||[]; }catch(e){}
   var inv=0,val=0; psa.forEach(function(p){ inv+=(+p.cardCost||0)+(+p.shippingCost||0)+(+p.gradingCost||0); val+=(+p.realSellPrice||0); });
@@ -18115,6 +18146,7 @@ function DashTab({ cards, onEdit, onDelete, onSell, onDuplicate, lots }) {
                 React.createElement("span", { style: { fontWeight: 700, color: cl(balance) } }, balance >= 0 ? "+" : "", euk(balance)))),
         React.createElement(DashCanales, { sold: sold, per: pPer, lot: pLot, scope: _scope }),
         React.createElement(DashResumen, { cards: cards, lot: pLot, lotName: _lotLbl }),
+        React.createElement(DashLotes, { cards: cards, lots: lots, lot: pLot, lotName: _lotLbl }),
 
                 React.createElement("div", { className: "dash-chart-grid", style: { display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(0,2fr)", gap: 16, marginBottom: 20 } },
             React.createElement(Card, { style: { padding: "18px 18px 12px" } },
@@ -21915,7 +21947,7 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v288")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v289")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
@@ -22274,7 +22306,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
       React.createElement("button", { onClick: function() { setShowSettings(false); }, style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB, lineHeight: 1 } }, "\u00D7")
     ),
     React.createElement("div", { style: { background: BGS, border: "1px solid " + BDR, borderRadius: 10, padding: "11px 13px", marginBottom: 18 } },
-      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v288"),
+      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v289"),
       (function(){ var t, ok=false; if(!window._currentUser){ t="\u26A0\uFE0F Sin sesi\u00F3n \u2014 los cambios NO se suben a la nube"; } else if(window._cvSyncErr){ t="\u26A0\uFE0F La \u00FAltima subida no se confirm\u00F3 \u2014 revisa tu conexi\u00F3n"; } else if(window._cvLastSync){ var s=Math.round((Date.now()-window._cvLastSync)/1000); t="\u2714 Nube sincronizada (hace "+(s<90?s+"s":Math.round(s/60)+" min")+")"; ok=true; } else { t="Nube conectada"; ok=true; } return React.createElement("div", { style: { fontSize: 11.5, color: ok?"#0a7a55":"#c0392b", marginTop: 4, fontWeight: 600 } }, t); })()
     ),
     React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: SUB, marginBottom: 8 } }, "AYUDA"),
