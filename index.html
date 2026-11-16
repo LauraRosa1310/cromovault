@@ -21532,7 +21532,7 @@ function DirectosTab({ breaks, saveBreaks, cards, setCards, lots, saveLots, dire
   var ecS = useState(null), editContact=ecS[0], setEditContact=ecS[1];
   var pmS = useState(function(){ try{return JSON.parse(localStorage.getItem("cv10_pay")||"{}");}catch(e){return {};} }), payMap=pmS[0], setPayMap=pmS[1];
   function setPay(key,val){ setPayMap(function(p){ var n=Object.assign({},p); n[key]=val; try{localStorage.setItem("cv10_pay",JSON.stringify(n));}catch(e){} if(window._saveToFirestore)window._saveToFirestore({payData:n}); return n; }); }
-  var ctS = useState(function(){ try{return JSON.parse(localStorage.getItem("cv10_contact")||"{}");}catch(e){return {};} }), contactMap=ctS[0], setContactMap=ctS[1];
+  var ctS = useState(function(){ try{var _cs=localStorage.getItem("cv10_contact")||"{}"; var _co=JSON.parse(_cs.charAt(0)==="{"?_cs:"{}"); return (_co&&typeof _co==="object")?_co:{};}catch(e){return {};} }), contactMap=ctS[0], setContactMap=ctS[1];
   function setContact(key,obj){ setContactMap(function(p){ var n=Object.assign({},p); n[key]=obj; try{localStorage.setItem("cv10_contact",JSON.stringify(n));}catch(e){} if(window._saveToFirestore)window._saveToFirestore({contactData:n}); return n; }); }
   var PAY_OPTS=[["pendiente","Pendiente cobro","#c47f00"],["cobrado","Cobrado","#0a7a55"]];
   var ltb = useState("quedan"), liveTab=ltb[0], setLiveTab=ltb[1];
@@ -22005,7 +22005,7 @@ function App() {
       function onDataLoaded() {
         window._cvDirty=false;
         setPublicSlug(localStorage.getItem("cv10_slug")||"");
-        setPublicContact(localStorage.getItem("cv10_contact")||"");
+        setPublicContact(_cvWA());
         setPublicPayment(localStorage.getItem("cv10_payment")||"");
         setPublicShipping(localStorage.getItem("cv10_shipping")||"");
         setPublicAvatar(localStorage.getItem("cv10_avatar")||"");
@@ -22079,7 +22079,7 @@ function App() {
     const [darkMode, setDarkMode] = useState(() => localStorage.getItem("cv10_dark") === "1");
     const [currency, setCurrency] = useState(() => localStorage.getItem("cv10_currency") || "EUR");
     const [publicSlug, setPublicSlug] = useState(() => localStorage.getItem("cv10_slug")||"");
-    const [publicContact, setPublicContact] = useState(() => localStorage.getItem("cv10_contact")||"");
+    const [publicContact, setPublicContact] = useState(() => _cvWA());
     const [publicShipping, setPublicShipping] = useState(() => localStorage.getItem("cv10_shipping")||"");
     const [publicPayment, setPublicPayment] = useState(() => localStorage.getItem("cv10_payment")||"");
     const [publicAvatar, setPublicAvatar] = useState(() => localStorage.getItem("cv10_avatar")||"");
@@ -22092,6 +22092,10 @@ function App() {
     const [wishlist, setWishlist] = useState(() => { try { return JSON.parse(localStorage.getItem("cv10_wl")||"[]"); } catch(e) { return []; } });
     const [showLot, setShowLot] = useState(false);
     const [showChats, setShowChats] = useState(false);
+    const [showWeb, setShowWeb] = useState(false);
+    const [offers, setOffers] = useState({});
+    useEffect(function(){ var sl=publicSlug||localStorage.getItem("cv10_slug"); if(!sl || !window._db || !window._currentUser) return; var ref=window._db.ref("offers/"+sl); var first=true; var cb=function(snap){ var v=snap.val()||{}; if(!first){ var prev=window._cvOffersPrev||{}; var nw=Object.keys(v).filter(function(k){ return !prev[k]; }); if(nw.length){ if(window._cvToast) window._cvToast("\uD83D\uDCE8 Nueva oferta de cartas en tu web"); try{ if(typeof Notification!=="undefined" && Notification.permission==="granted") new Notification("Nueva oferta de cartas", { body: (v[nw[0]].name||"")+": "+String(v[nw[0]].text||"").slice(0,90) }); }catch(e){} } } first=false; window._cvOffersPrev=v; setOffers(v); }; ref.on("value", cb, function(e){ setOffers({ __err: (e&&e.message)||"error" }); }); return function(){ ref.off("value", cb); }; }, [publicSlug]);
+    var offersBadge = Object.keys(offers).filter(function(k){ return k!=="__err" && _cvOfferUnseen(offers[k]); }).length;
     const [tooltip, setTooltip] = useState(null);
     React.useEffect(function(){ window._setTooltip = setTooltip; }, []);
     const [showChecklist, setShowChecklist] = useState(() => !localStorage.getItem("cv10_tutorial_done") ? false : !localStorage.getItem("cv10_checklist_done"));
@@ -22160,9 +22164,10 @@ function App() {
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
                         React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, padding: 2, boxSizing: "border-box", background: "linear-gradient(135deg,#004D98,#A50044)", flexShrink: 0 } }, React.createElement("img", { src: CV_LOGO, alt: "The Card Girl", style: { width: "100%", height: "100%", borderRadius: 7, objectFit: "cover", display: "block", border: "1.5px solid " + BG, boxSizing: "border-box" } })),
                         React.createElement("div", { style: { display: "flex", flexDirection: "column", lineHeight: 1, justifyContent: "center" } }, React.createElement("span", { style: { fontFamily: "'Saira Condensed',Inter,sans-serif", fontSize: 16, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", color: TXT, whiteSpace: "nowrap" } }, "The Card Girl"), React.createElement("span", { style: { fontSize: 7, fontWeight: 700, letterSpacing: "0.16em", color: "#A50044", textTransform: "uppercase", whiteSpace: "nowrap", marginTop: 2 } }, "M\u00E1s que cromos")),
-                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v300")),
+                        React.createElement("span", { style: { fontSize: 10, color: "#16a34a", marginLeft: 5, fontWeight: 700, background: "#f0fdf4", padding: "1px 6px", borderRadius: 10 } }, "v301")),
                     React.createElement("nav", { id: "cv-top-nav", style: { display: "flex", height: 54 } }, TABS.map(([k, l]) => (React.createElement("button", { key: k, onClick: () => setTab(k), style: { padding: "0 13px", height: "100%", border: "none", background: "none", borderBottom: "2px solid " + (tab === k ? BLUE : "transparent"), color: tab === k ? BLUE : SUB, fontFamily: "Inter,sans-serif", fontWeight: tab === k ? 600 : 500, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" } }, l))))),
                 React.createElement("div", { style: { display: "flex", gap: 6 } },
+                    React.createElement("button", { onClick: function(){ setShowWeb(true); }, title: "Mi web", "aria-label": "Mi web" + (offersBadge ? " (" + offersBadge + " nuevas)" : ""), style: { position: "relative", background: "none", border: "1.5px solid " + BDR, borderRadius: 8, cursor: "pointer", fontSize: 14, padding: "4px 10px", color: "#1D5FBF", fontWeight: 700, fontFamily: "Inter,sans-serif", whiteSpace: "nowrap" } }, "\uD83D\uDECD\uFE0F", React.createElement("span", { className: "cv-hide-mobile" }, " Mi web"), offersBadge ? React.createElement("span", { style: { position: "absolute", top: -7, right: -7, minWidth: 18, height: 18, borderRadius: 9, background: "#C6244E", color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px", boxSizing: "border-box" } }, offersBadge) : null),
                     React.createElement("span", { className: "cv-hide-mobile" }, React.createElement(Btn, { sm: true, onClick: () => oa(tab === "collection" ? "collection" : "inventory") }, "+ Nueva carta")),
                     React.createElement("span", { className: "cv-hide-mobile", style: { position: "relative" } },
                         React.createElement(Btn, { sm: true, v: "outline", onClick: function(){ setTopMore(!topMore); } }, "M\u00e1s \u25BE"),
@@ -22252,6 +22257,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
             );
           })()
         ),
+        showWeb && React.createElement(WebPanel, { offers: offers, slug: publicSlug || localStorage.getItem("cv10_slug") || "", onClose: function(){ setShowWeb(false); }, onSettings: function(){ setShowWeb(false); setShowSettings(true); } }),
         showChats && React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 1000, display: "flex", justifyContent: "flex-end" } }, React.createElement("div", { onClick: function(){ setShowChats(false); }, style: { position: "absolute", inset: 0, background: "#00000055" } }), React.createElement("div", { style: { position: "relative", width: "380px", maxWidth: "95%", height: "100vh", background: BG, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px #00000026" } }, React.createElement(MessagesTab, { onClose: function(){ setShowChats(false); }, slug: publicSlug || window._currentSlug || localStorage.getItem("cv10_slug"), quickReplies: quickReplies }))),
         showPrefs && React.createElement("div", { onMouseDown: function(e) { prefsBackdropDown.current = e.target === e.currentTarget; }, onClick: function(e) { if (prefsBackdropDown.current && e.target === e.currentTarget) setShowPrefs(false); }, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1001, display: "flex", alignItems: "center", justifyContent: "center" } },
           React.createElement("div", { onClick: function(e){ e.stopPropagation(); }, style: { background: BG, borderRadius: 16, padding: 0, minWidth: 320, maxWidth: 440, width: "95%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", maxHeight: "92vh", overflowY: "auto" } },
@@ -22523,7 +22529,7 @@ showChecklist && React.createElement("div", { style: { position: "fixed", bottom
       React.createElement("button", { onClick: function() { setShowSettings(false); }, style: { background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SUB, lineHeight: 1 } }, "\u00D7")
     ),
     React.createElement("div", { style: { background: BGS, border: "1px solid " + BDR, borderRadius: 10, padding: "11px 13px", marginBottom: 18 } },
-      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v300"),
+      React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: TXT } }, "CromoVault v301"),
       (function(){ var t, ok=false; if(!window._currentUser){ t="\u26A0\uFE0F Sin sesi\u00F3n \u2014 los cambios NO se suben a la nube"; } else if(window._cvSyncErr){ t="\u26A0\uFE0F La \u00FAltima subida no se confirm\u00F3 \u2014 revisa tu conexi\u00F3n"; } else if(window._cvLastSync){ var s=Math.round((Date.now()-window._cvLastSync)/1000); t="\u2714 Nube sincronizada (hace "+(s<90?s+"s":Math.round(s/60)+" min")+")"; ok=true; } else { t="Nube conectada"; ok=true; } if(ok){ t += window._cvCardsV2 ? " \u00b7 cada carta guardada por separado" : (window._cvV2Err ? " \u00b7 \u26A0\uFE0F no se pudo activar el guardado por carta ("+window._cvV2Err+")" : ""); } return React.createElement("div", { style: { fontSize: 11.5, color: ok?"#0a7a55":"#c0392b", marginTop: 4, fontWeight: 600 } }, t); })()
     ),
     React.createElement(CatalogSettings, null),
@@ -22584,7 +22590,7 @@ showPublicProfile && React.createElement("div", { onMouseDown: function(e) { pro
         React.createElement("button", { onClick: function() {
           if(!publicSlug){alert("Escribe un nombre");return;}
           localStorage.setItem("cv10_slug",publicSlug);
-          localStorage.setItem("cv10_contact",publicContact);
+          localStorage.setItem("cv10_wa",publicContact);
           localStorage.setItem("cv10_shipping",publicShipping);
           localStorage.setItem("cv10_payment",publicPayment);
           localStorage.setItem("cv10_avatar",publicAvatar);
@@ -22693,7 +22699,7 @@ showPublicProfile && React.createElement("div", { onMouseDown: function(e) { pro
           if(!window._currentUser){alert("Error: no hay sesi\u00F3n activa. Recarga la p\u00E1gina.");return;}
           if(!window._db){alert("Error: base de datos no disponible. Recarga la p\u00E1gina.");return;}
           localStorage.setItem("cv10_slug",publicSlug);
-          localStorage.setItem("cv10_contact",publicContact);
+          localStorage.setItem("cv10_wa",publicContact);
           localStorage.setItem("cv10_shipping",publicShipping);
           localStorage.setItem("cv10_payment",publicPayment);
           localStorage.setItem("cv10_avatar",publicAvatar);
@@ -22790,7 +22796,7 @@ window._mountApp = function() {
   if(params.get('directorio')!==null){document.getElementById('cv-login').style.display='none';document.getElementById('root').style.display='block';ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Directory));return;}
   var ps=params.get('p');
   var tsl=params.get('tienda');
-  if(tsl&&window._db){document.getElementById('cv-login').style.display='none';document.getElementById('root').style.display='block';window._db.ref('public/'+tsl).once('value').then(function(snap){var d=snap.val()||{};ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Catalogo,{data:d,slug:tsl,db:window._db}));}).catch(function(){ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Catalogo,{data:{},slug:tsl}));}); return;}
+  if(tsl&&window._db){document.getElementById('cv-login').style.display='none';document.getElementById('root').style.display='block';window._db.ref('public/'+tsl).once('value').then(function(snap){var d=snap.val()||{};ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Catalogo,{data:d,slug:tsl,db:window._db,api:window._cvShopApi(tsl)}));}).catch(function(){ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Catalogo,{data:{},slug:tsl}));}); return;}
   if(ps&&window._db){document.getElementById('cv-login').style.display='none';document.getElementById('root').style.display='block';window._db.ref('public/'+ps).once('value').then(function(snap){var d=snap.val();if(d&&d.slug){ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(PublicProfile,{data:d,slug:ps}));}else{ReactDOM.createRoot(document.getElementById('root')).render(React.createElement('div',{style:{padding:40,textAlign:'center',fontFamily:'Inter,sans-serif'}},React.createElement('div',{style:{fontSize:20,fontWeight:700}},'Perfil no encontrado')));}}); return;}
   ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
 };
@@ -22926,8 +22932,15 @@ function FavButton(props){var slug=props.slug,cardId=props.cardId,price=props.pr
 
 function _cvPubCard(c){ var o={ id:c.id, name:c.name||"", series:c.series||"", category:c.category||"", condition:c.condition||"", rarity:c.rarity||"", mode:c.mode||"", status:c.status||"", targetPrice:c.targetPrice||0, salePrice:c.salePrice||0, saleUntil:c.saleUntil||"", webAt:c.webAt||0, images:(c.images||[]).slice(0,3), imageUrl:c.imageUrl||"", numberedTo:c.numberedTo||"", tags:c.tags||[], player:c.player||"", team:c.team||"", league:c.league||"", brand:c.brand||"", isFavorite:!!c.isFavorite, publicVisible:!!c.publicVisible }; return JSON.parse(JSON.stringify(o)); }
 function _cvCatalogCards(cards){ return (cards||[]).filter(function(c){ return c.web === true && c.mode==="inventory" && c.status==="listed"; }).map(_cvPubCard); }
-function _cvCatalogInfo(){ return { name: localStorage.getItem("cv10_shopname") || "The Card Girl", contact: localStorage.getItem("cv10_contact") || "", instagram: (localStorage.getItem("cv10_ig") || "").replace(/^@/,""), shipping: localStorage.getItem("cv10_shipping") || "", payment: localStorage.getItem("cv10_payment") || "", avatar: localStorage.getItem("cv10_avatar") || "", shipCost: parseFloat(localStorage.getItem("cv10_shipcost") || "0") || 0, shipFree: parseFloat(localStorage.getItem("cv10_shipfree") || "0") || 0, pack: (function(){ try{ return JSON.parse(localStorage.getItem("cv10_pack") || "[]"); }catch(e){ return []; } })(), event: (function(){ try{ return JSON.parse(localStorage.getItem("cv10_event") || "null"); }catch(e){ return null; } })(), updatedAt: Date.now() }; }
-window._cvPublishCatalog = function(cards, opts){ var slug = localStorage.getItem("cv10_slug"); if (!slug || !window._db || !window._currentUser) return Promise.resolve("noslug"); var cat = _cvCatalogCards(cards || window._cvLatestCards || []); return window._db.ref("public/" + slug).update({ slug: slug, uid: window._currentUser.uid, catalog: cat, catalogInfo: _cvCatalogInfo(), catalogAt: Date.now() }).then(function(){ window._cvCatalogAt = Date.now(); return true; }); };
+var _CV_CATK={slug:"cv10_slug",wa:"cv10_wa",ig:"cv10_ig",ship:"cv10_shipping",pay:"cv10_payment",url:"cv10_shopurl",shipCost:"cv10_shipcost",shipFree:"cv10_shipfree",pack:"cv10_pack",event:"cv10_event",avatar:"cv10_avatar",name:"cv10_shopname",closed:"cv10_shopclosed",closedMsg:"cv10_shopclosedmsg",buyOn:"cv10_buyon"};
+function _cvWA(){ var v=localStorage.getItem("cv10_wa"); if(v!==null) return v; var c=localStorage.getItem("cv10_contact")||""; return (c.charAt(0)==="{")?"":c; }
+function _cvGetCatCfg(){ var o={}; Object.keys(_CV_CATK).forEach(function(k){ var v=localStorage.getItem(_CV_CATK[k]); if(v!==null) o[k]=v; }); if(o.wa===undefined) o.wa=_cvWA(); return o; }
+window._cvApplyCatCfg=function(o, all){ if(!o) return; Object.keys(_CV_CATK).forEach(function(k){ if(o[k]===undefined || o[k]===null) return; if(!all && localStorage.getItem(_CV_CATK[k])) return; localStorage.setItem(_CV_CATK[k], String(o[k])); }); window._cvCatCfgReady=true; };
+window._cvSaveCatCfg=function(){ var o=_cvGetCatCfg(); o.savedAt=Date.now(); window._cvCatCfgAt=o.savedAt; window._cvCatCfgReady=true; if(!window._saveToFirestore) return Promise.resolve("nofs"); return window._saveToFirestore({ catalogCfg: o, publicSlug: o.slug||"" }); };
+window._cvCatCfgBoot=function(d){ if(d && d.catalogCfg){ window._cvApplyCatCfg(d.catalogCfg, true); window._cvCatCfgAt=d.catalogCfg.savedAt||0; return; } var sl=localStorage.getItem("cv10_slug")||(d&&d.publicSlug)||""; if(!sl || !window._db){ return; } window._db.ref("public/"+sl+"/catalogInfo").once("value").then(function(snap){ var ci=snap.val()||{}; var o={}; if(ci.contact) o.wa=ci.contact; if(ci.instagram) o.ig=ci.instagram; if(ci.shipping) o.ship=ci.shipping; if(ci.payment) o.pay=ci.payment; if(ci.avatar) o.avatar=ci.avatar; if(ci.shipCost) o.shipCost=String(ci.shipCost); if(ci.shipFree) o.shipFree=String(ci.shipFree); if(ci.pack && ci.pack.length) o.pack=JSON.stringify(ci.pack); if(ci.event) o.event=JSON.stringify(ci.event); window._cvApplyCatCfg(o, false); window._cvSaveCatCfg(); try{ window.dispatchEvent(new Event("cv-catcfg")); }catch(e){} }).catch(function(){}); };
+
+function _cvCatalogInfo(){ return { name: localStorage.getItem("cv10_shopname") || "The Card Girl", contact: _cvWA(), instagram: (localStorage.getItem("cv10_ig") || "").replace(/^@/,""), shipping: localStorage.getItem("cv10_shipping") || "", payment: localStorage.getItem("cv10_payment") || "", avatar: localStorage.getItem("cv10_avatar") || "", shipCost: parseFloat(localStorage.getItem("cv10_shipcost") || "0") || 0, shipFree: parseFloat(localStorage.getItem("cv10_shipfree") || "0") || 0, pack: (function(){ try{ return JSON.parse(localStorage.getItem("cv10_pack") || "[]"); }catch(e){ return []; } })(), event: (function(){ try{ return JSON.parse(localStorage.getItem("cv10_event") || "null"); }catch(e){ return null; } })(), closed: localStorage.getItem("cv10_shopclosed")==="1", closedMsg: localStorage.getItem("cv10_shopclosedmsg")||"", buyOn: localStorage.getItem("cv10_buyon")!=="0", updatedAt: Date.now() }; }
+window._cvPublishCatalog = function(cards, opts){ var slug = localStorage.getItem("cv10_slug"); if (!slug || !window._db || !window._currentUser) return Promise.resolve("noslug"); var cat = _cvCatalogCards(cards || window._cvLatestCards || []); var _up={ slug: slug, uid: window._currentUser.uid, catalog: cat, catalogAt: Date.now() }; if (window._cvCatCfgReady || (opts && opts.info)) _up.catalogInfo = _cvCatalogInfo(); return window._db.ref("public/" + slug).update(_up).then(function(){ window._cvCatalogAt = Date.now(); return true; }); };
 
 function _cvSaleActive(c){ var sp=parseFloat(c.salePrice||0); if(!sp) return false; if(c.saleUntil){ var t=new Date().toISOString().slice(0,10); if(t > c.saleUntil) return false; } return true; }
 function Catalogo(props){ var h=React.createElement; var d=props.data||{}; var info=d.catalogInfo||{}; var all=(d.catalog||[]); var db=props.db||null; var slug=props.slug||"";
@@ -22938,6 +22951,7 @@ function Catalogo(props){ var h=React.createElement; var d=props.data||{}; var i
   var _k=useState({}), cart=_k[0], setCart=_k[1]; var _t=useState(""), toast=_t[0], setToast=_t[1];
   function stat(id, k){ try{ if(!db || !slug || !id) return; if(k==="v"){ var key="cvv_"+slug+"_"+id; if(sessionStorage.getItem(key)) return; sessionStorage.setItem(key,"1"); } db.ref("catstats/"+slug+"/"+id+"/"+k).transaction(function(n){ return (n||0)+1; }).catch(function(){}); }catch(e){} }
   React.useEffect(function(){ if(!document.getElementById("cv-cat-fonts")){ var l=document.createElement("link"); l.id="cv-cat-fonts"; l.rel="stylesheet"; l.href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto+Condensed:wght@700;800&display=swap"; document.head.appendChild(l); } document.title=(info.name||"The Card Girl")+" · Catálogo"; document.body.style.background="#f6f7fb";
+    try{ var oid=new URLSearchParams(window.location.search).get("oferta"); if(oid && props.api) loadTrk(oid); }catch(e){}
     try{ var cid=new URLSearchParams(window.location.search).get("c"); if(cid){ var cc=all.filter(function(x){ return x.id===cid; })[0]; if(cc){ setDet(cc); stat(cc.id,"v"); } } }catch(e){} }, []);
   var CATN={futbol_m:"Fútbol masculino",futbol_f:"Fútbol femenino",nba:"NBA",trading:"Trading",baseball:"Baseball",f1:"F1",other:"Otras"};
   var cats=Object.keys(CATN).filter(function(k){ return all.some(function(c){ return (c.category||"other")===k; }); });
@@ -22966,6 +22980,74 @@ function Catalogo(props){ var h=React.createElement; var d=props.data||{}; var i
   function canAsk(){ return !!(phone || info.instagram); }
   function send(txt, ids){ (ids||[]).forEach(function(id){ stat(id,"w"); }); if(phone && info.instagram){ setAsk({ txt: txt }); return; } if(phone){ window.open(waUrl(txt), "_blank"); return; } if(info.instagram){ try{ navigator.clipboard.writeText(txt); }catch(x){} window.open(igUrl(), "_blank"); } }
   function openDet(c){ setDet(c); stat(c.id,"v"); }
+  var api=props.api||null; var buyOn=!!api && info.buyOn!==false;
+  var _so=useState(false), sellOpen=_so[0], setSellOpen=_so[1]; var _tk=useState(null), trk=_tk[0], setTrk=_tk[1];
+  var _fn=useState(""), fName=_fn[0], setFName=_fn[1]; var _fw=useState(""), fWa=_fw[0], setFWa=_fw[1]; var _fi=useState(""), fIg=_fi[0], setFIg=_fi[1]; var _ft=useState(""), fText=_ft[0], setFText=_ft[1]; var _fa=useState(""), fAsk=_fa[0], setFAsk=_fa[1];
+  var _fl=useState([]), files=_fl[0], setFiles=_fl[1]; var _fb=useState(false), busy=_fb[0], setBusy=_fb[1]; var _fe=useState(""), fErr=_fe[0], setFErr=_fe[1]; var _fd=useState(null), done=_fd[0], setDone=_fd[1];
+  var _mo=useState(function(){ try{ return JSON.parse(localStorage.getItem("tcg_myoffers")||"[]")||[]; }catch(e){ return []; } }), mine=_mo[0], setMine=_mo[1];
+  function rid(){ var a="abcdefghijkmnpqrstuvwxyz23456789", o="", cr=null; try{ cr=window.crypto.getRandomValues(new Uint32Array(22)); }catch(e){} for(var i=0;i<22;i++){ o+=a.charAt((cr?cr[i]:Math.floor(Math.random()*1e9))%a.length); } return o; }
+  function trackUrl(id){ var base=window.location.href.split("#")[0].split("?")[0]; var qs=new URLSearchParams(window.location.search); qs.delete("c"); qs.set("oferta",id); return base+"?"+qs.toString(); }
+  function loadTrk(id){ if(!api) return; setTrk({ id:id, loading:true }); api.get(id).then(function(o){ setTrk(o ? { id:id, o:o } : { id:id, missing:true }); }).catch(function(){ setTrk({ id:id, err:true }); }); }
+  function addFiles(e){ var fl=[].slice.call(e.target.files||[]); e.target.value=""; setFiles(function(p){ var n=p.slice(); fl.forEach(function(f){ if(n.length<6) n.push({ file:f, prev:URL.createObjectURL(f) }); }); return n; }); }
+  function resetSell(){ setFName(""); setFWa(""); setFIg(""); setFText(""); setFAsk(""); setFiles([]); setFErr(""); setDone(null); }
+  function submitOffer(){ if(busy) return; if(!fName.trim() || !fText.trim() || (!fWa.trim() && !fIg.trim())){ setFErr("Pon tu nombre, un WhatsApp o Instagram para responderte y qué cartas son."); return; } setBusy(true); setFErr(""); var id=rid(), urls=[], i=0;
+    function finish(){ var o={ name:fName.trim().slice(0,80), wa:fWa.trim().slice(0,40), ig:fIg.trim().replace(/^@/,"").slice(0,40), text:fText.trim().slice(0,3000), ask:fAsk.trim().slice(0,40), photos:urls, ts:Date.now(), status:"nueva" };
+      api.put(id,o).then(function(){ setBusy(false); var m=[{ id:id, ts:o.ts }].concat(mine).slice(0,20); setMine(m); try{ localStorage.setItem("tcg_myoffers", JSON.stringify(m)); }catch(e){} setDone({ id:id, link:trackUrl(id), lost:files.length-urls.length }); }).catch(function(){ setBusy(false); setFErr("No se pudo enviar. Revisa tu conexión y prueba otra vez."); }); }
+    function next(){ if(i>=files.length) return finish(); var f=files[i++]; setFErr("Subiendo foto "+i+" de "+files.length+"…"); api.upload(f.file).then(function(u){ if(u) urls.push(u); next(); }).catch(function(){ next(); }); }
+    next(); }
+  function respond(r){ if(!trk || !trk.o || !api) return; var id=trk.id, o=trk.o; setTrk({ id:id, o:o, sending:true }); api.respond(id,{ r:r, ts:Date.now(), to:o.at||0 }).then(function(){ loadTrk(id); }).catch(function(){ setTrk({ id:id, o:o, rerr:true }); }); }
+  function fdate(t){ try{ var x=new Date(t); return x.getDate()+"/"+(x.getMonth()+1)+"/"+x.getFullYear(); }catch(e){ return ""; } }
+  var inpS={ width:"100%", boxSizing:"border-box", padding:"12px 13px", borderRadius:12, border:"1.5px solid "+LN, fontSize:16, fontFamily:"Poppins,sans-serif", background:"#fff", color:INK };
+  var lblS={ display:"block", fontSize:12.5, fontWeight:600, color:INK, marginBottom:10 };
+  var btnP={ display:"flex", width:"100%", alignItems:"center", justifyContent:"center", height:50, border:"none", borderRadius:14, background:"linear-gradient(90deg,"+BL+","+RD+")", color:"#fff", fontWeight:600, fontSize:15, fontFamily:"Poppins,sans-serif", cursor:"pointer", textDecoration:"none" };
+  var btnS={ display:"flex", width:"100%", alignItems:"center", justifyContent:"center", height:44, borderRadius:12, border:"1.5px solid "+LN, background:"#fff", color:INK, fontFamily:"Poppins,sans-serif", fontSize:14, fontWeight:600, cursor:"pointer", textDecoration:"none", boxSizing:"border-box" };
+  function sheet(onClose, label, kids){ return h("div",{onClick:onClose,style:{position:"fixed",inset:0,background:"rgba(17,24,39,.6)",zIndex:55,display:"flex",alignItems:"center",justifyContent:"center",padding:14}}, h("div",{onClick:function(e){ e.stopPropagation(); },role:"dialog","aria-label":label,style:{background:"#fff",borderRadius:18,maxWidth:460,width:"100%",maxHeight:"92vh",overflowY:"auto",padding:"18px 18px 22px",boxSizing:"border-box",textAlign:"left"}}, kids)); }
+  function sellSheet(){ if(done){ var wt="Hola! Te acabo de enviar una oferta de cartas desde tu web ("+fName.trim()+"). La puedes ver aquí: "+done.link; return sheet(function(){ setSellOpen(false); resetSell(); }, "Oferta enviada", [
+      h("div",{key:"t",style:{fontFamily:COND,fontWeight:800,fontSize:24,textTransform:"uppercase",color:GN}},"¡Enviada!"),
+      h("p",{key:"p",style:{fontSize:14,lineHeight:1.5,margin:"6px 0 12px"}},"La reviso y te respondo lo antes posible. Guarda este enlace para ver mi respuesta (también queda guardado en este móvil)."),
+      done.lost ? h("p",{key:"l",style:{fontSize:12.5,color:RD,margin:"0 0 10px"}}, done.lost+" foto(s) no se pudieron subir. Si quieres, mándamelas por mensaje.") : null,
+      h("div",{key:"u",style:{fontSize:12.5,background:"#f3f4f6",borderRadius:10,padding:"10px 12px",wordBreak:"break-all",marginBottom:10}},done.link),
+      h("button",{key:"c",onClick:function(){ try{ navigator.clipboard.writeText(done.link); setToast("Enlace copiado"); setTimeout(function(){ setToast(""); },2000); }catch(e){ window.prompt("Copia el enlace:", done.link); } },style:btnS},"Copiar enlace"),
+      phone ? h("a",{key:"w",href:waUrl(wt),target:"_blank",rel:"noreferrer",style:Object.assign({},btnP,{marginTop:10,background:"#1f9d55"})},"Avisar por WhatsApp") : null,
+      (!phone && info.instagram) ? h("a",{key:"i",href:igUrl(),target:"_blank",rel:"noreferrer",onClick:function(){ try{ navigator.clipboard.writeText(wt); }catch(x){} },style:Object.assign({},btnP,{marginTop:10})},"Avisar por Instagram") : null,
+      h("button",{key:"x",onClick:function(){ setSellOpen(false); resetSell(); },style:Object.assign({},btnS,{marginTop:10})},"Cerrar")]); }
+    return sheet(function(){ if(!busy) setSellOpen(false); }, "Ofrecer mis cartas", [
+      h("div",{key:"t",style:{fontFamily:COND,fontWeight:800,fontSize:24,textTransform:"uppercase",lineHeight:1.1}},"Te compro tus cartas"),
+      h("p",{key:"p",style:{fontSize:13.5,color:GR,lineHeight:1.5,margin:"6px 0 14px"}},"Mándame fotos (delante y detrás) y cuéntame qué tienes. Te respondo con una oferta."),
+      h("label",{key:"n",style:lblS},"Tu nombre", h("input",{value:fName,onChange:function(e){ setFName(e.target.value); },autoComplete:"name",style:inpS})),
+      h("div",{key:"cc",style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
+        h("label",{style:lblS},"WhatsApp", h("input",{value:fWa,onChange:function(e){ setFWa(e.target.value); },inputMode:"tel",autoComplete:"tel",placeholder:"+34 …",style:inpS})),
+        h("label",{style:lblS},"o Instagram", h("input",{value:fIg,onChange:function(e){ setFIg(e.target.value); },placeholder:"@usuario",autoCapitalize:"none",style:inpS}))),
+      h("label",{key:"x",style:lblS},"¿Qué cartas son?", h("textarea",{value:fText,onChange:function(e){ setFText(e.target.value); },rows:4,placeholder:"Jugador, colección, año, si está gradeada, estado…",style:Object.assign({},inpS,{resize:"vertical"})})),
+      h("label",{key:"a",style:lblS},"¿Cuánto pides? (opcional)", h("input",{value:fAsk,onChange:function(e){ setFAsk(e.target.value); },inputMode:"decimal",placeholder:"Ej.: 60 € el lote",style:inpS})),
+      h("div",{key:"f",style:{marginBottom:12}},
+        h("div",{style:{fontSize:12.5,fontWeight:600,marginBottom:6}},"Fotos ("+files.length+"/6)"),
+        h("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
+          files.map(function(f,i){ return h("div",{key:i,style:{position:"relative",width:68,height:68}}, h("img",{src:f.prev,alt:"Foto "+(i+1),style:{width:68,height:68,objectFit:"cover",borderRadius:10,border:"1px solid "+LN}}), busy ? null : h("button",{onClick:function(){ setFiles(files.filter(function(_,j){ return j!==i; })); },"aria-label":"Quitar foto",style:{position:"absolute",top:-6,right:-6,width:22,height:22,borderRadius:11,border:"none",background:INK,color:"#fff",fontSize:12,cursor:"pointer"}},"×")); }),
+          files.length<6 && !busy ? h("label",{style:{width:68,height:68,borderRadius:10,border:"1.5px dashed "+BL,display:"flex",alignItems:"center",justifyContent:"center",color:BL,fontSize:26,cursor:"pointer"}},"+", h("input",{type:"file",accept:"image/*",multiple:true,onChange:addFiles,style:{display:"none"}})) : null)),
+      fErr ? h("div",{key:"e",style:{fontSize:12.5,color:busy?GR:RD,marginBottom:10}},fErr) : null,
+      h("button",{key:"s",onClick:submitOffer,disabled:busy,style:Object.assign({},btnP,{opacity:busy?.6:1})}, busy ? "Enviando…" : "Enviar oferta"),
+      h("button",{key:"c",onClick:function(){ if(!busy) setSellOpen(false); },style:Object.assign({},btnS,{marginTop:10})},"Cancelar")]); }
+  function trkSheet(){ var t=trk, o=t.o||{}; var st=o.status||"nueva"; var pr=o.price?(" "+o.price+" €"):"";
+    var box=function(bg,fg,title,sub){ return h("div",{key:"st",style:{background:bg,color:fg,borderRadius:14,padding:"14px 16px",margin:"12px 0"}}, h("div",{style:{fontWeight:700,fontSize:16}},title), sub ? h("div",{style:{fontSize:13.5,marginTop:4,lineHeight:1.45,whiteSpace:"pre-wrap"}},sub) : null); };
+    var body;
+    if(t.loading) body=[h("div",{key:"l",style:{padding:30,textAlign:"center",color:GR}},"Cargando…")];
+    else if(t.err||t.missing) body=[h("div",{key:"m",style:{padding:20,textAlign:"center",color:GR}}, t.missing?"No encuentro esta oferta. Revisa el enlace.":"No se pudo cargar. Prueba a recargar.")];
+    else { var r=o.resp||null; var stB;
+      if(st==="contra" && r && (r.to||0)===(o.at||0)) stB = r.r==="acepta" ? box("#ecfdf5",GN,"Has aceptado mi contraoferta"+pr,"Te escribo para el envío y el pago.") : box("#f3f4f6",INK,"Has rechazado la contraoferta","Gracias igualmente. Si cambias de idea, escríbeme.");
+      else if(st==="contra") stB = h("div",{key:"st"}, box("#eef4ff",BL,"Te ofrezco"+(pr||" una contraoferta"), o.msg||""), h("div",{style:{display:"flex",gap:8}}, h("button",{onClick:function(){ respond("acepta"); },disabled:t.sending,style:Object.assign({},btnP,{flex:1,height:46})},"Aceptar"), h("button",{onClick:function(){ respond("rechaza"); },disabled:t.sending,style:Object.assign({},btnS,{flex:1,height:46})},"No, gracias")), t.rerr ? h("div",{style:{fontSize:12.5,color:RD,marginTop:6}},"No se pudo enviar tu respuesta. Prueba otra vez.") : null);
+      else if(st==="aceptada") stB = box("#ecfdf5",GN,"¡Oferta aceptada!"+(pr?" ·"+pr:""), (o.msg?o.msg+"\n":"")+"Te escribo para el envío y el pago.");
+      else if(st==="rechazada") stB = box("#f3f4f6",INK,"Esta vez no puedo comprarlas", o.msg||"¡Gracias por pensar en mí!");
+      else if(st==="comprada") stB = box("#ecfdf5",GN,"Compra cerrada","¡Gracias!");
+      else stB = box("#fff7ed","#9a3412", o.seen ? "Vista: te respondo pronto" : "Recibida: te respondo pronto", "Enviada el "+fdate(o.ts)+".");
+      body=[ h("div",{key:"t",style:{fontFamily:COND,fontWeight:800,fontSize:22,textTransform:"uppercase"}},"Tu oferta"), stB,
+        (o.photos&&o.photos.length) ? h("div",{key:"ph",style:{display:"flex",gap:8,overflowX:"auto",marginBottom:10}}, o.photos.map(function(u,i){ return h("a",{key:i,href:u,target:"_blank",rel:"noreferrer"}, h("img",{src:u,alt:"Foto "+(i+1),style:{width:76,height:76,objectFit:"cover",borderRadius:10}})); })) : null,
+        h("div",{key:"tx",style:{fontSize:13.5,whiteSpace:"pre-wrap",lineHeight:1.45}},o.text||""), o.ask ? h("div",{key:"ak",style:{fontSize:13,color:GR,marginTop:6}},"Pedías: "+o.ask) : null ]; }
+    return sheet(function(){ setTrk(null); }, "Tu oferta", body.concat([ canAsk() ? h("button",{key:"w",onClick:function(){ send("Hola! Te escribo por mi oferta de cartas: "+trackUrl(t.id)); },style:Object.assign({},btnS,{marginTop:14})},"Escribirme") : null, h("button",{key:"c",onClick:function(){ setTrk(null); },style:Object.assign({},btnS,{marginTop:10})},"Cerrar") ])); }
+  function sellBanner(){ if(!buyOn) return null; return h("section",{style:{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",background:"#fff",border:"1.5px solid "+BL,borderRadius:14,padding:"12px 14px",marginBottom:14}},
+      h("div",{style:{flex:"1 1 200px",minWidth:0}}, h("div",{style:{fontFamily:COND,fontWeight:800,fontSize:18,textTransform:"uppercase",color:BL}},"¿Vendes cartas? Te las compro"), h("div",{style:{fontSize:12.5,color:GR}},"Envíame fotos y te hago una oferta."),
+        mine.length ? h("div",{style:{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}, mine.slice(0,4).map(function(m){ return h("button",{key:m.id,onClick:function(){ loadTrk(m.id); },style:{border:"none",background:"#eef4ff",color:BL,borderRadius:8,padding:"4px 9px",fontSize:11.5,fontWeight:600,cursor:"pointer",fontFamily:"Poppins,sans-serif"}},"Mi oferta del "+fdate(m.ts)); })) : null),
+      h("button",{onClick:function(){ resetSell(); setSellOpen(true); },style:{padding:"11px 16px",border:"none",borderRadius:12,background:BL,color:"#fff",fontWeight:700,fontSize:13.5,fontFamily:"Poppins,sans-serif",cursor:"pointer",whiteSpace:"nowrap"}},"Ofrecer mis cartas")); }
   function shareCard(c){ var base=window.location.href.split("#")[0].replace(/([?&])c=[^&]*&?/,"$1").replace(/[?&]$/,""); var url=base+(base.indexOf("?")>=0?"&":"?")+"c="+encodeURIComponent(c.id); if(navigator.share){ navigator.share({ title:c.name, text:c.name+" · "+fmtP(c), url:url }).catch(function(){}); } else { try{ navigator.clipboard.writeText(url); setToast("Enlace copiado"); setTimeout(function(){ setToast(""); },2000); }catch(e){ window.prompt("Copia el enlace:", url); } } }
   function ago(t){ if(!t) return ""; var m=Math.round((Date.now()-t)/60000); if(m<2) return "ahora mismo"; if(m<60) return "hace "+m+" min"; var hh=Math.round(m/60); if(hh<24) return "hace "+hh+" h"; return "hace "+Math.round(hh/24)+" días"; }
   function badges(c){ var b=[]; if(isNew(c)) b.push(["Nuevo",GN]); if(c.condition && c.condition!=="Raw") b.push([c.condition,BL]); if(c.numberedTo) b.push(["/"+c.numberedTo,RD]); (c.tags||[]).forEach(function(t){ if(["Autógrafo","Rookie (RC)","Parche/Memo","1/1"].indexOf(t)>=0) b.push([t,"#7c3aed"]); }); return b.slice(0,3); }
@@ -22986,6 +23068,18 @@ function Catalogo(props){ var h=React.createElement; var d=props.data||{}; var i
           canAsk() ? h("div",{style:{display:"flex",gap:6}},
             h("button",{onClick:function(){ send(msgOne(c),[c.id]); },style:{flex:1,minWidth:0,padding:"9px 6px",border:"none",borderRadius:10,background:BL,color:"#fff",fontSize:12.5,fontWeight:600,fontFamily:"Poppins,sans-serif",cursor:"pointer",whiteSpace:"nowrap"}}, price(c) ? "La quiero" : "Consultar"),
             h("button",{onClick:function(){ toggleCart(c); },"aria-label":inC?"Quitar de mi lista":"Añadir a mi lista",title:inC?"Quitar de mi lista":"Añadir a mi lista",style:{width:40,flexShrink:0,border:"1.5px solid "+(inC?BL:LN),borderRadius:10,background:inC?"#eef4ff":"#fff",color:BL,fontSize:17,fontWeight:700,cursor:"pointer"}}, inC?"✓":"+")) : null))); }
+  if(info.closed) return h("div",{style:{fontFamily:"Poppins,sans-serif",color:INK,minHeight:"100vh",background:"#f6f7fb"}},
+    h("header",{style:{background:"linear-gradient(135deg,"+BL+","+RD+")",color:"#fff",padding:"28px 18px 30px",textAlign:"center"}},
+      info.avatar ? h("img",{src:info.avatar,alt:"",style:{width:72,height:72,borderRadius:18,objectFit:"cover",border:"2px solid rgba(255,255,255,.6)"}}) : null,
+      h("h1",{style:{margin:"10px 0 0",fontFamily:COND,fontWeight:800,fontSize:30,textTransform:"uppercase"}},info.name||"The Card Girl")),
+    h("main",{style:{maxWidth:520,margin:"0 auto",padding:"30px 18px",textAlign:"center"}},
+      h("div",{style:{fontFamily:COND,fontWeight:800,fontSize:24,textTransform:"uppercase"}},"Volvemos pronto"),
+      h("p",{style:{fontSize:14.5,color:GR,lineHeight:1.5}}, info.closedMsg || "Estoy preparando cartas nuevas. ¡Vuelve en unos días!"),
+      h("div",{style:{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",marginTop:16}},
+        phone ? h("a",{href:"https://wa.me/"+phone,target:"_blank",rel:"noreferrer",style:{padding:"11px 16px",borderRadius:12,background:"#1f9d55",color:"#fff",fontWeight:600,fontSize:14,textDecoration:"none"}},"WhatsApp") : null,
+        info.instagram ? h("a",{href:"https://instagram.com/"+info.instagram,target:"_blank",rel:"noreferrer",style:{padding:"11px 16px",borderRadius:12,background:BL,color:"#fff",fontWeight:600,fontSize:14,textDecoration:"none"}},"@"+info.instagram) : null),
+      mine.length && buyOn ? h("div",{style:{marginTop:20}}, mine.slice(0,4).map(function(m){ return h("button",{key:m.id,onClick:function(){ loadTrk(m.id); },style:{border:"none",background:"#eef4ff",color:BL,borderRadius:8,padding:"6px 10px",fontSize:12.5,fontWeight:600,cursor:"pointer",margin:3,fontFamily:"Poppins,sans-serif"}},"Mi oferta del "+fdate(m.ts)); })) : null),
+    trk ? trkSheet() : null);
   return h("div",{style:{fontFamily:"Poppins,sans-serif",color:INK,minHeight:"100vh",background:"#f6f7fb",paddingBottom:cartIds.length?96:0}},
     h("header",{style:{background:"linear-gradient(135deg,"+BL+","+RD+")",color:"#fff",padding:"22px 18px 26px"}},
       h("div",{style:{maxWidth:1100,margin:"0 auto",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}},
@@ -23004,6 +23098,7 @@ function Catalogo(props){ var h=React.createElement; var d=props.data||{}; var i
         h("span",{style:{background:RD,color:"#fff",fontSize:11,fontWeight:700,padding:"4px 8px",borderRadius:8,flexShrink:0}},"PRÓXIMO"),
         h("div",{style:{minWidth:0,flex:1}}, h("div",{style:{fontWeight:700,fontSize:14}},ev.title), ev.when ? h("div",{style:{fontSize:12.5,color:GR,textTransform:"capitalize"}},evWhen(ev.when)) : null),
         ev.link ? h("span",{style:{color:RD,fontWeight:700,fontSize:13,flexShrink:0}},"Ver ›") : null) : null,
+      sellBanner(),
       news.length && !q && !cat ? h("section",{style:{marginBottom:18}}, h("h2",{style:{margin:"0 0 10px",fontFamily:COND,fontWeight:800,fontSize:20,textTransform:"uppercase"}},"Novedades"), h("div",{style:{display:"flex",gap:10,overflowX:"auto",paddingBottom:6}}, news.map(function(c){ return tile(c,true); }))) : null,
       h("div",{style:{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",marginBottom:12}},
         h("label",{style:{flex:"1 1 220px",minWidth:0,position:"relative"}}, h("span",{style:{position:"absolute",left:-9999}},"Buscar"),
@@ -23045,12 +23140,100 @@ function Catalogo(props){ var h=React.createElement; var d=props.data||{}; var i
         h("a",{href:igUrl(),target:"_blank",rel:"noreferrer",onClick:function(){ try{ navigator.clipboard.writeText(ask.txt); }catch(x){} setAsk(null); },style:{display:"flex",alignItems:"center",justifyContent:"center",height:50,borderRadius:14,marginTop:10,background:"linear-gradient(90deg,"+BL+","+RD+")",color:"#fff",fontWeight:600,fontSize:15,textDecoration:"none"}},"Instagram (mensaje directo)"),
         h("div",{style:{fontSize:11.5,color:GR,marginTop:8,textAlign:"center"}},"En Instagram, el mensaje queda copiado: solo tienes que pegarlo."),
         h("button",{onClick:function(){ setAsk(null); },style:{width:"100%",marginTop:12,height:42,borderRadius:12,border:"1.5px solid "+LN,background:"#fff",fontFamily:"Poppins,sans-serif",fontSize:14,fontWeight:600,cursor:"pointer"}},"Cancelar"))) : null,
+    sellOpen ? sellSheet() : null,
+    trk ? trkSheet() : null,
     toast ? h("div",{style:{position:"fixed",left:"50%",bottom:cartIds.length?100:24,transform:"translateX(-50%)",background:INK,color:"#fff",padding:"10px 16px",borderRadius:12,fontSize:13,zIndex:70}},toast) : null);
 }
 
+function _cvImgShrink(file, max, cb){ try{ var rd=new FileReader(); rd.onload=function(){ var im=new Image(); im.onload=function(){ var sc=Math.min(1, max/Math.max(im.width, im.height)); var cv=document.createElement("canvas"); cv.width=Math.round(im.width*sc); cv.height=Math.round(im.height*sc); cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height); cv.toBlob(function(b){ cb(b); }, "image/jpeg", 0.85); }; im.onerror=function(){ cb(null); }; im.src=rd.result; }; rd.onerror=function(){ cb(null); }; rd.readAsDataURL(file); }catch(e){ cb(null); } }
+window._cvShopApi=function(slug){ return {
+  upload:function(file){ return new Promise(function(res){ _cvImgShrink(file,1400,function(b){ if(!b || !window.uploadToCloudinary) return res(""); window.uploadToCloudinary(b,function(err,url){ res(err ? "" : String(url||"").replace("w_600","w_1400")); }); }); }); },
+  put:function(id,o){ return window._db.ref("offers/"+slug+"/"+id).set(o); },
+  get:function(id){ return window._db.ref("offers/"+slug+"/"+id).once("value").then(function(s){ return s.val(); }); },
+  respond:function(id,r){ return window._db.ref("offers/"+slug+"/"+id+"/resp").set(r); } }; };
+function _cvOfferUnseen(o){ return !!o && !o.archived && (!o.seen || (o.resp && !o.respSeen)); }
+function WebPanel(props){ var h=React.createElement; var offers=props.offers||{}; var slug=props.slug||localStorage.getItem("cv10_slug")||"";
+  var _c=useState(localStorage.getItem("cv10_shopclosed")==="1"), closed=_c[0], setClosed=_c[1];
+  var _a=useState(false), showArch=_a[0], setShowArch=_a[1];
+  var _e=useState(null), edit=_e[0], setEdit=_e[1];
+  var _z=useState(null), zoom=_z[0], setZoom=_z[1];
+  var _n=useState(function(){ var m={}; Object.keys(offers).forEach(function(id){ if(_cvOfferUnseen(offers[id])) m[id]=1; }); return m; }), fresh=_n[0];
+  var _np=useState(typeof Notification!=="undefined" ? Notification.permission : "na"), np=_np[0], setNp=_np[1];
+  var shopUrl=localStorage.getItem("cv10_shopurl")||""; var openUrl=shopUrl || (slug ? ("?tienda="+slug) : "");
+  var BLc="#1D5FBF", RDc="#C6244E";
+  function trackLink(id){ var b=shopUrl || (window.location.origin+window.location.pathname+"?tienda="+slug); return b+(b.indexOf("?")>=0?"&":"?")+"oferta="+id; }
+  function toast(t){ if(window._cvToast) window._cvToast(t); }
+  function setClosedNow(v){ setClosed(v); localStorage.setItem("cv10_shopclosed", v?"1":"0"); if(window._cvSaveCatCfg) window._cvSaveCatCfg(); if(window._cvPublishCatalog) window._cvPublishCatalog(null,{info:true}).then(function(r){ toast(r===true ? (v?"Web cerrada":"Web abierta") : "Se aplicará al conectar"); }).catch(function(){ toast("No se pudo cambiar: revisa la conexión"); }); }
+  function upd(id, patch){ if(!window._db || !slug) return Promise.reject(new Error("sin conexión")); return window._db.ref("offers/"+slug+"/"+id).update(patch); }
+  React.useEffect(function(){ Object.keys(offers).forEach(function(id){ var o=offers[id]; if(!o || id==="__err" || typeof o!=="object") return; var p={}; if(!o.seen) p.seen=true; if(o.resp && !o.respSeen) p.respSeen=true; if(Object.keys(p).length) upd(id,p).catch(function(){}); }); }, [offers]);
+  function num(s){ var m=String(s||"").replace(",",".").match(/[0-9]+(\.[0-9]+)?/); return m ? m[0] : ""; }
+  function sendEdit(){ var e=edit; if(!e) return; var st={ contra:"contra", acepta:"aceptada", rechaza:"rechazada" }[e.mode]; if(e.mode==="contra" && !(parseFloat(e.price)>0)){ toast("Pon el precio de tu contraoferta"); return; } var p={ status:st, price:(e.mode==="rechaza" ? "" : String(e.price||"").replace(",",".")), msg:(e.msg||"").slice(0,1000), at:Date.now() }; upd(e.id,p).then(function(){ setEdit(null); toast("Respuesta guardada. Avísale con el botón de WhatsApp o Instagram."); }).catch(function(x){ toast("No se pudo guardar ("+((x&&x.message)||x)+")"); }); }
+  function fd(t){ try{ var x=new Date(t); return x.getDate()+"/"+(x.getMonth()+1)+" "+String(x.getHours()).padStart(2,"0")+":"+String(x.getMinutes()).padStart(2,"0"); }catch(e){ return ""; } }
+  var ids=Object.keys(offers).filter(function(k){ return k!=="__err" && offers[k] && typeof offers[k]==="object"; }).sort(function(a,b){ return (offers[b].ts||0)-(offers[a].ts||0); });
+  var nArch=ids.filter(function(k){ return offers[k].archived; }).length;
+  var shown=ids.filter(function(k){ return showArch ? offers[k].archived : !offers[k].archived; });
+  var ST={ nueva:["Nueva",AMBER], contra:["Contraoferta enviada",BLc], aceptada:["Aceptada",GREEN], rechazada:["Rechazada",MUT], comprada:["Comprada",GREEN] };
+  var bS={ padding:"7px 11px", borderRadius:8, border:"1px solid "+BDR, background:"transparent", color:TXT, fontSize:12.5, fontWeight:600, cursor:"pointer", fontFamily:"Inter,sans-serif", textDecoration:"none", display:"inline-flex", alignItems:"center", gap:4, whiteSpace:"nowrap" };
+  var inp={ width:"100%", boxSizing:"border-box", padding:"8px 10px", borderRadius:8, border:"1px solid "+BDR, fontSize:14, fontFamily:"Inter,sans-serif", background:BG, color:TXT };
+  function offerCard(id){ var o=offers[id]; var s=ST[o.status||"nueva"]||ST.nueva; var r=o.resp; var rOk=r && o.status==="contra" && (r.to||0)===(o.at||0);
+    var wa=String(o.wa||"").replace(/[^0-9]/g,""); if(wa.length===9) wa="34"+wa; var txt="Hola "+(o.name||"")+"! Te he respondido a tu oferta de cartas: "+trackLink(id);
+    var ed=edit && edit.id===id ? edit : null;
+    return h("div",{key:id,style:{border:"1px solid "+(fresh[id]?BLc:BDR),borderRadius:12,padding:12,marginBottom:10,background:BG}},
+      h("div",{style:{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}},
+        h("b",{style:{fontSize:14}},o.name||"(sin nombre)"),
+        fresh[id] ? h("span",{style:{fontSize:10.5,fontWeight:700,color:"#fff",background:RDc,borderRadius:6,padding:"1px 6px"}},"NUEVO") : null,
+        h("span",{style:{fontSize:11,fontWeight:700,color:s[1],border:"1px solid "+s[1],borderRadius:6,padding:"1px 6px"}},s[0]+(o.price&&o.status!=="rechazada"?" · "+o.price+" €":"")),
+        h("span",{style:{marginLeft:"auto",fontSize:11,color:MUT}},fd(o.ts))),
+      rOk ? h("div",{style:{marginTop:8,fontSize:13,fontWeight:700,color:r.r==="acepta"?GREEN:RED}}, r.r==="acepta" ? "✔ Acepta tu contraoferta de "+o.price+" €" : "✖ Rechaza tu contraoferta") : null,
+      (o.photos&&o.photos.length) ? h("div",{style:{display:"flex",gap:6,overflowX:"auto",marginTop:8}}, o.photos.map(function(u,i){ return h("img",{key:i,src:u,alt:"Foto "+(i+1),onClick:function(){ setZoom(u); },style:{width:64,height:64,objectFit:"cover",borderRadius:8,cursor:"zoom-in",flexShrink:0}}); })) : null,
+      h("div",{style:{fontSize:13,whiteSpace:"pre-wrap",marginTop:8,lineHeight:1.45}},o.text||""),
+      o.ask ? h("div",{style:{fontSize:12.5,color:SUB,marginTop:4}},"Pide: ",h("b",null,o.ask)) : null,
+      h("div",{style:{fontSize:12,color:SUB,marginTop:4}},[o.wa?"WhatsApp "+o.wa:"", o.ig?"@"+o.ig:""].filter(Boolean).join(" · ")),
+      ed ? h("div",{style:{marginTop:10,padding:10,borderRadius:10,background:BGS}},
+          h("div",{style:{fontSize:12.5,fontWeight:700,marginBottom:6}},{ contra:"Contraoferta", acepta:"Aceptar oferta", rechaza:"Rechazar" }[ed.mode]),
+          ed.mode!=="rechaza" ? h("input",{value:ed.price,onChange:function(e){ setEdit(Object.assign({},ed,{price:e.target.value})); },inputMode:"decimal",placeholder:"Precio que pagas (€)",style:Object.assign({},inp,{marginBottom:6})}) : null,
+          h("textarea",{value:ed.msg,onChange:function(e){ setEdit(Object.assign({},ed,{msg:e.target.value})); },rows:2,placeholder:ed.mode==="rechaza"?"Mensaje (opcional): gracias, ahora mismo no busco esas":"Mensaje (opcional): te pago por Bizum al recibirlas",style:Object.assign({},inp,{resize:"vertical"})}),
+          h("div",{style:{display:"flex",gap:6,marginTop:6}}, h("button",{onClick:sendEdit,style:Object.assign({},bS,{background:BLc,color:"#fff",border:"none"})},"Guardar respuesta"), h("button",{onClick:function(){ setEdit(null); },style:bS},"Cancelar"))) :
+      h("div",{style:{display:"flex",gap:6,flexWrap:"wrap",marginTop:10}},
+        (o.status!=="comprada") ? h("button",{onClick:function(){ setEdit({ id:id, mode:"acepta", price:o.price||num(o.ask), msg:"" }); },style:Object.assign({},bS,{color:GREEN})},"✔ Aceptar") : null,
+        (o.status!=="comprada") ? h("button",{onClick:function(){ setEdit({ id:id, mode:"contra", price:o.status==="contra"?(o.price||""):"", msg:o.status==="contra"?(o.msg||""):"" }); },style:Object.assign({},bS,{color:BLc})},"⇄ Contraoferta") : null,
+        (o.status!=="comprada" && o.status!=="rechazada") ? h("button",{onClick:function(){ setEdit({ id:id, mode:"rechaza", price:"", msg:"" }); },style:Object.assign({},bS,{color:RED})},"✖ Rechazar") : null,
+        wa ? h("a",{href:"https://wa.me/"+wa+"?text="+encodeURIComponent(txt),target:"_blank",rel:"noreferrer",style:Object.assign({},bS,{color:"#1f9d55"})},"WhatsApp") : null,
+        o.ig ? h("a",{href:"https://ig.me/m/"+o.ig,target:"_blank",rel:"noreferrer",onClick:function(){ try{ navigator.clipboard.writeText(txt); toast("Mensaje copiado: pégalo en Instagram"); }catch(e){} },style:Object.assign({},bS,{color:PURPLE})},"Instagram") : null,
+        ((o.status==="aceptada" || rOk && r.r==="acepta") && o.status!=="comprada") ? h("button",{onClick:function(){ if(!window.confirm("¿Marcar como comprada? (no añade nada al inventario: eso lo haces tú al recibirlas)")) return; upd(id,{status:"comprada",at:Date.now()}).catch(function(){}); },style:Object.assign({},bS,{color:GREEN})},"📦 Comprada") : null,
+        h("button",{onClick:function(){ upd(id,{archived:!o.archived}).catch(function(){}); },style:Object.assign({},bS,{color:SUB})}, o.archived ? "Sacar del archivo" : "Archivar"))); }
+  return h("div",{style:{position:"fixed",inset:0,zIndex:1000,display:"flex",justifyContent:"flex-end"}},
+    h("div",{onClick:props.onClose,style:{position:"absolute",inset:0,background:"#00000055"}}),
+    h("div",{style:{position:"relative",width:440,maxWidth:"100%",height:"100%",background:BG,display:"flex",flexDirection:"column",boxShadow:"-4px 0 20px #00000026"}},
+      h("div",{style:{display:"flex",alignItems:"center",gap:8,padding:"calc(12px + env(safe-area-inset-top)) 14px 12px",borderBottom:"1px solid "+BDR}},
+        h("div",{style:{fontWeight:800,fontSize:16,flex:1}},"🛍️ Mi web"),
+        h("button",{onClick:props.onClose,"aria-label":"Cerrar",style:{border:"none",background:"none",fontSize:22,cursor:"pointer",color:SUB}},"×")),
+      h("div",{style:{flex:1,overflowY:"auto",padding:14}},
+        !slug ? h("div",{style:{fontSize:13,color:SUB,marginBottom:12}},"Todavía no has creado tu web. Ve a Ajustes › Mi catálogo web.") : null,
+        h("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginBottom:12}},
+          openUrl ? h("a",{href:openUrl,target:"_blank",rel:"noreferrer",style:Object.assign({},bS,{background:BLc,color:"#fff",border:"none",padding:"9px 14px"})},"Abrir mi web") : null,
+          shopUrl ? h("button",{onClick:function(){ try{ navigator.clipboard.writeText(shopUrl); toast("Enlace copiado"); }catch(e){ window.prompt("Copia el enlace:", shopUrl); } },style:Object.assign({},bS,{padding:"9px 14px"})},"Copiar enlace") : null,
+          props.onSettings ? h("button",{onClick:props.onSettings,style:Object.assign({},bS,{padding:"9px 14px"})},"⚙️ Ajustes de la web") : null),
+        !shopUrl && slug ? h("div",{style:{fontSize:11.5,color:AMBER,marginBottom:12,lineHeight:1.4}},"“Abrir mi web” te abre la vista previa (solo para ti). Cuando la subas a tu dominio, pega su dirección en Ajustes y este botón abrirá la de verdad.") : null,
+        slug ? h("button",{onClick:function(){ setClosedNow(!closed); },style:{display:"flex",alignItems:"center",gap:10,width:"100%",padding:"11px 12px",borderRadius:10,border:"1.5px solid "+(closed?BDR:GREEN),background:closed?"transparent":"rgba(0,196,140,0.07)",cursor:"pointer",fontFamily:"Inter,sans-serif",textAlign:"left",color:TXT,marginBottom:14}},
+          h("span",{style:{width:38,height:22,borderRadius:11,background:closed?"#cbd5e1":GREEN,position:"relative",flexShrink:0}}, h("span",{style:{position:"absolute",top:2,left:closed?2:18,width:18,height:18,borderRadius:9,background:"#fff"}})),
+          h("span",null, h("b",{style:{fontSize:13.5}}, closed ? "Web cerrada" : "Web abierta"), h("span",{style:{display:"block",fontSize:11.5,color:SUB}}, closed ? "Tus clientes ven “Volvemos pronto”." : "Toca para cerrarla temporalmente."))) : null,
+        h("div",{style:{display:"flex",alignItems:"center",gap:8,margin:"4px 0 10px"}},
+          h("div",{style:{fontWeight:800,fontSize:14,flex:1}},"📨 Te compro tus cartas"+(ids.length?" ("+(ids.length-nArch)+")":"")),
+          nArch ? h("button",{onClick:function(){ setShowArch(!showArch); },style:Object.assign({},bS,{padding:"5px 9px",fontSize:11.5})}, showArch ? "Ver activas" : "Archivo ("+nArch+")") : null),
+        (np==="default") ? h("button",{onClick:function(){ try{ Notification.requestPermission().then(function(p){ setNp(p); }); }catch(e){} },style:Object.assign({},bS,{marginBottom:10,color:BLc})},"🔔 Avisarme en este dispositivo") : null,
+        offers.__err ? h("div",{style:{fontSize:12.5,color:RED,lineHeight:1.45,marginBottom:10}},"No puedo leer las ofertas: falta activar el permiso “offers” en Firebase (te lo paso en el chat). ("+offers.__err+")") :
+        shown.length===0 ? h("div",{style:{fontSize:12.5,color:MUT,padding:"16px 0"}}, showArch ? "No hay ofertas archivadas." : "Todavía no te han enviado ofertas. Salen aquí cuando alguien rellene “Ofrecer mis cartas” en tu web.") :
+        shown.map(offerCard))),
+    zoom ? h("div",{onClick:function(){ setZoom(null); },style:{position:"fixed",inset:0,zIndex:1100,background:"rgba(0,0,0,.85)",display:"flex",alignItems:"center",justifyContent:"center",padding:12}}, h("img",{src:zoom,alt:"Foto",style:{maxWidth:"100%",maxHeight:"100%",objectFit:"contain"}})) : null);
+}
 function CatalogSettings(){ var h=React.createElement;
   var _a=useState(localStorage.getItem("cv10_slug")||""), slug=_a[0], setSlug=_a[1];
-  var _b=useState(localStorage.getItem("cv10_contact")||""), contact=_b[0], setContact=_b[1];
+  var _b=useState(_cvWA()), contact=_b[0], setContact=_b[1];
+  var _cl=useState(localStorage.getItem("cv10_shopclosed")==="1"), closed=_cl[0], setClosed=_cl[1];
+  var _cm=useState(localStorage.getItem("cv10_shopclosedmsg")||""), closedMsg=_cm[0], setClosedMsg=_cm[1];
+  var _bo=useState(localStorage.getItem("cv10_buyon")!=="0"), buyOn=_bo[0], setBuyOn=_bo[1];
+  var _sv=useState(""), saved=_sv[0], setSaved=_sv[1];
   var _c=useState(localStorage.getItem("cv10_ig")||""), ig=_c[0], setIg=_c[1];
   var _d=useState(localStorage.getItem("cv10_shipping")||""), ship=_d[0], setShip=_d[1];
   var _e=useState(localStorage.getItem("cv10_payment")||""), pay=_e[0], setPay=_e[1];
@@ -23068,12 +23251,16 @@ function CatalogSettings(){ var h=React.createElement;
   var _u=useState(false), up=_u[0], setUp=_u[1];
   var n=_cvCatalogCards(window._cvLatestCards||[]).length;
   var nListed=(window._cvLatestCards||[]).filter(function(c){ return c.mode==="inventory" && c.status==="listed"; }).length;
-  function pickLogo(e){ var file=e.target.files && e.target.files[0]; if(!file) return; setUp(true); setSt("Subiendo logo\u2026"); var rd=new FileReader(); rd.onload=function(){ var im=new Image(); im.onload=function(){ var S=400, cv=document.createElement("canvas"), sc=Math.min(1, S/Math.max(im.width, im.height)); cv.width=Math.round(im.width*sc); cv.height=Math.round(im.height*sc); cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height); cv.toBlob(function(b){ if(!window.uploadToCloudinary){ setUp(false); setSt("No se pudo subir (sin conexi\u00f3n con el servidor de fotos)."); return; } window.uploadToCloudinary(b, function(url){ setUp(false); if(url){ setLogo(url); localStorage.setItem("cv10_avatar", url); setSt("Logo subido. Pulsa Guardar y publicar."); } else setSt("No se pudo subir el logo."); }); }, "image/png"); }; im.src=rd.result; }; rd.readAsDataURL(file); }
+  function pickLogo(e){ var file=e.target.files && e.target.files[0]; if(!file) return; setUp(true); setSt("Subiendo logo\u2026"); var rd=new FileReader(); rd.onload=function(){ var im=new Image(); im.onload=function(){ var S=400, cv=document.createElement("canvas"), sc=Math.min(1, S/Math.max(im.width, im.height)); cv.width=Math.round(im.width*sc); cv.height=Math.round(im.height*sc); cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height); cv.toBlob(function(b){ if(!window.uploadToCloudinary){ setUp(false); setSt("No se pudo subir (sin conexi\u00f3n con el servidor de fotos)."); return; } window.uploadToCloudinary(b, function(err, url){ setUp(false); if(!err && url){ setLogo(url); localStorage.setItem("cv10_avatar", url); setSt("Logo subido y guardado."); } else setSt("No se pudo subir el logo"+(err&&err.message?" ("+err.message+")":"")+"."); }); }, "image/png"); }; im.src=rd.result; }; rd.readAsDataURL(file); }
   function downloadShop(){ var sl=localStorage.getItem("cv10_slug"); if(!sl){ setSt("Primero guarda un nombre de enlace y publica."); return; }
     var src = "var useState=React.useState;\n" + _cvSaleActive.toString() + "\n" + Catalogo.toString() + "\n" +
       "var _B=atob('aHR0cHM6Ly9jcm9tb3ZhdWx0LWRlZmF1bHQtcnRkYi5ldXJvcGUtd2VzdDEuZmlyZWJhc2VkYXRhYmFzZS5hcHA='), _S='" + sl + "';\n" +
+      _cvImgShrink.toString() + "\n" +
+      "var _P=atob('Y3JvbW92YXVsdA=='), _CU=atob('aHR0cHM6Ly9hcGkuY2xvdWRpbmFyeS5jb20vdjFfMS9kem5raGxkbngvaW1hZ2UvdXBsb2Fk');\n" +
+      "function _J(path,m,b){ return fetch(_B+'/'+path+'.json', m ? {method:m,headers:{'Content-Type':'application/json'},body:JSON.stringify(b)} : undefined).then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.json(); }); }\n" +
+      "var _api={ upload:function(f){ return new Promise(function(res){ _cvImgShrink(f,1400,function(b){ if(!b) return res(''); var fd=new FormData(); fd.append('file',b,'foto.jpg'); fd.append('upload_preset',_P); fetch(_CU,{method:'POST',body:fd}).then(function(r){ return r.json(); }).then(function(d){ res(d&&d.secure_url ? d.secure_url.replace('/upload/','/upload/q_auto,f_auto,w_1400/') : ''); }).catch(function(){ res(''); }); }); }); }, put:function(id,o){ return _J('offers/'+_S+'/'+id,'PUT',o); }, get:function(id){ return _J('offers/'+_S+'/'+id); }, respond:function(id,r){ return _J('offers/'+_S+'/'+id+'/resp','PUT',r); } };\n" +
       "var _db={ ref: function(path){ return { transaction: function(){ return fetch(_B+'/'+path+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({'.sv':{'increment':1}})}).catch(function(){}); } }; } };\n" +
-      "fetch(_B+'/public/'+_S+'.json').then(function(r){ return r.json(); }).then(function(v){ v=v||{}; ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Catalogo,{data:{catalog:v.catalog||[],catalogInfo:v.catalogInfo||{},catalogAt:v.catalogAt||0},slug:_S,db:_db})); }).catch(function(){ document.getElementById('root').textContent='No se pudo cargar el cat\u00e1logo. Prueba a recargar.'; });";
+      "fetch(_B+'/public/'+_S+'.json').then(function(r){ return r.json(); }).then(function(v){ v=v||{}; ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Catalogo,{data:{catalog:v.catalog||[],catalogInfo:v.catalogInfo||{},catalogAt:v.catalogAt||0},slug:_S,db:_db,api:_api})); }).catch(function(){ document.getElementById('root').textContent='No se pudo cargar el cat\u00e1logo. Prueba a recargar.'; });";
     var nm = (localStorage.getItem("cv10_shopname")||"The Card Girl");
     var html = "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>" + nm + " \u00b7 Cartas en venta</title>\n<meta name=\"description\" content=\"Cartas de f\u00fatbol en venta: " + nm + ". Subastas, breaks y coleccionismo.\">\n<meta property=\"og:title\" content=\"" + nm + " \u00b7 Cartas en venta\">\n" + (logo ? "<meta property=\"og:image\" content=\"" + logo + "\">\n<link rel=\"icon\" href=\"" + logo + "\">\n<link rel=\"apple-touch-icon\" href=\"" + logo + "\">\n" : "") +
       "<style>body{margin:0;background:#f6f7fb}</style>\n</head>\n<body>\n<div id=\"root\" style=\"font-family:sans-serif;padding:40px;text-align:center;color:#6b7280\">Cargando\u2026</div>\n" +
@@ -23084,14 +23271,23 @@ function CatalogSettings(){ var h=React.createElement;
   var url = slug ? (shopUrl || "") : "";
   var preview = slug ? ("?tienda="+slug) : "";
   var inp={ width:"100%", boxSizing:"border-box", padding:"8px 10px", borderRadius:8, border:"1px solid "+BDR, fontSize:14, fontFamily:"Inter,sans-serif", background:BG, color:TXT };
-  function save(){ var s=(slug||"").toLowerCase().replace(/[^a-z0-9-]/g,""); if(!s){ setSt("Escribe un nombre para el enlace (por ejemplo: thecardgirl)."); return; } setSlug(s); localStorage.setItem("cv10_slug",s); localStorage.setItem("cv10_contact",contact); localStorage.setItem("cv10_ig",ig.replace(/^@/,"").replace(/.*instagram\.com\//,"").replace(/[\/\?#].*/,"").trim()); localStorage.setItem("cv10_shipping",ship); localStorage.setItem("cv10_payment",pay); localStorage.setItem("cv10_shopurl", shopUrl); localStorage.setItem("cv10_shipcost", shipCost); localStorage.setItem("cv10_shipfree", shipFree); var pk=[]; if(parseFloat(p2)>0) pk.push({ n:2, pct:parseFloat(p2) }); if(parseFloat(p3)>0) pk.push({ n:3, pct:parseFloat(p3) }); localStorage.setItem("cv10_pack", JSON.stringify(pk)); localStorage.setItem("cv10_event", JSON.stringify(evT ? { title: evT, when: evW, link: evL } : null)); setSt("Publicando\u2026"); window._cvPublishCatalog().then(function(r){ setSt(r===true ? "✔ Catálogo publicado con "+n+" cartas." : "Inicia sesión para publicar."); }).catch(function(e){ setSt("No se pudo publicar ("+((e&&e.message)||e)+"). Si dice permiso, ese nombre puede estar cogido: prueba otro."); }); }
+  function save(silent){ var s=(slug||"").toLowerCase().replace(/[^a-z0-9-]/g,""); if(silent && (!s || s!==(localStorage.getItem("cv10_slug")||""))) { if(!s) return; setSaved("Pulsa \u201cGuardar y publicar\u201d para estrenar este nombre."); return; } if(!s){ setSt("Escribe un nombre para el enlace (por ejemplo: thecardgirl)."); return; } setSlug(s); localStorage.setItem("cv10_slug",s); localStorage.setItem("cv10_wa",contact); localStorage.setItem("cv10_shopclosed", closed?"1":"0"); localStorage.setItem("cv10_shopclosedmsg", closedMsg||""); localStorage.setItem("cv10_buyon", buyOn?"1":"0"); localStorage.setItem("cv10_ig",ig.replace(/^@/,"").replace(/.*instagram\.com\//,"").replace(/[\/\?#].*/,"").trim()); localStorage.setItem("cv10_shipping",ship); localStorage.setItem("cv10_payment",pay); localStorage.setItem("cv10_shopurl", shopUrl); localStorage.setItem("cv10_shipcost", shipCost); localStorage.setItem("cv10_shipfree", shipFree); var pk=[]; if(parseFloat(p2)>0) pk.push({ n:2, pct:parseFloat(p2) }); if(parseFloat(p3)>0) pk.push({ n:3, pct:parseFloat(p3) }); localStorage.setItem("cv10_pack", JSON.stringify(pk)); localStorage.setItem("cv10_event", JSON.stringify(evT ? { title: evT, when: evW, link: evL } : null)); var _fs=window._cvSaveCatCfg ? window._cvSaveCatCfg() : Promise.resolve(true); if(silent){ setSaved("Guardando\u2026"); Promise.all([_fs, window._cvPublishCatalog(null,{info:true}).catch(function(){ return "err"; })]).then(function(rs){ setSaved(rs[1]===true ? "\u2714 Guardado y publicado" : (rs[0]===true||rs[0]==="pending" ? "\u2714 Guardado (se publicar\u00e1 al conectar)" : "\u26A0\uFE0F No se pudo guardar: revisa la conexi\u00f3n")); }); return; } setSt("Publicando\u2026"); window._cvPublishCatalog(null,{info:true}).then(function(r){ setSt(r===true ? "\u2714 Guardado y publicado con "+n+" cartas." : "Inicia sesi\u00f3n para publicar."); }).catch(function(e){ setSt("No se pudo publicar ("+((e&&e.message)||e)+"). Si dice permiso, ese nombre puede estar cogido: prueba otro."); }); }
+  var _first=React.useRef(true);
+  React.useEffect(function(){ if(_first.current){ _first.current=false; return; } var t=setTimeout(function(){ save(true); }, 900); return function(){ clearTimeout(t); }; }, [contact,ig,ship,pay,shopUrl,shipCost,shipFree,p2,p3,evT,evW,evL,logo,closed,closedMsg,buyOn]);
+  React.useEffect(function(){ function rl(){ _first.current=true; setSlug(localStorage.getItem("cv10_slug")||""); setContact(_cvWA()); setIg(localStorage.getItem("cv10_ig")||""); setShip(localStorage.getItem("cv10_shipping")||""); setPay(localStorage.getItem("cv10_payment")||""); setLogo(localStorage.getItem("cv10_avatar")||""); setShipCost(localStorage.getItem("cv10_shipcost")||""); setShipFree(localStorage.getItem("cv10_shipfree")||""); setShopUrl(localStorage.getItem("cv10_shopurl")||""); setClosed(localStorage.getItem("cv10_shopclosed")==="1"); setClosedMsg(localStorage.getItem("cv10_shopclosedmsg")||""); setBuyOn(localStorage.getItem("cv10_buyon")!=="0"); var pk=[]; try{ pk=JSON.parse(localStorage.getItem("cv10_pack")||"[]")||[]; }catch(e){} setP2(pk[0]?String(pk[0].pct):""); setP3(pk[1]?String(pk[1].pct):""); var ev={}; try{ ev=JSON.parse(localStorage.getItem("cv10_event")||"null")||{}; }catch(e){} setEvT(ev.title||""); setEvW(ev.when||""); setEvL(ev.link||""); setTimeout(function(){ _first.current=false; }, 50); } window.addEventListener("cv-catcfg", rl); return function(){ window.removeEventListener("cv-catcfg", rl); }; }, []);
+  var swS=function(on){ return { display:"flex", alignItems:"center", gap:10, padding:"10px 12px", borderRadius:10, border:"1.5px solid "+(on?GREEN:BDR), background:on?"rgba(22,163,74,0.06)":"transparent", cursor:"pointer", fontFamily:"Inter,sans-serif", width:"100%", textAlign:"left", color:TXT }; };
+  function sw(on){ return h("span",{style:{width:38,height:22,borderRadius:11,background:on?GREEN:"#cbd5e1",position:"relative",flexShrink:0,transition:"background .15s"}}, h("span",{style:{position:"absolute",top:2,left:on?18:2,width:18,height:18,borderRadius:9,background:"#fff",boxShadow:"0 1px 3px rgba(0,0,0,.2)",transition:"left .15s"}})); }
   return h("div",{style:{border:"1px solid "+BDR,borderRadius:12,padding:"14px",marginBottom:14,background:BG}},
     h("div",{style:{fontSize:15,fontWeight:800,marginBottom:4}},"🛍️ Mi catálogo web"),
+    h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:8,marginBottom:10}},
+      h("button",{type:"button",onClick:function(){ setClosed(!closed); },style:swS(!closed)}, sw(!closed), h("span",null, h("b",{style:{fontSize:13}}, closed ? "Web cerrada" : "Web abierta"), h("span",{style:{display:"block",fontSize:11.5,color:SUB}}, closed ? "Tus clientes ven un aviso de que vuelves pronto." : "Tus clientes ven tus cartas."))),
+      h("button",{type:"button",onClick:function(){ setBuyOn(!buyOn); },style:swS(buyOn)}, sw(buyOn), h("span",null, h("b",{style:{fontSize:13}}, "Te compro tus cartas"), h("span",{style:{display:"block",fontSize:11.5,color:SUB}}, buyOn ? "Te pueden enviar ofertas con fotos." : "Secci\u00f3n oculta.")))),
+    closed ? h("input",{value:closedMsg,onChange:function(e){ setClosedMsg(e.target.value); },placeholder:"Mensaje (opcional): Vuelvo el lunes con cartas nuevas",style:{width:"100%",boxSizing:"border-box",padding:"8px 10px",borderRadius:8,border:"1px solid "+BDR,fontSize:14,fontFamily:"Inter,sans-serif",background:BG,color:TXT,marginBottom:10}}) : null,
     h("div",{style:{fontSize:12,color:SUB,marginBottom:10,lineHeight:1.5}},"Solo salen las cartas que t\u00fa a\u00f1adas con el bot\u00f3n \uD83D\uDECD\uFE0F (en cada carta en venta o seleccionando varias). Ahora: "+n+" de "+nListed+" en venta. Se actualiza sola y nunca publica lo que te cost\u00f3 una carta."),
     h("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:10}},
       logo ? h("img",{src:logo,alt:"Logo",style:{width:52,height:52,borderRadius:12,objectFit:"cover",border:"1px solid "+BDR}}) : h("div",{style:{width:52,height:52,borderRadius:12,border:"1px dashed "+BDR,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:MUT}},"Logo"),
       h("label",{style:{padding:"8px 12px",borderRadius:8,border:"1px solid "+BDR,color:BLUE,fontWeight:700,fontSize:12.5,cursor:"pointer"}}, up ? "Subiendo\u2026" : (logo ? "Cambiar logo" : "Subir logo"), h("input",{type:"file",accept:"image/*",onChange:pickLogo,style:{display:"none"}})),
-      logo ? h("button",{onClick:function(){ setLogo(""); localStorage.setItem("cv10_avatar",""); },style:{border:"none",background:"none",color:MUT,fontSize:12,cursor:"pointer"}},"Quitar") : null),
+      logo ? h("button",{onClick:function(){ if(!window.confirm("\u00bfQuitar el logo de tu web?")) return; setLogo(""); localStorage.setItem("cv10_avatar",""); },style:{border:"none",background:"none",color:MUT,fontSize:12,cursor:"pointer"}},"Quitar") : null),
     h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:8}},
       h("label",{style:{fontSize:11,color:SUB,gridColumn:"1/-1"}},"Direcci\u00f3n de tu web (la que compartes con clientes)", h("input",{value:shopUrl,onChange:function(e){ setShopUrl(e.target.value.trim()); },placeholder:"https://thecardgirl.netlify.app",style:inp})),
       h("label",{style:{fontSize:11,color:SUB}},"Nombre interno (no lo ve nadie)", h("input",{value:slug,onChange:function(e){ setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,"")); },placeholder:"thecardgirl",style:inp})),
@@ -23107,11 +23303,13 @@ function CatalogSettings(){ var h=React.createElement;
       h("label",{style:{fontSize:11,color:SUB}},"Fecha y hora", h("input",{type:"datetime-local",value:evW,onChange:function(e){ setEvW(e.target.value); },style:inp})),
       h("label",{style:{fontSize:11,color:SUB}},"Enlace (opcional)", h("input",{value:evL,onChange:function(e){ setEvL(e.target.value); },placeholder:"https://\u2026",style:inp}))),
     h("div",{style:{display:"flex",gap:8,marginTop:10,flexWrap:"wrap",alignItems:"center"}},
-      h("button",{onClick:save,style:{padding:"9px 14px",borderRadius:8,border:"none",background:"linear-gradient(135deg,#004D98,#A50044)",color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Guardar y publicar"),
+      h("button",{onClick:function(){ save(false); },style:{padding:"9px 14px",borderRadius:8,border:"none",background:"linear-gradient(135deg,#004D98,#A50044)",color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Guardar y publicar"),
       preview ? h("a",{href:preview,target:"_blank",rel:"noreferrer",title:"Solo para ti: no compartas esta direcci\u00f3n",style:{padding:"9px 14px",borderRadius:8,border:"1px solid "+BDR,color:BLUE,fontWeight:700,fontSize:13,textDecoration:"none"}},"Vista previa (solo t\u00fa)") : null,
       url ? h("button",{onClick:function(){ try{ navigator.clipboard.writeText(url); setSt("Enlace copiado: "+url); }catch(e){ setSt(url); } },style:{padding:"9px 14px",borderRadius:8,border:"1px solid "+BDR,background:"transparent",color:SUB,fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"Copiar enlace") : null,
       slug ? h("button",{onClick:downloadShop,style:{padding:"9px 14px",borderRadius:8,border:"1px solid "+BDR,background:"transparent",color:SUB,fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"Inter,sans-serif"}},"\u2B07 P\u00e1gina para tu dominio") : null),
+    saved ? h("div",{style:{fontSize:12,color:saved.charAt(0)==="\u26A0"?RED:GREEN,marginTop:8,fontWeight:600}},saved) : null,
     st ? h("div",{style:{fontSize:12,color:SUB,marginTop:8}},st) : null,
+    h("div",{style:{fontSize:11,color:MUT,marginTop:6}},"Los cambios se guardan solos en tu cuenta (tambi\u00e9n si reinstalas la app). El nombre interno se estrena con el bot\u00f3n."),
     (slug && !shopUrl) ? h("div",{style:{fontSize:11.5,color:AMBER,marginTop:8,lineHeight:1.45}},"Para compartir con clientes usa tu propia web: descarga la p\u00e1gina, s\u00fabela a Netlify o a tu dominio y pega aqu\u00ed su direcci\u00f3n. La vista previa es solo para ti.") : null,
     h("div",{style:{marginTop:14,borderTop:"1px solid "+BDR,paddingTop:12}},
       h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8}},
@@ -23858,7 +24056,7 @@ function initFirebase() {
           });
         }
         localStorage.setItem('cv10_uid', user.uid);
-        var wasSlug=localStorage.getItem('cv10_slug'); if(window._db&&!wasSlug){window._db.ref('public').orderByChild('uid').equalTo(user.uid).once('value').then(function(snap){var d=snap.val();if(d){var key=Object.keys(d)[0];var p=d[key];if(p&&p.slug){localStorage.setItem('cv10_slug',p.slug);window._currentSlug=p.slug;if(p.contact)localStorage.setItem('cv10_contact',p.contact);if(p.payment)localStorage.setItem('cv10_payment',p.payment);if(p.shipping)localStorage.setItem('cv10_shipping',p.shipping);if(p.avatar)localStorage.setItem('cv10_avatar',p.avatar);if(p.banner)localStorage.setItem('cv10_banner',p.banner);}}});}
+        var wasSlug=localStorage.getItem('cv10_slug'); if(window._db&&!wasSlug){window._db.ref('public').orderByChild('uid').equalTo(user.uid).once('value').then(function(snap){var d=snap.val();if(d){var key=Object.keys(d)[0];var p=d[key];if(p&&p.slug){localStorage.setItem('cv10_slug',p.slug);window._currentSlug=p.slug;if(p.contact&&!localStorage.getItem('cv10_wa'))localStorage.setItem('cv10_wa',p.contact);if(p.payment)localStorage.setItem('cv10_payment',p.payment);if(p.shipping)localStorage.setItem('cv10_shipping',p.shipping);if(p.avatar)localStorage.setItem('cv10_avatar',p.avatar);if(p.banner)localStorage.setItem('cv10_banner',p.banner);}}});}
         db.collection('users').doc(user.uid).collection('data').doc('main').get()
           .then(function(snap) {
             if (snap.exists) {
@@ -23880,7 +24078,7 @@ function initFirebase() {
               if (d.locs) localStorage.setItem('cv10_locs', d.locs);
               if (d.minRoi) localStorage.setItem('cv10_minroi', String(d.minRoi));
               if (d.publicSlug) { localStorage.setItem('cv10_slug', d.publicSlug); window._currentSlug = d.publicSlug; }
-              if (d.publicContact) localStorage.setItem('cv10_contact', d.publicContact);
+              if (d.publicContact && !d.catalogCfg && !localStorage.getItem('cv10_wa')) localStorage.setItem('cv10_wa', d.publicContact);
               if (d.publicPayment) localStorage.setItem('cv10_payment', d.publicPayment);
               if (d.publicShipping) localStorage.setItem('cv10_shipping', d.publicShipping);
               if (d.publicAvatar) localStorage.setItem('cv10_avatar', d.publicAvatar);
@@ -23890,6 +24088,7 @@ function initFirebase() {
               if (d.publicMode) localStorage.setItem('cv10_mode', d.publicMode);
               if (d.publicInstagram) localStorage.setItem('cv10_ig', d.publicInstagram);
               if (d.publicTwitter) localStorage.setItem('cv10_tw', d.publicTwitter);
+              try{ if (window._cvCatCfgBoot) window._cvCatCfgBoot(d); }catch(e){}
               if (d.publicSlug && !wasSlug) window._needsReload = true;
               if (d.bannerPos !== undefined) localStorage.setItem('cv10_banner_pos', String(d.bannerPos));
               if (d.vacaciones !== undefined) localStorage.setItem('cv10_vac', d.vacaciones);
@@ -23927,6 +24126,7 @@ function initFirebase() {
                   if (rd.directosData) window._cvCS('cv10_directos', JSON.stringify(rd.directosData));
                   if (rd.geekData) localStorage.setItem('cv10_geek', JSON.stringify(rd.geekData));
                   if (rd.contactData) localStorage.setItem('cv10_contact', JSON.stringify(rd.contactData));
+                  if (rd.catalogCfg && (rd.catalogCfg.savedAt||0) > (window._cvCatCfgAt||0) && window._cvApplyCatCfg) { window._cvApplyCatCfg(rd.catalogCfg, true); window._cvCatCfgAt = rd.catalogCfg.savedAt||0; try{ window.dispatchEvent(new Event('cv-catcfg')); }catch(e){} }
                   if (rd.gestorBreaks) window._cvCS('tcg_breaks_v2', JSON.stringify(rd.gestorBreaks));
                   if (rd.aperturas) window._cvCS('cv10_aperturas', JSON.stringify(rd.aperturas));
                   if (rd.breakPart) window._cvCS('cv10_break_part', JSON.stringify(rd.breakPart));
