@@ -17357,7 +17357,7 @@ const RARS = ["Común", "Poco común", "Rara", "Ultra Rara", "Legendaria"]
   var BRAND_DEF = ["Topps", "Panini", "Daka"];
 const RCLR = { "Común": "#9ca3af", "Poco común": "#10b981", "Rara": "#3b82f6", "Ultra Rara": "#8b5cf6", "Legendaria": "#f59e0b" };
 const CONDS = ["Raw", "PSA 1", "PSA 2", "PSA 3", "PSA 4", "PSA 5", "PSA 6", "PSA 7", "PSA 8", "PSA 9", "PSA 10", "BGS 9", "BGS 9.5", "BGS 10"];
-const PLATS = ["Vinted", "Wallapop", "Geek", "eBay", "Cardmarket", "Instagram", "TCGPlayer", "Mi web", "Otro"];
+const PLATS = ["Vinted", "Wallapop", "Geek", "eBay", "Cardmarket", "Instagram", "Directo", "Card show", "TCGPlayer", "Mi web", "Otro"];
 const DEFAULT_LOCATIONS = ["Caja 1", "Caja 2", "Caja 3", "Caja 4"];
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 function getCurrencySymbol(){var c=localStorage.getItem("cv10_currency")||"EUR";return{EUR:"\u20AC",GBP:"\u00A3",USD:"$",AUD:"A$"}[c]||"\u20AC";}
@@ -17543,6 +17543,8 @@ function SellModal({ card, onSave, onClose }) {
     const [sMore, setSMore] = useState(false);
     const [bu, setBu] = useState(card.soldTo && card.soldTo !== "Cardshow" ? card.soldTo : "");
     const _buyerOpts = React.useMemo(function(){ try { return window._cvBuyerNames ? window._cvBuyerNames().slice(0, 300) : []; } catch(e){ return []; } }, []);
+    const _SP = ["Vinted", "Wallapop", "Geek", "eBay", "Mi web", "Instagram", "Directo", "Card show", "Otro"];
+    const _sDir = React.useMemo(function(){ try { return (JSON.parse(localStorage.getItem("cv10_directos")||"[]")||[]).filter(function(d){ return d && ((d.cardIds||[]).indexOf(card.id)>=0 || (card.dirId && d.id===card.dirId)); })[0] || null; } catch(e){ return null; } }, []);
     const sellQty = Math.min(parseInt(qty) || 1, maxQty);
     const buy = (card.buyPrice || 0) * sellQty;
     const sell = (parseFloat(pr) || 0) * sellQty;
@@ -17591,10 +17593,11 @@ function SellModal({ card, onSave, onClose }) {
                     React.createElement("label", { style: LS }, "Precio de venta" + (maxQty > 1 ? " por unidad" : "") + " (\u20AC)"),
                     React.createElement("input", { type: "number", inputMode: "decimal", min: "0", step: "0.01", value: pr, onChange: e => setPr(e.target.value), onKeyDown: function(e){ if (e.key === "Enter" && pr) confirm(); }, placeholder: "0.00", style: Object.assign({}, IS, { fontSize: 22, fontWeight: 700, padding: "10px 12px" }), autoFocus: true })),
                 React.createElement("label", { style: LS }, "\u00bfD\u00f3nde?"),
-                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 6, marginBottom: 10 } }, ["Vinted", "Wallapop", "eBay", "Otro"].map(function(x){ var on = pl === x || (x === "Otro" && ["Vinted","Wallapop","eBay"].indexOf(pl) < 0); return React.createElement("button", { key: x, type: "button", onClick: function(){ setPl(x); }, style: { padding: "10px 2px", borderRadius: 9, border: "1.5px solid " + (on ? GREEN : BDR), background: on ? "#f0fdf8" : "#fff", color: on ? "#047857" : SUB, fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, x); })),
+                (_sDir ? React.createElement("div", { style: { padding: "10px 12px", borderRadius: 9, background: "#f0fdf8", border: "1px solid #bfe8d3", fontSize: 12.5, color: "#0a7a55", fontWeight: 600, marginBottom: 10 } }, "\u2705 Esta carta est\u00e1 en el directo \u00ab" + (_sDir.name || "Directo") + "\u00bb: se registra como subasta.") : React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 6, marginBottom: 10 } }, _SP.map(function(x){ var on = pl === x || (x === "Otro" && _SP.indexOf(pl) < 0); return React.createElement("button", { key: x, type: "button", onClick: function(){ setPl(x); }, style: { padding: "10px 2px", borderRadius: 9, border: "1.5px solid " + (on ? GREEN : BDR), background: on ? "#f0fdf8" : "#fff", color: on ? "#047857" : SUB, fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, x === "Directo" ? "\uD83C\uDFAC Directo" : (x === "Card show" ? "\uD83D\uDED2 Card show" : x)); }))),
+                pl === "Card show" ? React.createElement("div", { style: { fontSize: 12, color: "#0a7a55", background: "#f0fdf8", borderRadius: 8, padding: "8px 10px", marginBottom: 10 } }, "Entregada en mano: cuenta en las gr\u00e1ficas y no crea env\u00edo.") : React.createElement("div", null,
                 React.createElement("label", { style: LS }, "Comprador (para el env\u00edo)"),
                 React.createElement("input", { value: bu, onChange: function(e){ setBu(e.target.value); }, onKeyDown: function(e){ if (e.key === "Enter" && pr) confirm(); }, list: "cv-sell-buyers", placeholder: "Usuario, p. ej. juanx (opcional)", autoComplete: "off", style: Object.assign({}, IS, { marginBottom: 10 }) }),
-                React.createElement("datalist", { id: "cv-sell-buyers" }, _buyerOpts.map(function(b){ return React.createElement("option", { key: b, value: b }); })),
+                React.createElement("datalist", { id: "cv-sell-buyers" }, _buyerOpts.map(function(b){ return React.createElement("option", { key: b, value: b }); }))),
                 React.createElement("button", { type: "button", onClick: function(){ setSMore(!sMore); }, style: { width: "100%", textAlign: "left", padding: "6px 0", border: "none", background: "none", color: BLUE, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif", marginBottom: sMore ? 6 : 10 } }, sMore ? "Menos detalles \u25B4" : ("M\u00e1s detalles \u25BE  \u00b7 " + (dt === new Date().toISOString().slice(0, 10) ? "hoy" : dt) + ((parseFloat(fe) || 0) ? " \u00b7 comisi\u00f3n " + fe + "%" : "") + ((parseFloat(sh) || 0) ? " \u00b7 env\u00edo " + sh + " \u20AC" : ""))),
                 sMore && React.createElement("div", { style: { marginBottom: 10 } },
                     React.createElement("label", { style: LS }, "Fecha"),
