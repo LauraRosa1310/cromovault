@@ -17357,7 +17357,7 @@ const RARS = ["Común", "Poco común", "Rara", "Ultra Rara", "Legendaria"]
   var BRAND_DEF = ["Topps", "Panini", "Daka"];
 const RCLR = { "Común": "#9ca3af", "Poco común": "#10b981", "Rara": "#3b82f6", "Ultra Rara": "#8b5cf6", "Legendaria": "#f59e0b" };
 const CONDS = ["Raw", "PSA 1", "PSA 2", "PSA 3", "PSA 4", "PSA 5", "PSA 6", "PSA 7", "PSA 8", "PSA 9", "PSA 10", "BGS 9", "BGS 9.5", "BGS 10"];
-const PLATS = ["eBay", "Wallapop", "Cardmarket", "Vinted", "TCGPlayer", "Mi web", "Otro"];
+const PLATS = ["Vinted", "Wallapop", "Geek", "eBay", "Cardmarket", "Instagram", "TCGPlayer", "Mi web", "Otro"];
 const DEFAULT_LOCATIONS = ["Caja 1", "Caja 2", "Caja 3", "Caja 4"];
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 function getCurrencySymbol(){var c=localStorage.getItem("cv10_currency")||"EUR";return{EUR:"\u20AC",GBP:"\u00A3",USD:"$",AUD:"A$"}[c]||"\u20AC";}
@@ -17727,7 +17727,21 @@ function CardForm({ onSave, onClose, editCard, defMode, lots, saveLots, cards, p
                         React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } },
                             React.createElement("div", null, React.createElement("label", { style: LS }, "Precio de venta (\u20AC)"), React.createElement("input", { type: "number", min: "0", step: "0.01", value: f.sellPrice, onChange: e => sf("sellPrice", e.target.value), placeholder: "0.00", style: IS })),
                             React.createElement("div", null, React.createElement("label", { style: LS }, "Fecha venta"), React.createElement("input", { type: "date", value: f.sellDate || "", onChange: e => sf("sellDate", e.target.value), style: IS }))),
-                        React.createElement("div", { style: { marginTop: 10 } }, React.createElement("label", { style: LS }, "Comprador (para el env\u00edo)"), React.createElement("input", { value: (f.soldTo && f.soldTo !== "Cardshow") ? f.soldTo : "", onChange: e => sf("soldTo", e.target.value), list: "cf-buyers", placeholder: "Usuario, p. ej. juanx (vac\u00edo = sin env\u00edo)", autoComplete: "off", style: IS }), React.createElement("datalist", { id: "cf-buyers" }, (function(){ try { return window._cvBuyerNames ? window._cvBuyerNames().slice(0, 300) : []; } catch(e){ return []; } })().map(function(b){ return React.createElement("option", { key: b, value: b }); }))))),
+                        (function(){
+                          var _dirs=[]; try{ _dirs=JSON.parse(localStorage.getItem("cv10_directos")||"[]")||[]; }catch(e){}
+                          var _d=editCard ? _dirs.filter(function(d){ return d && ((d.cardIds||[]).indexOf(editCard.id)>=0 || (editCard.dirId && d.id===editCard.dirId)); })[0] : null;
+                          var _cs=null; if(editCard && editCard.csId){ try{ _cs=(JSON.parse(localStorage.getItem("cv10_cardshows")||"[]")||[]).filter(function(x){ return x && x.id===editCard.csId; })[0]||{}; }catch(e){ _cs={}; } }
+                          var _bOpts=(function(){ try { return window._cvBuyerNames ? window._cvBuyerNames().slice(0, 300) : []; } catch(e){ return []; } })();
+                          var _buyerField=function(lab){ return React.createElement("div", { style: { marginTop: 10 } }, React.createElement("label", { style: LS }, lab||"Comprador (para el env\u00edo)"), React.createElement("input", { value: (f.soldTo && f.soldTo !== "Cardshow") ? f.soldTo : "", onChange: e => sf("soldTo", e.target.value), list: "cf-buyers", placeholder: "Usuario, p. ej. juanx", autoComplete: "off", style: IS }), React.createElement("datalist", { id: "cf-buyers" }, _bOpts.map(function(b){ return React.createElement("option", { key: b, value: b }); }))); };
+                          var _done=function(txt){ return React.createElement("div", { style: { marginTop: 10, padding: "10px 12px", borderRadius: 9, background: "#fff", border: "1px solid #bfe8d3", fontSize: 12.5, color: "#0a7a55", fontWeight: 600, lineHeight: 1.45 } }, txt); };
+                          if(_d) return React.createElement("div", null, _done("\u2705 Ya registrada: vendida en el directo \u00ab" + (_d.name||"Directo") + "\u00bb" + ((f.soldTo && f.soldTo!=="Cardshow") ? " a " + f.soldTo : "") + ". No tienes que poner nada m\u00e1s."), _buyerField("Comprador (puedes corregirlo)"));
+                          if(_cs) return _done("\u2705 Ya registrada: vendida en el card show" + (_cs.name||_cs.nombre ? " \u00ab" + (_cs.name||_cs.nombre) + "\u00bb" : "") + ". Entregada en mano: cuenta en las gr\u00e1ficas y no crea env\u00edo.");
+                          var _P=["Vinted","Wallapop","Geek","eBay","Mi web","Instagram","Directo","Card show","Otro"];
+                          return React.createElement("div", null,
+                            React.createElement("div", { style: { marginTop: 10 } }, React.createElement("label", { style: LS }, "\u00bfD\u00f3nde se ha vendido?"),
+                              React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap" } }, _P.map(function(x){ var on = f.platform === x || (x === "Otro" && f.platform && _P.indexOf(f.platform) < 0); return React.createElement("button", { key: x, type: "button", onClick: function(){ sf("platform", x); if (!f.sellDate) { var _t=new Date(); sf("sellDate", _t.getFullYear()+"-"+String(_t.getMonth()+1).padStart(2,"0")+"-"+String(_t.getDate()).padStart(2,"0")); } }, style: { padding: "7px 12px", borderRadius: 20, border: "1.5px solid " + (on ? GREEN : BDR), background: on ? "#e6f8f0" : BG, color: on ? "#0a7a55" : SUB, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Inter,sans-serif" } }, x === "Directo" ? "\uD83C\uDFAC Directo / subasta" : (x === "Card show" ? "\uD83D\uDED2 Card show" : x)); }))),
+                            f.platform === "Card show" ? _done("Entregada en mano: cuenta en las gr\u00e1ficas y no crea env\u00edo.") : _buyerField(f.platform === "Directo" ? "Comprador del directo (para el env\u00edo)" : null));
+                        })())),
                     React.createElement("div", { style: { marginBottom: 12 } },
                         React.createElement("label", { style: LS }, "Nombre *"),
                         React.createElement("input", { list: "cf-names", value: f.name, onChange: e => sf("name", e.target.value), placeholder: "Charizard Holo / Messi Rookie...", style: IS, autoFocus: true }),  React.createElement("datalist", { id: "cf-names" }, _names.map(function(n){ return React.createElement("option", { key:n, value:n }); }))),
@@ -22054,17 +22068,29 @@ function _envItems(cards, directos){
   var dirOf={}, dirById={};
   (directos||[]).forEach(function(d){ if(!d) return; dirById[d.id]=d; (d.cardIds||[]).forEach(function(id){ dirOf[id]=d; }); });
   (cards||[]).forEach(function(c){
-    if(!c||c.status!=="sold") return; var b=(c.soldTo||"").trim(); if(!b||b==="Cardshow"||c.csId) return;
-    var d=dirOf[c.id]||(c.dirId?dirById[c.dirId]:null)||null, date=c.sellDate||"", low=b.toLowerCase(), paid=true, via, met="";
-    if(d){ via="Subasta"; if(d.channel==="whatsapp"){ paid=(pay[low+"|"+date]==="cobrado"); } else { met="Geek"; } }
-    else { via=c.platform||"Venta"; met=(["Vinted","Wallapop","eBay","Cardmarket"].indexOf(c.platform)>=0)?c.platform:(c.payMethod||""); }
-    out.push({ k:"c:"+c.id, buyer:b, low:low, date:date, name:c.name||"Carta", price:(c.sellPrice||0)*(c.quantity||1), img:c.imageUrl||c.cloudinaryUrl||"", type:"carta", via:via, ctx:(d?(d.name||"Directo"):""), paid:paid, met:met, old:(ship[low+"|"+date]==="enviado") });
+    if(!c||c.status!=="sold") return; var b=(c.soldTo||"").trim(); if(!b||b==="Cardshow") return;
+    var d=dirOf[c.id]||(c.dirId?dirById[c.dirId]:null)||null, date=c.sellDate||"", low=b.toLowerCase(), paid=true, via, met="", noShip=false;
+    if(c.csId||c.platform==="Card show"){ via="Card show"; noShip=true; met=c.payMethod||""; }
+    else if(d){ via="Subasta"; if(d.channel==="whatsapp"){ paid=(pay[low+"|"+date]==="cobrado"); } else { met="Geek"; } }
+    else if(c.platform==="Directo"){ via="Subasta"; met="Geek"; }
+    else { via=c.platform||"Venta"; met=(["Vinted","Wallapop","eBay","Cardmarket","Geek"].indexOf(c.platform)>=0)?c.platform:(c.payMethod||""); }
+    out.push({ k:"c:"+c.id, buyer:b, low:low, date:date, name:c.name||"Carta", price:(c.sellPrice||0)*(c.quantity||1), img:c.imageUrl||c.cloudinaryUrl||"", type:"carta", via:via, ctx:(d?(d.name||"Directo"):(noShip?"En mano":"")), paid:paid, met:met, noShip:noShip, old:(ship[low+"|"+date]==="enviado") });
   });
   var gb={}; try{ gb=JSON.parse(localStorage.getItem("tcg_breaks_v2")||"{}")||{}; }catch(e){}
   (gb.breaks||[]).forEach(function(bk){ (bk.spots||[]).forEach(function(sp,i){
     var b=(sp.comp||"").trim(); if(!b) return; var low=b.toLowerCase(), date=bk.fecha||"";
     out.push({ k:"s:"+(bk.id||bk.nombre||"b")+":"+i, buyer:b, low:low, date:date, name:"Spot "+(sp.eq||("#"+(i+1))), price:+sp.precio||0, img:"", type:"spot", via:"Break", ctx:bk.nombre||"Break", paid:!!sp.pag, met:sp.metodo||"", old:(!!sp.env||ship[low+"|"+date]==="enviado") });
   }); });
+  return out;
+}
+function _envSales(cards, directos){
+  var out=[], dirOf={}, dirById={};
+  (directos||[]).forEach(function(d){ if(!d) return; dirById[d.id]=d; (d.cardIds||[]).forEach(function(id){ dirOf[id]=d; }); });
+  (cards||[]).forEach(function(c){ if(!c||c.status!=="sold") return; var d=dirOf[c.id]||(c.dirId?dirById[c.dirId]:null);
+    var via=d?"Subasta":((c.csId||c.platform==="Card show")?"Card show":(c.platform==="Directo"?"Subasta":(c.platform||"Sin indicar")));
+    out.push({ via:via, date:c.sellDate||"", price:(c.sellPrice||0)*(c.quantity||1) }); });
+  var gb={}; try{ gb=JSON.parse(localStorage.getItem("tcg_breaks_v2")||"{}")||{}; }catch(e){}
+  (gb.breaks||[]).forEach(function(bk){ (bk.spots||[]).forEach(function(sp){ if((sp.comp||"").trim()) out.push({ via:"Break", date:bk.fecha||"", price:+sp.precio||0 }); }); });
   return out;
 }
 function _envWebStep(o){ if(o.status==="enviado") return "enviado"; if(o.packed) return "empaquetado"; if(o.paid) return "pagado"; if(o.status==="aceptada") return "confirmado"; return "recibido"; }
@@ -22081,7 +22107,7 @@ function _envBuild(items, env){
   var open={}; recs.forEach(function(p){ if(p.frozen) return; var bk=aliasTo(p.bkey); if(!open[bk]||(p.at||0)>(open[bk].at||0)) open[bk]=p; });
   var extra={}, virt={};
   items.forEach(function(it){
-    if(taken[it.k]) return; var sk=env.skip[it.k]; if(sk&&sk.on) return; if(it.old) return; if(env.desde&&it.date&&it.date<env.desde) return;
+    if(it.noShip) return; if(taken[it.k]) return; var sk=env.skip[it.k]; if(sk&&sk.on) return; if(it.old) return; if(env.desde&&it.date&&it.date<env.desde) return;
     var bk=aliasTo(it.low);
     if(open[bk]){ (extra[open[bk].id]=extra[open[bk].id]||[]).push(it.k); }
     else { if(!virt[bk]) virt[bk]={ id:"v:"+bk, bkey:bk, buyer:it.buyer, items:[], at:0 }; virt[bk].items.push(it.k); }
@@ -22267,7 +22293,7 @@ function EnviosTab(props){
     var carrRows=Object.keys(carr).map(function(k){ return [k,carr[k]]; }).sort(function(a,b){ return b[1]-a[1]; });
     var cost={}; sent.forEach(function(v){ if(v.cost==null) return; var k=_envCarrName(v.carrier)||"Sin indicar"; cost[k]=(cost[k]||0)+(+v.cost||0); });
     var costRows=Object.keys(cost).map(function(k){ return [k,cost[k]]; }).sort(function(a,b){ return b[1]-a[1]; });
-    var yr=today.slice(0,4); var via={}; items.forEach(function(it){ if((it.date||"").slice(0,4)!==yr) return; via[it.via]=(via[it.via]||0)+(it.price||0); }); web.forEach(function(w){ if((w.date||"").slice(0,4)!==yr) return; via["Mi web"]=(via["Mi web"]||0)+w.total; });
+    var yr=today.slice(0,4); var via={}; _envSales(cards, directos).forEach(function(it){ if((it.date||"").slice(0,4)!==yr) return; via[it.via]=(via[it.via]||0)+(it.price||0); });
     var viaRows=Object.keys(via).map(function(k){ return [k,via[k]]; }).sort(function(a,b){ return b[1]-a[1]; });
     var lags=sent.map(function(v){ return _envDiff(v.payDate||v.last, v.shipDate); }).filter(function(x){ return x!=null&&x>=0&&x<120; });
     var avgLag=lags.length?(lags.reduce(function(a,b){ return a+b; },0)/lags.length):null;
